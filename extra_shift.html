@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заявка на зміну | Портал працівника</title>
+    <meta name="theme-color" content="#059669">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f8fafc; }
+    </style>
+</head>
+<body class="font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Верхня панель навігації (прихована до авторизації) -->
+    <nav class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50" id="main-nav" style="display: none;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-4">
+                    <a href="./index.html" class="text-slate-500 hover:text-emerald-600 transition-colors flex items-center gap-1 font-medium bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                        </svg>
+                        <span class="hidden sm:inline">На портал</span>
+                    </a>
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Заявка на зміну
+                    </h1>
+                </div>
+                <div class="flex items-center">
+                    <span id="user-greeting" class="text-emerald-700 font-medium text-sm bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 hidden sm:block"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основний контент (прихований до авторизації) -->
+    <main class="flex-grow max-w-3xl mx-auto w-full px-4 sm:px-6 py-8" id="main-content" style="display: none;">
+        
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-emerald-50 p-6 border-b border-emerald-100">
+                <h2 class="text-xl font-bold text-emerald-800 mb-2">Подати заявку на додаткову зміну</h2>
+                <p class="text-emerald-600 text-sm">Заповніть форму нижче, щоб повідомити керівництво про ваше бажання вийти на додаткову робочу зміну.</p>
+            </div>
+
+            <div class="p-6 sm:p-8">
+                <!-- Повідомлення про успішне відправлення -->
+                <div id="success-message" class="hidden mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-4 rounded-lg flex items-start gap-3">
+                    <svg class="w-6 h-6 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <h3 class="font-bold text-green-800">Заявку успішно відправлено!</h3>
+                        <p class="text-sm mt-1">Ваш запит збережено в системі. Керівник зв'яжеться з вами для підтвердження.</p>
+                    </div>
+                </div>
+
+                <form id="shift-form" class="space-y-6">
+                    <div>
+                        <label for="shift-date" class="block text-sm font-medium text-slate-700 mb-1">Бажана дата виходу <span class="text-red-500">*</span></label>
+                        <input type="date" id="shift-date" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-slate-700 bg-white shadow-sm">
+                    </div>
+
+                    <div>
+                        <label for="shift-type" class="block text-sm font-medium text-slate-700 mb-1">Тип зміни <span class="text-red-500">*</span></label>
+                        <select id="shift-type" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-slate-700 bg-white shadow-sm">
+                            <option value="" disabled selected>Оберіть зміну...</option>
+                            <option value="Денна (08:00 - 20:00)">Денна зміна (08:00 - 20:00)</option>
+                            <option value="Нічна (20:00 - 08:00)">Нічна зміна (20:00 - 08:00)</option>
+                            <option value="Будь-яка (День/Ніч)">Будь-яка вільна зміна</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="shift-comment" class="block text-sm font-medium text-slate-700 mb-1">Коментар (необов'язково)</label>
+                        <textarea id="shift-comment" rows="3" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-slate-700 bg-white shadow-sm resize-none" placeholder="Наприклад: можу вийти тільки до 15:00..."></textarea>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" id="submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md">
+                            <span>Відправити заявку</span>
+                            <svg id="submit-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. БЕЗПЕКА: Перевірка авторизації (Аналогічно schedule.html)
+            const currentUser = sessionStorage.getItem('portal_user');
+            
+            if (!currentUser) {
+                document.body.innerHTML = `
+                    <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50">
+                        <div class="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full border border-slate-200">
+                            <svg class="w-16 h-16 text-emerald-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <h2 class="text-2xl font-bold text-slate-800 mb-2">Доступ закрито</h2>
+                            <p class="text-slate-500 mb-8">Будь ласка, авторизуйтесь на головній сторінці порталу для доступу.</p>
+                            <a href="./index.html" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg w-full block transition-colors shadow-sm">Перейти до входу</a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Якщо авторизований - показуємо контент
+            document.getElementById('main-nav').style.display = 'block';
+            document.getElementById('main-content').style.display = 'block';
+
+            // Відображаємо ім'я користувача
+            const greetingEl = document.getElementById('user-greeting');
+            if (greetingEl) {
+                greetingEl.textContent = `👤 ${currentUser}`;
+                greetingEl.classList.remove('hidden');
+            }
+
+            // Встановлюємо мінімальну дату (щоб не можна було обрати вчора)
+            const dateInput = document.getElementById('shift-date');
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.min = today;
+
+            // Логіка відправлення форми
+            const form = document.getElementById('shift-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const submitSpinner = document.getElementById('submit-spinner');
+            const successMsg = document.getElementById('success-message');
+
+            // URL вашого Apps Script (з попередніх налаштувань)
+            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyn2KAX3WAfCvnaYL5iOQaG1ubRK8kaE3Eg45nuxgyAUlCCTemiOW9BP9V1LlVWJiAJxQ/exec';
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // Ховаємо попереднє повідомлення
+                successMsg.classList.add('hidden');
+                
+                // Блокуємо кнопку
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-90', 'cursor-not-allowed');
+                submitSpinner.classList.remove('hidden');
+
+                const date = document.getElementById('shift-date').value;
+                // Форматуємо дату для читабельності
+                const formattedDate = new Date(date).toLocaleDateString('uk-UA');
+                
+                const type = document.getElementById('shift-type').value;
+                const comment = document.getElementById('shift-comment').value.trim();
+
+                // Формуємо рядок, який запишеться у колонку "Дія" в Google Таблицю
+                let actionText = `ЗАЯВКА НА ЗМІНУ: ${formattedDate} | Зміна: ${type}`;
+                if (comment) {
+                    actionText += ` | Коментар: ${comment}`;
+                }
+
+                const formData = new FormData();
+                formData.append('user', currentUser);
+                formData.append('action', actionText);
+
+                // Відправляємо запит
+                fetch(LOG_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors' // Важливо для Google Scripts
+                })
+                .then(() => {
+                    // Показуємо успіх
+                    successMsg.classList.remove('hidden');
+                    form.reset();
+                })
+                .catch(err => {
+                    console.error('Помилка відправлення:', err);
+                    alert('Виникла помилка при відправленні. Спробуйте пізніше.');
+                })
+                .finally(() => {
+                    // Розблоковуємо кнопку
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-90', 'cursor-not-allowed');
+                    submitSpinner.classList.add('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
