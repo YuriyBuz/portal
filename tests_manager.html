@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Керування тестами | Портал працівника</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800">
+
+    <nav class="bg-white shadow-sm border-b border-slate-200 p-4">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <a href="./index.html" class="text-emerald-600 font-bold flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+                Назад на портал
+            </a>
+            <h1 class="text-lg font-bold">Керування тестами</h1>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto p-4 sm:p-8">
+        <!-- Форма додавання -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+            <h2 class="text-xl font-bold mb-4 text-emerald-800">Додати новий тест</h2>
+            <form id="add-test-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="text" id="test-name" placeholder="Назва тесту" required class="p-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
+                <input type="url" id="test-url" placeholder="Посилання (https://...)" required class="p-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
+                <button type="submit" class="md:col-span-2 bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition">Додати тест</button>
+            </form>
+        </div>
+
+        <!-- Список тестів -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b border-slate-100">
+                <h2 class="text-xl font-bold text-slate-800">Список доступних тестів</h2>
+            </div>
+            <ul id="test-list" class="divide-y divide-slate-100">
+                <!-- Сюди будуть додаватися тести -->
+                <li class="p-4 hover:bg-slate-50 flex justify-between items-center">
+                    <div>
+                        <p class="font-medium text-slate-900">TEST_1</p>
+                        <a href="https://yuriybuz.github.io/TEST_1/" target="_blank" class="text-sm text-emerald-600 hover:underline">Відкрити посилання</a>
+                    </div>
+                </li>
+                <li class="p-4 hover:bg-slate-50 flex justify-between items-center">
+                    <div>
+                        <p class="font-medium text-slate-900">test_2</p>
+                        <a href="https://yuriybuz.github.io/test_2/" target="_blank" class="text-sm text-emerald-600 hover:underline">Відкрити посилання</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById('add-test-form');
+        const list = document.getElementById('test-list');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('test-name').value;
+            const url = document.getElementById('test-url').value;
+
+            const li = document.createElement('li');
+            li.className = 'p-4 hover:bg-slate-50 flex justify-between items-center';
+            li.innerHTML = `
+                <div>
+                    <p class="font-medium text-slate-900">${name}</p>
+                    <a href="${url}" target="_blank" class="text-sm text-emerald-600 hover:underline">${url}</a>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600">Видалити</button>
+            `;
+            list.appendChild(li);
+            form.reset();
+        });
+    </script>
+</body>
+</html>
