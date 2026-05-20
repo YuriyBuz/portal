@@ -3,95 +3,341 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Графік роботи | Портал працівника</title>
+    <title>Портал працівника</title>
+    
+    <link rel="manifest" id="manifest-link">
     <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Портал працівника">
+    <link rel="apple-touch-icon" href="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #f8fafc; }
+        body { background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        .link-card {
+            position: relative;
+            background-color: #ffffff; border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 2rem; text-decoration: none; color: #1e293b;
+            height: 100%; min-height: 240px; border: 1px solid #e2e8f0;
+        }
+        a.link-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); border-color: #10b981; }
+        
+        .link-card > svg { width: 4rem; height: 4rem; margin-bottom: 1.5rem; color: #059669; transition: color 0.2s; }
+        
+        .link-card h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; transition: color 0.2s; }
+        .link-card p { font-size: 1rem; color: #64748b; transition: color 0.2s; }
+
+        .schedule-card:hover { border-color: #3b82f6 !important; }
+        .schedule-card:hover h2, .schedule-card:hover p, .schedule-card:hover > svg { color: #3b82f6 !important; }
+
+        .test-card:hover { border-color: #8b5cf6 !important; }
+        .test-card:hover h2, .test-card:hover p, .test-card:hover > svg { color: #8b5cf6 !important; }
+
+        .video-card:hover { border-color: #ef4444 !important; }
+        .video-card:hover h2, .video-card:hover p, .video-card:hover > svg { color: #ef4444 !important; }
+
+        /* Стилі для нової кнопки додаткових змін */
+        .extra-shift-card:hover { border-color: #f59e0b !important; }
+        .extra-shift-card:hover h2, .extra-shift-card:hover p, .extra-shift-card:hover > svg { color: #f59e0b !important; }
     </style>
 </head>
-<body class="font-sans text-slate-800 antialiased min-h-screen flex flex-col">
-
-    <!-- Верхня панель навігації -->
-    <nav class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50" id="main-nav" style="display: none;">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-4">
-                    <!-- Кнопка Назад із безпечним відносним шляхом -->
-                    <a href="./index.html" class="text-slate-500 hover:text-emerald-600 transition-colors flex items-center gap-1 font-medium bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                        </svg>
-                        <span class="hidden sm:inline">На портал</span>
-                    </a>
-                    <h1 class="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
-                        <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                        </svg>
-                        Графік роботи
-                    </h1>
-                </div>
-                <div class="flex items-center">
-                    <span id="user-greeting" class="text-emerald-700 font-medium text-sm bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 hidden sm:block"></span>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Основний контент -->
-    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8" id="main-content" style="display: none;">
-        
-        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-                <h3 class="font-semibold text-blue-800">Повний графік роботи</h3>
-                <p class="text-sm text-blue-600">Тут відображається актуальний стан документа з Google Таблиць.</p>
-            </div>
-            <!-- Кнопка для відкриття повної таблиці в новій вкладці -->
-            <a href="https://docs.google.com/spreadsheets/d/1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg/edit?gid=1460425356#gid=1460425356" target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition-colors whitespace-nowrap text-sm text-center w-full sm:w-auto">
-                Відкрити в новій вкладці
-            </a>
-        </div>
-
-        <!-- Контейнер для вбудованої таблиці -->
-        <div class="w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-white" style="height: 70vh; min-height: 500px;">
-            <iframe src="https://docs.google.com/spreadsheets/d/1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg/htmlembed?gid=1460425356&widget=true&headers=false" class="w-full h-full border-0"></iframe>
-        </div>
-
-    </main>
+<body class="font-sans text-slate-800">
 
     <script>
+        const manifest = {
+            "name": "Портал працівника Foodline",
+            "short_name": "Foodline",
+            "description": "Портал для працівників компанії",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#f8fafc",
+            "theme_color": "#059669",
+            "icons": [
+                {
+                    "src": "https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp", 
+                    "sizes": "192x192", 
+                    "type": "image/webp"
+                }
+            ]
+        };
+        document.getElementById('manifest-link').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
+    </script>
+
+    <!-- Екран авторизації -->
+    <div id="login-container" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+            <div class="text-center mb-8">
+                <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-32 h-auto mx-auto mb-4 rounded-lg shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
+                <h2 class="text-2xl font-bold text-slate-800">Вхід на портал</h2>
+                <p class="text-slate-500 text-sm mt-2">Будь ласка, авторизуйтесь для доступу</p>
+            </div>
+
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="login-phone" class="block text-sm font-medium text-slate-700 mb-1">Телефон або ПІБ</label>
+                    <input type="text" id="login-phone" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" placeholder="Наприклад: 0662415546">
+                </div>
+                
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-slate-700 mb-1">Пароль</label>
+                    <input type="password" id="login-password" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" placeholder="Введіть ваш пароль">
+                </div>
+
+                <div id="login-error" class="hidden text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg border border-red-100">
+                    Невірний телефон/ПІБ або пароль.
+                </div>
+
+                <button type="submit" id="login-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md">
+                    <span>Увійти</span>
+                    <svg id="login-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Основний контент (прихований до авторизації) -->
+    <div id="app-container" class="hidden container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+        <header class="relative mb-10 pt-4">
+            <!-- Верхня панель (Дата та Профіль) -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+                <div id="current-date" class="text-slate-500 text-sm sm:text-base font-medium"></div>
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                    <span id="user-greeting" class="text-emerald-700 font-medium text-sm sm:text-base bg-emerald-50 px-4 py-1.5 rounded-full border border-emerald-100 truncate max-w-[200px] sm:max-w-xs"></span>
+                    <button id="logout-btn" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 py-1.5 px-4 rounded-lg transition-colors font-medium border border-slate-200 shadow-sm flex-shrink-0">Вийти</button>
+                </div>
+            </div>
+
+            <!-- Логотип та Заголовки -->
+            <div class="text-center">
+                <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-40 h-auto mx-auto mb-6 rounded-lg bg-white p-3 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
+                <h1 class="text-3xl sm:text-5xl font-bold text-slate-800 mb-2">Портал працівника</h1>
+                <p class="text-slate-500 text-xl">Навчання, графіки та корисна інформація</p>
+            </div>
+        </header>
+
+        <main>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                
+                <a href="schedule.html" class="link-card schedule-card group">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 15h1.5v1.5h-1.5V15zM15 15h1.5v1.5H15V15zM7.5 15h1.5v1.5H7.5V15zM11.25 11.25h1.5v1.5h-1.5v-1.5zM15 11.25h1.5v1.5H15v-1.5zM7.5 11.25h1.5v1.5H7.5v-1.5z" />
+                    </svg>
+                    <h2>Графік виходу</h2>
+                    <p>Ваш робочий розклад</p>
+                </a>
+
+                <a href="tests.html" class="link-card test-card group">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
+                    </svg>
+                    <h2>Тести</h2>
+                    <p>Перевірка знань та атестація</p>
+                </a>
+
+                <a href="videos.html" class="link-card video-card group">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z" />
+                    </svg>
+                    <h2>Навчальні відео</h2>
+                    <p>Інструкції та відеоматеріали</p>
+                </a>
+
+                <!-- Нова кнопка: Заявка на додаткову робочу зміну -->
+                <a href="extra_shift.html" class="link-card extra-shift-card group">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h2>Заявка на зміну</h2>
+                    <p>Додаткові робочі години</p>
+                </a>
+
+            </div>
+        </main>
+    </div>
+    
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. БЕЗПЕКА: Перевірка авторизації
-            const currentUser = sessionStorage.getItem('portal_user');
-            
-            // Якщо користувач не увійшов, показуємо безпечне повідомлення
-            if (!currentUser) {
-                document.body.innerHTML = `
-                    <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50">
-                        <div class="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full border border-slate-200">
-                            <svg class="w-16 h-16 text-emerald-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                            <h2 class="text-2xl font-bold text-slate-800 mb-2">Доступ закрито</h2>
-                            <p class="text-slate-500 mb-8">Будь ласка, авторизуйтесь на головній сторінці порталу для перегляду графіка.</p>
-                            <!-- Використано безпечний відносний шлях -->
-                            <a href="./index.html" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg w-full block transition-colors shadow-sm">Перейти до входу</a>
-                        </div>
-                    </div>
-                `;
-                return;
+            // Відображення поточної дати
+            const dateElement = document.getElementById('current-date');
+            const now = new Date();
+            const options = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+            const formattedDate = new Intl.DateTimeFormat('uk-UA', options).format(now);
+            if (dateElement) dateElement.textContent = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+
+            const loginContainer = document.getElementById('login-container');
+            const appContainer = document.getElementById('app-container');
+            const loginForm = document.getElementById('login-form');
+            const loginError = document.getElementById('login-error');
+            const loginBtn = document.getElementById('login-btn');
+            const loginSpinner = document.getElementById('login-spinner');
+            const logoutBtn = document.getElementById('logout-btn');
+            const userGreeting = document.getElementById('user-greeting');
+
+            // --- Система Логування ---
+            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyn2KAX3WAfCvnaYL5iOQaG1ubRK8kaE3Eg45nuxgyAUlCCTemiOW9BP9V1LlVWJiAJxQ/exec';
+
+            function logUserAction(actionDetails) {
+                const userName = sessionStorage.getItem('portal_user');
+                if (!userName || LOG_SCRIPT_URL === 'ВАШ_URL_ВЕБ_ДОДАТКУ_APPS_SCRIPT') return;
+
+                const formData = new FormData();
+                formData.append('user', userName);
+                formData.append('action', actionDetails);
+
+                fetch(LOG_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors',
+                    keepalive: true
+                }).catch(err => console.error('Помилка логування:', err));
             }
 
-            // Якщо авторизований - показуємо контент
-            document.getElementById('main-nav').style.display = 'block';
-            document.getElementById('main-content').style.display = 'block';
+            // Відстеження кліків по кнопках меню
+            document.querySelectorAll('.link-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const buttonName = this.querySelector('h2').innerText;
+                    logUserAction(`Натиснуто: ${buttonName}`);
+                });
+            });
 
-            // Відображаємо ім'я користувача
-            const greetingEl = document.getElementById('user-greeting');
-            if (greetingEl) {
-                greetingEl.textContent = `👤 ${currentUser}`;
-                greetingEl.classList.remove('hidden');
+            // ID Google Таблиці з паролями
+            const SHEET_ID = '1t3vF0VtiPyPja24v8P7b8OxwdPd4NjftsVmSkAcbt7o';
+            const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+
+            // Перевірка чи користувач вже авторизований
+            const savedUser = sessionStorage.getItem('portal_user');
+            if (savedUser) {
+                showApp(savedUser);
+            } else {
+                showLogin();
             }
+
+            function showApp(userName) {
+                loginContainer.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                userGreeting.textContent = `👤 ${userName}`;
+            }
+
+            function showLogin() {
+                loginContainer.classList.remove('hidden');
+                appContainer.classList.add('hidden');
+                loginForm.reset();
+                loginError.classList.add('hidden');
+            }
+
+            function extractLast10Digits(phone) {
+                const digits = phone.replace(/\D/g, '');
+                return digits.length > 10 ? digits.slice(-10) : digits;
+            }
+
+            const getVal = (cell) => {
+                if (!cell) return '';
+                if (cell.f !== undefined && cell.f !== null) return cell.f.toString().trim();
+                if (cell.v !== undefined && cell.v !== null) return cell.v.toString().trim();
+                return '';
+            };
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const inputUsername = document.getElementById('login-phone').value.trim();
+                const inputPassword = document.getElementById('login-password').value.trim();
+                
+                loginError.classList.add('hidden');
+                loginBtn.disabled = true;
+                loginSpinner.classList.remove('hidden');
+
+                // --- Додано Тестовий Логін ---
+                if (inputUsername === '8899' && inputPassword === '9988') {
+                    const testName = 'Тестовий Користувач';
+                    sessionStorage.setItem('portal_user', testName);
+                    showApp(testName);
+                    logUserAction('Вхід в систему (Тестовий акаунт)');
+                    loginBtn.disabled = false;
+                    loginSpinner.classList.add('hidden');
+                    return; // Зупиняємо функцію, щоб не робити запит до таблиці
+                }
+                // -----------------------------
+
+                try {
+                    const response = await fetch(SHEET_URL);
+                    if (!response.ok) throw new Error('Помилка мережі при завантаженні даних.');
+                    
+                    const text = await response.text();
+                    
+                    if (text.includes('<html') || text.includes('Sign in - Google Accounts')) {
+                        throw new Error('Немає доступу до бази даних. Впевніться, що в налаштуваннях Google Таблиці встановлено "Усі, хто має посилання".');
+                    }
+
+                    const jsonStr = text.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\);/)[1];
+                    const data = JSON.parse(jsonStr);
+                    
+                    const rows = data.table.rows;
+                    let isAuthenticated = false;
+                    let foundName = '';
+
+                    for (let i = 0; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (!row || !row.c) continue;
+
+                        const nameCell = row.c[1];
+                        const phoneCell = row.c[2];
+                        const passCell = row.c[6];
+
+                        const sheetName = getVal(nameCell);
+                        const sheetPhone = getVal(phoneCell);
+                        const sheetPass = getVal(passCell);
+
+                        if (!sheetName && !sheetPhone) continue;
+
+                        const normInputPhone = extractLast10Digits(inputUsername);
+                        const normSheetPhone = extractLast10Digits(sheetPhone);
+                        
+                        const isPhoneMatch = (normInputPhone.length >= 9) && (normInputPhone === normSheetPhone);
+                        const isNameMatch = sheetName.toLowerCase() === inputUsername.toLowerCase();
+                        
+                        if ((isPhoneMatch || isNameMatch) && sheetPass === inputPassword) {
+                            isAuthenticated = true;
+                            foundName = sheetName || "Працівник";
+                            break;
+                        }
+                    }
+
+                    if (isAuthenticated) {
+                        sessionStorage.setItem('portal_user', foundName);
+                        showApp(foundName);
+                        logUserAction('Вхід в систему');
+                    } else {
+                        showError("Невірний телефон/ПІБ або пароль.");
+                    }
+
+                } catch (error) {
+                    console.error("Помилка авторизації:", error);
+                    showError(error.message.includes('доступу') ? error.message : "Помилка підключення до бази даних. Спробуйте пізніше.");
+                } finally {
+                    loginBtn.disabled = false;
+                    loginSpinner.classList.add('hidden');
+                }
+            });
+
+            function showError(msg) {
+                loginError.textContent = msg;
+                loginError.classList.remove('hidden');
+            }
+
+            logoutBtn.addEventListener('click', () => {
+                logUserAction('Вихід з системи');
+                sessionStorage.removeItem('portal_user');
+                showLogin();
+            });
         });
     </script>
 </body>
