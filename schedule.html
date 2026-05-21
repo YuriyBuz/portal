@@ -26,7 +26,7 @@
         .calendar-day:hover:not(.empty-day) { transform: scale(1.05); z-index: 10;}
         .empty-day { border: none !important; background: transparent !important; cursor: default; }
         
-        /* Кольори змін (адаптовано для світлої/темної теми) */
+        /* Кольори різних типів комірок графіка */
         .shift-reg { background-color: #b6d7a8 !important; color: #1e3a1e !important; border-color: #94c180 !important; font-weight: bold; }
         .shift-extra { background-color: #6ee7b7 !important; color: #064e3b !important; border-color: #34d399 !important; font-weight: bold; }
         .shift-sick { background-color: #bfdbfe !important; color: #1e3a8a !important; border-color: #93c5fd !important; font-weight: bold; }
@@ -38,8 +38,7 @@
 </head>
 <body class="font-sans text-slate-800 dark:text-slate-100 antialiased min-h-screen flex flex-col relative transition-colors duration-200">
 
-    <!-- Навігація -->
-    <nav class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40" id="main-nav" style="display: none;">
+    <nav class="bg-white shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40" id="main-nav" style="display: none;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center gap-4">
@@ -68,26 +67,22 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <!-- Ліва колонка (Календарі) -->
             <div class="lg:col-span-2 space-y-8">
                 <div id="calendars-wrapper" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
 
-                <!-- Легенда -->
                 <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
                     <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-3 text-center">Умовні позначення</h3>
                     <div class="flex flex-wrap gap-4 text-xs font-medium justify-center text-slate-700 dark:text-slate-300">
-                        <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#b6d7a8] border border-[#85b873]"></span> Робоча (1)</div>
-                        <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#6ee7b7] border border-[#34d399]"></span> Додаткова (З)</div>
+                        <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#b6d7a8] border border-[#85b873]"></span> Робоча зміна (1)</div>
+                        <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#6ee7b7] border border-[#34d399]"></span> Додаткова зміна (З)</div>
                         <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#bfdbfe] border border-[#93c5fd]"></span> Лікарняний (Л)</div>
                         <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#fde047] border border-[#facc15]"></span> Відпустка (В)</div>
                     </div>
-                    <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-4">* Натисніть на дату, щоб подати заявку на зміну.</p>
+                    <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-4">* Натисніть на будь-яку дату в календарі, щоб відкрити панель дій.</p>
                 </div>
             </div>
 
-            <!-- Права колонка (Статистика та Заявки) -->
             <div class="space-y-8">
-                <!-- Статистика -->
                 <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
                     <h2 class="text-lg font-bold mb-4">Особистий кабінет</h2>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider" id="stat-month-label">Статистика</p>
@@ -111,7 +106,6 @@
                     </div>
                 </div>
 
-                <!-- Мої заявки (Історія) -->
                 <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
                     <h2 class="text-lg font-bold mb-4">Мої останні заявки</h2>
                     <div id="my-requests-list" class="space-y-3"></div>
@@ -120,10 +114,9 @@
         </div>
     </main>
 
-    <!-- Модальне вікно для заявки -->
     <div id="request-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
-            <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative border dark:border-slate-700">
+            <div id="modal-header-bg" class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20">
                 <h3 id="modal-title" class="text-xl font-bold text-emerald-800 dark:text-emerald-400">Заявка на зміну</h3>
                 <button type="button" id="close-modal-x" class="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-800 p-1 rounded-md transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -131,18 +124,18 @@
             </div>
             
             <div class="p-6">
-                <!-- Повідомлення про успіх -->
                 <div id="success-message" class="hidden text-center py-6">
                     <svg class="w-16 h-16 text-emerald-500 mx-auto mb-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <h3 class="text-xl font-bold mb-2">Заявку відправлено!</h3>
-                    <p class="text-slate-500 dark:text-slate-400 mb-6">Запит збережено. Керівник зв'яжеться з вами.</p>
-                    <button type="button" id="close-modal-success" class="w-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 font-bold py-3 rounded-lg">Закрити</button>
+                    <p class="text-slate-500 dark:text-slate-400 mb-6">Запит успішно надіслано керівництву на пошту.</p>
+                    <button type="button" id="close-modal-success" class="w-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 font-bold py-3 rounded-lg transition-colors">Закрити</button>
                 </div>
 
-                <!-- Текст попередження -->
-                <p id="modal-warning-text" class="hidden text-slate-600 dark:text-slate-300 mb-6 text-center">На цю дату у вас вже призначена робоча зміна. Ви не можете подати заявку.</p>
+                <div id="modal-warning-block" class="hidden text-center py-4">
+                    <p class="text-slate-600 dark:text-slate-300 text-base font-medium mb-6">На цю дату у вас вже запланована робоча зміна. Ви не можете подати заявку.</p>
+                    <button type="button" id="modal-ok-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition-colors shadow-sm">Зрозуміло</button>
+                </div>
 
-                <!-- Форма заявки -->
                 <form id="shift-form" class="space-y-4">
                     <div id="shift-form-inputs" class="space-y-4">
                         <div>
@@ -152,21 +145,19 @@
                         <div>
                             <label class="block text-sm font-medium mb-1">Тип зміни <span class="text-red-500">*</span></label>
                             <select id="shift-type" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-emerald-500 outline-none">
-                                <option value="Денна (08:00 - 20:00)" selected>Денна зміна (08:00 - 20:00)</option>
-                                <option value="Нічна (20:00 - 08:00)">Нічна зміна (20:00 - 08:00)</option>
+                                <option value="Денна зміна (08:00 - 20:00)" selected>Денна зміна (08:00 - 20:00)</option>
+                                <option value="Нічна зміна (20:00 - 08:00)">Нічна зміна (20:00 - 08:00)</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">Коментар</label>
-                            <textarea id="shift-comment" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-emerald-500 outline-none resize-none" placeholder="Побажання..."></textarea>
+                            <textarea id="shift-comment" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-emerald-500 outline-none resize-none" placeholder="Наприклад: можу тільки в першу половину дня..."></textarea>
                         </div>
                     </div>
                     
-                    <div class="pt-4 flex gap-3">
+                    <div id="shift-form-actions" class="pt-4 flex gap-3">
                         <button type="button" id="cancel-modal-btn" class="w-1/3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold py-3 rounded-lg transition-colors">Скасувати</button>
-                        <button type="button" id="modal-ok-btn" class="hidden w-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold py-3 rounded-lg transition-colors">Зрозуміло</button>
-                        
-                        <button type="submit" id="submit-btn" class="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2">
+                        <button type="submit" id="submit-btn" class="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2 shadow-sm">
                             <span>Відправити</span>
                             <svg id="submit-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         </button>
@@ -185,14 +176,12 @@
             document.getElementById('main-content').style.display = 'block';
             document.getElementById('user-greeting').textContent = `👤 ${currentUser}`;
 
-            // Темна тема
             document.getElementById('theme-toggle').addEventListener('click', () => {
                 document.documentElement.classList.toggle('dark');
                 localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
             });
 
-            const SHEET_ID = '1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg';
-            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTb2yQlaq9xdqxd7x2WrRmx61uifr8KREs8BmYTkKiQaIlaaGtrL6Qxlf1jbTVN-kN/exec';
+            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzv2bLtmiVDm9cuvg8V2FGjzFCJbf-k86VmlKF9T4wxxIUoGHXk6boxMyxMFRPLLLhF/exec';
             const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
 
             const now = new Date();
@@ -205,48 +194,11 @@
             let shiftsDatabase = {}; 
             let stats = { reg: 0, extra: 0, sick: 0, vac: 0 };
 
-            // ПАРСИНГ CSV-ФОРМАТУ ДЛЯ ОБХОДУ БАГУ GOOGLE
-            function parseCSV(text) {
-                const rows = [];
-                let currentRow = [], currentCell = '', inQuotes = false;
-                for (let i = 0; i < text.length; i++) {
-                    const char = text[i], nextChar = text[i + 1];
-                    if (char === '"' && inQuotes && nextChar === '"') { currentCell += '"'; i++; }
-                    else if (char === '"') { inQuotes = !inQuotes; }
-                    else if (char === ',' && !inQuotes) { currentRow.push(currentCell.trim()); currentCell = ''; }
-                    else if ((char === '\n' || char === '\r') && !inQuotes) {
-                        if (char === '\r' && nextChar === '\n') i++; 
-                        currentRow.push(currentCell.trim()); rows.push(currentRow); currentRow = []; currentCell = '';
-                    } else { currentCell += char; }
-                }
-                if (currentCell !== '' || currentRow.length > 0) { currentRow.push(currentCell.trim()); rows.push(currentRow); }
-                return rows;
-            }
-
-            async function fetchMonthDataCSV(monthIdx, yearNum) {
-                const sheetName = `${ukrMonths[monthIdx]} ${yearNum}`;
-                const cacheKey = `portal_cache_csv_${sheetName}`;
-                // Використовуємо tqx=out:csv (отримуємо сирий текст)
-                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
-                
-                try {
-                    const r = await fetch(url);
-                    if (r.ok) {
-                        const txt = await r.text();
-                        localStorage.setItem(cacheKey, txt);
-                        return parseCSV(txt);
-                    }
-                } catch(e) { console.log('Офлайн: використовуємо кеш'); }
-                
-                const cached = localStorage.getItem(cacheKey);
-                return cached ? parseCSV(cached) : null;
-            }
-
             const checkType = (v) => {
                 if (!v) return null;
-                const match = v.match(/[A-ZА-ЯІЇЄҐ0-9]/i);
+                const match = v.toString().trim().toUpperCase().match(/[A-ZА-ЯІЇЄҐ0-9]/i);
                 if (!match) return null;
-                const char = match[0].toUpperCase();
+                const char = match[0];
                 if (char === 'В' || char === 'B') return 'VAC';
                 if (char === 'Л' || char === 'L') return 'SICK';
                 if (char === 'З' || char === '3') return 'EXTRA';
@@ -254,15 +206,14 @@
                 return null;
             };
 
-            function parseShifts(rows, monthIdx, yearNum) {
-                if (!rows || rows.length === 0) return;
-                // В CSV структурі індекс 0 - це колонка A (ПІБ)
-                let userRow = rows.find(r => r && r[0] && r[0].toLowerCase().includes(currentUser.toLowerCase().split(' ')[0]));
+            function parseShifts(matrix, monthIdx, yearNum) {
+                if (!matrix || matrix.length === 0) return;
+                // Шукаємо рядок за першим словом ПІБ працівника
+                let userRow = matrix.find(r => r && r[0] && r[0].toLowerCase().includes(currentUser.toLowerCase().split(' ')[0]));
                 if (!userRow) return;
 
                 const daysInMonth = new Date(yearNum, monthIdx + 1, 0).getDate();
                 for (let d = 1; d <= daysInMonth; d++) {
-                    // Індекс 2 - це колонка С (1-й день місяця)
                     const dVal = userRow[2 + (d - 1) * 2] || '';
                     const nVal = userRow[3 + (d - 1) * 2] || '';
                     const dateKey = `${yearNum}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -284,7 +235,7 @@
                 const reqs = JSON.parse(localStorage.getItem('my_shift_reqs') || '[]');
                 const container = document.getElementById('my-requests-list');
                 if (reqs.length === 0) {
-                    container.innerHTML = '<p class="text-sm text-slate-500 dark:text-slate-400">Немає історіі заявок.</p>';
+                    container.innerHTML = '<p class="text-sm text-slate-500 dark:text-slate-400">Немає історії заявок.</p>';
                     return;
                 }
                 container.innerHTML = reqs.map(r => `
@@ -298,20 +249,43 @@
                 `).join('');
             }
 
+            // Отримання матриці значень безпосередньо через бекенд Apps Script (захист від спотворення типів)
+            async function fetchMonthDataBackend(monthIdx, yearNum) {
+                const sheetName = `${ukrMonths[monthIdx]} ${yearNum}`;
+                const cacheKey = `portal_backend_cache_${sheetName}`;
+                
+                try {
+                    const response = await fetch(LOG_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ requestType: 'get_schedule', sheetName: sheetName })
+                    });
+                    if (response.ok) {
+                        const resData = await response.json();
+                        if (resData && resData.values) {
+                            localStorage.setItem(cacheKey, JSON.stringify(resData.values));
+                            return resData.values;
+                        }
+                    }
+                } catch(e) { console.log('Фонове завантаження не вдалося, перевірка кешу.'); }
+                
+                const cached = localStorage.getItem(cacheKey);
+                return cached ? JSON.parse(cached) : null;
+            }
+
             async function loadData() {
-                // Перевіряємо локальний CSV-кеш
-                const c1 = localStorage.getItem(`portal_cache_csv_${ukrMonths[currentM]} ${currentY}`);
-                const c2 = localStorage.getItem(`portal_cache_csv_${ukrMonths[nextM]} ${nextY}`);
+                const c1 = localStorage.getItem(`portal_backend_cache_${ukrMonths[currentM]} ${currentY}`);
+                const c2 = localStorage.getItem(`portal_backend_cache_${ukrMonths[nextM]} ${nextY}`);
                 
                 if (c1 && c2) {
                     document.getElementById('calendar-loader').classList.add('hidden');
-                    parseShifts(parseCSV(c1), currentM, currentY);
-                    parseShifts(parseCSV(c2), nextM, nextY);
+                    parseShifts(JSON.parse(c1), currentM, currentY);
+                    parseShifts(JSON.parse(c2), nextM, nextY);
                     renderUI();
                 }
 
-                // Запит у фоні
-                const [t1, t2] = await Promise.all([fetchMonthDataCSV(currentM, currentY), fetchMonthDataCSV(nextM, nextY)]);
+                const t1 = await fetchMonthDataBackend(currentM, currentY);
+                const t2 = await fetchMonthDataBackend(nextM, nextY);
+                
                 if (t1 && t2) {
                     shiftsDatabase = {}; stats = { reg: 0, extra: 0, sick: 0, vac: 0 }; 
                     parseShifts(t1, currentM, currentY); parseShifts(t2, nextM, nextY);
@@ -341,9 +315,8 @@
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dateStr = `${yearNum}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                     const t = shiftsDatabase[dateStr];
-                    let cls = t==='REG'?'shift-reg':t==='EXTRA'?'shift-extra':t==='SICK'?'shift-sick':t==='VAC'?'shift-vac':'bg-white dark:bg-slate-800';
+                    let cls = t=='REG'?'shift-reg':t=='EXTRA'?'shift-extra':t=='SICK'?'shift-sick':t=='VAC'?'shift-vac':'bg-white dark:bg-slate-800';
                     let today = dateStr === todayDateString ? 'is-today' : '';
-                    // Додаємо data-type щоб читати його при кліку
                     html += `<div class="calendar-day ${cls} ${today}" data-date="${dateStr}" data-type="${t || 'EMPTY'}">${d}</div>`;
                 }
                 return html + `</div></div>`;
@@ -351,7 +324,7 @@
 
             loadData();
 
-            // ЛОГІКА МОДАЛКИ (Блокування робочих змін)
+            // Логіка Модального вікна та розмежування за типом дня
             const modal = document.getElementById('request-modal');
             const shiftForm = document.getElementById('shift-form');
             const dateInput = document.getElementById('shift-date');
@@ -362,30 +335,26 @@
                     const shiftType = el.getAttribute('data-type');
                     const dateStr = el.getAttribute('data-date');
 
-                    // Скидаємо стан модалки
+                    // Скидання стану форми та модалки
                     shiftForm.reset(); 
                     document.getElementById('success-message').classList.add('hidden'); 
-                    shiftForm.classList.remove('hidden');
 
                     if (shiftType === 'REG') {
-                        // Блокуємо форму, якщо зміна Робоча
+                        // БЛОКУВАННЯ: Якщо обрано робочу зміну '1'
                         document.getElementById('modal-title').textContent = "Увага";
-                        document.getElementById('modal-warning-text').classList.remove('hidden');
+                        document.getElementById('modal-header-bg').className = "flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-amber-50 dark:bg-amber-950/20";
+                        document.getElementById('modal-warning-block').classList.remove('hidden');
                         document.getElementById('shift-form-inputs').classList.add('hidden');
-                        document.getElementById('cancel-modal-btn').classList.add('hidden');
-                        document.getElementById('submit-btn').classList.add('hidden');
-                        document.getElementById('modal-ok-btn').classList.remove('hidden');
+                        document.getElementById('shift-form-actions').classList.add('hidden');
                     } else {
-                        // Відкриваємо форму для заявки
+                        // ДОЗВІЛ: Якщо день вільний, лікарняний або відпустка
                         document.getElementById('modal-title').textContent = "Заявка на зміну";
-                        document.getElementById('modal-warning-text').classList.add('hidden');
+                        document.getElementById('modal-header-bg').className = "flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20";
+                        document.getElementById('modal-warning-block').classList.add('hidden');
                         document.getElementById('shift-form-inputs').classList.remove('hidden');
-                        document.getElementById('cancel-modal-btn').classList.remove('hidden');
-                        document.getElementById('submit-btn').classList.remove('hidden');
-                        document.getElementById('modal-ok-btn').classList.add('hidden');
+                        document.getElementById('shift-form-actions').classList.remove('hidden');
                         dateInput.value = dateStr; 
                     }
-                    
                     modal.classList.remove('hidden'); 
                 }
             });
@@ -396,11 +365,16 @@
             document.getElementById('modal-ok-btn').onclick = closeModal;
             document.getElementById('close-modal-success').onclick = closeModal;
 
-            // Відправка
+            // Надіслати запит на пошту та записати в логи
             shiftForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                document.getElementById('submit-btn').disabled = true; document.getElementById('submit-spinner').classList.remove('hidden');
-                const dVal = new Date(dateInput.value).toLocaleDateString('uk-UA'), tVal = document.getElementById('shift-type').value, cVal = document.getElementById('shift-comment').value;
+                const sBtn = document.getElementById('submit-btn');
+                sBtn.disabled = true; 
+                document.getElementById('submit-spinner').classList.remove('hidden');
+                
+                const dVal = new Date(dateInput.value).toLocaleDateString('uk-UA');
+                const tVal = document.getElementById('shift-type').value;
+                const cVal = document.getElementById('shift-comment').value.trim();
 
                 try {
                     const reqs = JSON.parse(localStorage.getItem('my_shift_reqs') || '[]');
@@ -408,15 +382,17 @@
                     localStorage.setItem('my_shift_reqs', JSON.stringify(reqs.slice(0, 5)));
                     renderMyRequests();
 
-                    const postData = { to: ["Buznitskiy7@gmail.com", "dyndarnastia@gmail.com"], subject: `Заявка: ${currentUser}`, body: `Працівник: ${currentUser}\nДата: ${dVal}\nЗміна: ${tVal}\nКоментар: ${cVal}`};
-                    const fd = new FormData(); fd.append('user', currentUser); fd.append('action', `ЗАЯВКА: ${dVal} | ${tVal}`);
+                    const postData = { to: ["Buznitskiy7@gmail.com", "dyndarnastia@gmail.com"], subject: `Заявка: ${currentUser}`, body: `Працівник: ${currentUser}\nДата: ${dVal}\nЗміна: ${tVal}\nКоментар: ${cVal || 'немає'}`};
+                    const fd = new FormData(); fd.append('user', currentUser); fd.append('action', `ЗАЯВКА НА ЗМІНУ: ${dVal} | ${tVal}`);
                     
                     await fetch(LOG_SCRIPT_URL, { method: 'POST', body: fd, mode: 'no-cors' });
                     await fetch(LOG_SCRIPT_URL, { method: 'POST', body: JSON.stringify(postData), mode: 'no-cors' });
 
-                    shiftForm.classList.add('hidden'); document.getElementById('success-message').classList.remove('hidden');
-                } catch(err) {} 
-                finally { document.getElementById('submit-btn').disabled = false; document.getElementById('submit-spinner').classList.add('hidden'); }
+                    document.getElementById('shift-form-inputs').classList.add('hidden');
+                    document.getElementById('shift-form-actions').classList.add('hidden');
+                    document.getElementById('success-message').classList.remove('hidden');
+                } catch(err) { alert('Помилка при відправленні запиту.'); } 
+                finally { sBtn.disabled = false; document.getElementById('submit-spinner').classList.add('hidden'); }
             });
         });
     </script>
