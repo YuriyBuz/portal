@@ -6,134 +6,164 @@
     <title>Графік та заявки | Портал працівника</title>
     <meta name="theme-color" content="#059669">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
     <style>
         body { background-color: #f8fafc; }
+        .dark body { background-color: #0f172a; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-        .day-header { text-align: center; font-size: 0.875rem; font-weight: 600; color: #64748b; padding: 4px 0; }
+        .day-header { text-align: center; font-size: 0.875rem; font-weight: 600; padding: 4px 0; }
         .calendar-day { 
             aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; 
             justify-content: center; border-radius: 0.5rem; border: 1px solid #e2e8f0; 
-            background-color: #ffffff; cursor: pointer; transition: all 0.2s; position: relative;
-            font-size: 1rem;
+            cursor: pointer; transition: all 0.2s; position: relative; font-size: 1rem;
         }
-        .calendar-day:hover:not(.empty-day) { background-color: #f1f5f9; border-color: #cbd5e1; transform: scale(1.05); z-index: 10;}
-        .empty-day { border: none; background: transparent; cursor: default; }
+        .dark .calendar-day { border-color: #334155; }
+        .calendar-day:hover:not(.empty-day) { transform: scale(1.05); z-index: 10;}
+        .empty-day { border: none !important; background: transparent !important; cursor: default; }
         
-        /* Типи змін */
-        .shift-reg { background-color: #b6d7a8 !important; color: #1e3a1e !important; border-color: #94c180; }
-        .shift-extra { background-color: #6ee7b7 !important; color: #064e3b !important; border-color: #34d399; }
-        .shift-sick { background-color: #bfdbfe !important; color: #1e3a8a !important; border-color: #93c5fd; }
-        .shift-vac { background-color: #fde047 !important; color: #713f12 !important; border-color: #facc15; }
+        /* Кольори змін (адаптовано для світлої/темної теми) */
+        .shift-reg { background-color: #b6d7a8 !important; color: #1e3a1e !important; border-color: #94c180 !important; }
+        .shift-extra { background-color: #6ee7b7 !important; color: #064e3b !important; border-color: #34d399 !important; }
+        .shift-sick { background-color: #bfdbfe !important; color: #1e3a8a !important; border-color: #93c5fd !important; }
+        .shift-vac { background-color: #fde047 !important; color: #713f12 !important; border-color: #facc15 !important; }
         
         /* Поточний день */
-        .is-today { outline: 3px solid #059669; outline-offset: -2px; font-weight: 900; color: #059669; }
+        .is-today { outline: 3px solid #059669; outline-offset: -2px; font-weight: 900; }
     </style>
 </head>
-<body class="font-sans text-slate-800 antialiased min-h-screen flex flex-col relative">
+<body class="font-sans text-slate-800 dark:text-slate-100 antialiased min-h-screen flex flex-col relative transition-colors duration-200">
 
     <!-- Навігація -->
-    <nav class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-40" id="main-nav" style="display: none;">
+    <nav class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40" id="main-nav" style="display: none;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center gap-4">
-                    <a href="./index.html" class="text-slate-500 hover:text-emerald-600 transition-colors flex items-center gap-1 font-medium bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                        </svg>
+                    <a href="./index.html" class="text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1 font-medium bg-slate-50 dark:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
                         <span class="hidden sm:inline">На портал</span>
                     </a>
-                    <h1 class="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">Календар змін</h1>
+                    <h1 class="text-lg sm:text-xl font-bold flex items-center gap-2">Календар змін</h1>
                 </div>
-                <div>
-                    <span id="user-greeting" class="text-emerald-700 font-medium text-sm bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100"></span>
+                <div class="flex items-center gap-3">
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-amber-400 transition-colors">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    </button>
+                    <span id="user-greeting" class="text-emerald-700 dark:text-emerald-400 font-medium text-sm bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800"></span>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Основний вміст -->
-    <main class="flex-grow max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8" id="main-content" style="display: none;">
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8" id="main-content" style="display: none;">
         
-        <!-- Лоадер завантаження даних -->
-        <div id="calendar-loader" class="text-center py-12 bg-white rounded-2xl border border-slate-200 shadow-sm mb-8">
-            <svg class="animate-spin h-8 w-8 text-emerald-600 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p class="text-slate-500 text-sm">Синхронізація графіка з Google Таблицею...</p>
+        <div id="calendar-loader" class="text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-8">
+            <svg class="animate-spin h-8 w-8 text-emerald-600 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p class="text-slate-500 dark:text-slate-400 text-sm">Синхронізація графіка з Google Таблицею...</p>
         </div>
 
-        <!-- Контейнер для двох календарів -->
-        <div id="calendars-wrapper" class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Ліва колонка (Календарі) -->
+            <div class="lg:col-span-2 space-y-8">
+                <div id="calendars-wrapper" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
 
-        <!-- Легенда позначень -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-8">
-            <h3 class="text-sm font-bold text-slate-700 mb-3 text-center">Умовні позначення</h3>
-            <div class="flex flex-wrap gap-4 text-xs font-medium justify-center">
-                <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#b6d7a8] border border-[#85b873]"></span> Робоча зміна (1)</div>
-                <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#6ee7b7] border border-[#34d399]"></span> Додаткова зміна (З)</div>
-                <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#bfdbfe] border border-[#93c5fd]"></span> Лікарняний (Л)</div>
-                <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#fde047] border border-[#facc15]"></span> Відпустка (В)</div>
+                <!-- Легенда -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-3 text-center">Умовні позначення</h3>
+                    <div class="flex flex-wrap gap-4 text-xs font-medium justify-center text-slate-700 dark:text-slate-300">
+                        <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#b6d7a8] border border-[#85b873]"></span> Робоча (1)</div>
+                        <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#6ee7b7] border border-[#34d399]"></span> Додаткова (З)</div>
+                        <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#bfdbfe] border border-[#93c5fd]"></span> Лікарняний (Л)</div>
+                        <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#fde047] border border-[#facc15]"></span> Відпустка (В)</div>
+                    </div>
+                    <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-4">* Натисніть на дату, щоб подати заявку на зміну.</p>
+                </div>
             </div>
-            <p class="text-center text-xs text-slate-500 mt-4">* Натисніть на будь-яку дату в календарі, щоб подати заявку на додаткову зміну.</p>
-        </div>
 
-        <!-- Повний графік -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 class="text-lg font-bold mb-2">Повний графік виробництва</h2>
-            <p class="text-slate-500 text-sm mb-4">Ви можете відкрити оригінальний документ Google Таблиць, щоб переглянути завантаженість усього штату.</p>
-            <a href="https://docs.google.com/spreadsheets/d/1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg/edit?gid=1460425356" target="_blank" rel="noopener noreferrer" class="block text-center bg-slate-100 hover:bg-slate-200 py-3 rounded-lg font-medium border border-slate-200 text-slate-700 transition-colors">Відкрити оригінальну таблицю</a>
+            <!-- Права колонка (Статистика та Заявки) -->
+            <div class="space-y-8">
+                
+                <!-- Статистика -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <h2 class="text-lg font-bold mb-4">Особистий кабінет</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider" id="stat-month-label">Статистика</p>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                            <span class="text-slate-600 dark:text-slate-300">Робочі зміни</span>
+                            <span id="stat-reg" class="font-bold text-base">0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                            <span class="text-slate-600 dark:text-slate-300">Додаткові зміни</span>
+                            <span id="stat-extra" class="font-bold text-base text-emerald-600 dark:text-emerald-400">0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                            <span class="text-slate-600 dark:text-slate-300">Лікарняні дні</span>
+                            <span id="stat-sick" class="font-bold text-base text-blue-600 dark:text-blue-400">0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2">
+                            <span class="text-slate-600 dark:text-slate-300">Дні відпустки</span>
+                            <span id="stat-vac" class="font-bold text-base text-amber-600 dark:text-amber-400">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Мої заявки (Історія) -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <h2 class="text-lg font-bold mb-4">Мої останні заявки</h2>
+                    <div id="my-requests-list" class="space-y-3">
+                        <!-- Сюди JS вставить історію заявок -->
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <h2 class="text-sm font-bold mb-2">Загальний графік</h2>
+                    <a href="https://docs.google.com/spreadsheets/d/1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg/edit?gid=1460425356" target="_blank" class="block text-center bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 py-3 rounded-lg text-sm font-medium transition-colors">Відкрити таблицю</a>
+                </div>
+            </div>
+
         </div>
     </main>
 
-    <!-- Модальне вікно для подачі заявки -->
-    <div id="request-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative transform transition-all">
-            
-            <!-- Заголовок модалки -->
-            <div class="flex justify-between items-center p-5 border-b border-slate-100 bg-emerald-50">
-                <h3 class="text-xl font-bold text-emerald-800">Заявка на зміну</h3>
-                <button type="button" id="close-modal-x" class="text-emerald-600 hover:text-emerald-800 transition-colors p-1 rounded-md hover:bg-emerald-100">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+    <!-- Модальне вікно для заявки -->
+    <div id="request-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
+            <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20">
+                <h3 class="text-xl font-bold text-emerald-800 dark:text-emerald-400">Заявка на зміну</h3>
+                <button type="button" id="close-modal-x" class="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-800 p-1 rounded-md">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
-
-            <!-- Тіло модалки -->
             <div class="p-6">
-                <!-- Повідомлення про успіх (приховане) -->
                 <div id="success-message" class="hidden text-center py-6">
-                    <svg class="w-16 h-16 text-emerald-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <h3 class="text-xl font-bold text-slate-800 mb-2">Заявку відправлено!</h3>
-                    <p class="text-slate-500 mb-6">Ваш запит збережено. Керівник зв'яжеться з вами для підтвердження.</p>
-                    <button type="button" id="close-modal-success" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 px-4 rounded-lg transition-colors">Закрити</button>
+                    <svg class="w-16 h-16 text-emerald-500 mx-auto mb-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <h3 class="text-xl font-bold mb-2">Заявку відправлено!</h3>
+                    <p class="text-slate-500 dark:text-slate-400 mb-6">Запит збережено. Керівник зв'яжеться з вами.</p>
+                    <button type="button" id="close-modal-success" class="w-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 font-bold py-3 rounded-lg">Закрити</button>
                 </div>
-
-                <!-- Форма заявки -->
                 <form id="shift-form" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Обрана дата виходу <span class="text-red-500">*</span></label>
-                        <input type="date" id="shift-date" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 bg-slate-50 outline-none text-slate-700 font-medium">
+                        <label class="block text-sm font-medium mb-1">Дата виходу <span class="text-red-500">*</span></label>
+                        <input type="date" id="shift-date" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 focus:ring-emerald-500 outline-none font-medium">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Бажаний тип зміни <span class="text-red-500">*</span></label>
-                        <select id="shift-type" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 bg-white outline-none text-slate-700">
-                            <!-- За замовчуванням обрана Денна зміна -->
-                            <option value="Денна зміна (08:00 - 20:00)" selected>Денна зміна (08:00 - 20:00)</option>
-                            <option value="Нічна зміна (20:00 - 08:00)">Нічна зміна (20:00 - 08:00)</option>
+                        <label class="block text-sm font-medium mb-1">Тип зміни <span class="text-red-500">*</span></label>
+                        <select id="shift-type" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-emerald-500 outline-none">
+                            <option value="Денна (08:00 - 20:00)" selected>Денна зміна (08:00 - 20:00)</option>
+                            <option value="Нічна (20:00 - 08:00)">Нічна зміна (20:00 - 08:00)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Ваш коментар</label>
-                        <textarea id="shift-comment" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 bg-white outline-none resize-none text-slate-700" placeholder="Додаткові побажання..."></textarea>
+                        <label class="block text-sm font-medium mb-1">Коментар</label>
+                        <textarea id="shift-comment" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-emerald-500 outline-none resize-none" placeholder="Побажання..."></textarea>
                     </div>
-                    
                     <div class="pt-4 flex gap-3">
-                        <button type="button" id="cancel-modal-btn" class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-lg transition-colors">Скасувати</button>
-                        <button type="submit" id="submit-btn" class="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-sm">
+                        <button type="button" id="cancel-modal-btn" class="w-1/3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold py-3 rounded-lg transition-colors">Скасувати</button>
+                        <button type="submit" id="submit-btn" class="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2">
                             <span>Відправити</span>
                             <svg id="submit-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         </button>
@@ -144,98 +174,89 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const currentUser = sessionStorage.getItem('portal_user');
-            if (!currentUser) {
-                document.body.innerHTML = `
-                    <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50">
-                        <div class="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full border border-slate-200">
-                            <h2 class="text-2xl font-bold text-slate-800 mb-2">Доступ закрито</h2>
-                            <p class="text-slate-500 mb-6">Будь ласка, авторизуйтесь на головній сторінці порталу.</p>
-                            <a href="./index.html" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg w-full block transition-colors">Перейти до входу</a>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
+            if (!currentUser) { window.location.href = './index.html'; return; }
 
             document.getElementById('main-nav').style.display = 'block';
             document.getElementById('main-content').style.display = 'block';
             document.getElementById('user-greeting').textContent = `👤 ${currentUser}`;
 
-            // Налаштування
+            // Темна тема
+            document.getElementById('theme-toggle').addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            });
+
             const SHEET_ID = '1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg';
             const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNwPxKP9k85CUl5mAEwVALZ9EM96NIRqQkP2lzf2zMOLwsPQ3XqHD6Y8FzcWSBom2E/exec';
             const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
 
-            // Поточна дата для підсвічування
             const now = new Date();
-            const currentM = now.getMonth();
-            const currentY = now.getFullYear();
+            const currentM = now.getMonth(), currentY = now.getFullYear();
             const todayDateString = `${currentY}-${String(currentM + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const nextM = (currentM + 1) % 12, nextY = currentM === 11 ? currentY + 1 : currentY;
 
-            // Наступний місяць
-            const nextM = (currentM + 1) % 12;
-            const nextY = currentM === 11 ? currentY + 1 : currentY;
+            document.getElementById('stat-month-label').textContent = `за ${ukrMonths[currentM]}`;
 
             let shiftsDatabase = {}; 
+            let stats = { reg: 0, extra: 0, sick: 0, vac: 0 };
 
-            const getVal = (cell) => cell && cell.v !== undefined ? cell.v.toString().trim().toUpperCase() : '';
+            const getVal = (cell) => cell && cell.v !== undefined ? String(cell.v).trim() : '';
 
+            // Оновлений запит з використанням КЕШУВАННЯ
             async function fetchMonthData(monthIdx, yearNum) {
-                const sheetName = encodeURIComponent(`${ukrMonths[monthIdx]} ${yearNum}`);
-                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+                const sheetName = `${ukrMonths[monthIdx]} ${yearNum}`;
+                const cacheKey = `portal_cache_${sheetName}`;
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+                
                 try {
                     const r = await fetch(url);
-                    if (!r.ok) return null;
-                    const txt = await r.text();
-                    const match = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\);/);
-                    if (!match) return null;
-                    const data = JSON.parse(match[1]);
-                    return data.table;
-                } catch(e) { return null; }
-            }
-
-            // Парсинг типів змін
-            function parseShifts(table, monthIdx, yearNum) {
-                if (!table || !table.rows) return;
-                const rows = table.rows;
-                
-                let userRow = null;
-                for (let i = 0; i < rows.length; i++) {
-                    if (rows[i] && rows[i].c && rows[i].c[0]) {
-                        const nameInSheet = (rows[i].c[0].v || '').toString().toLowerCase();
-                        if (nameInSheet.includes(currentUser.toLowerCase().split(' ')[0])) {
-                            userRow = rows[i].c;
-                            break;
+                    if (r.ok) {
+                        const txt = await r.text();
+                        const match = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\);/);
+                        if (match) {
+                            const data = JSON.parse(match[1]);
+                            localStorage.setItem(cacheKey, JSON.stringify(data.table));
+                            return data.table;
                         }
                     }
-                }
+                } catch(e) { console.log('Офлайн: використовуємо кеш'); }
+                
+                // Якщо немає інтернету, віддаємо з кешу
+                const cached = localStorage.getItem(cacheKey);
+                return cached ? JSON.parse(cached) : null;
+            }
 
+            const checkType = (v) => {
+                if (!v) return null;
+                const match = v.match(/[A-ZА-ЯІЇЄҐ0-9]/i);
+                if (!match) return null;
+                const char = match[0].toUpperCase();
+                if (char === 'В' || char === 'B') return 'VAC';
+                if (char === 'Л' || char === 'L') return 'SICK';
+                if (char === 'З' || char === '3') return 'EXTRA';
+                if (char === '1' || char === '2') return 'REG';
+                return null;
+            };
+
+            function parseShifts(table, monthIdx, yearNum) {
+                if (!table || !table.rows) return;
+                let userRow = table.rows.find(r => r && r.c && r.c[0] && String(r.c[0].v || '').toLowerCase().includes(currentUser.toLowerCase().split(' ')[0]));
                 if (!userRow) return;
 
                 const daysInMonth = new Date(yearNum, monthIdx + 1, 0).getDate();
                 for (let d = 1; d <= daysInMonth; d++) {
-                    const dayColIdx = 2 + (d - 1) * 2;
-                    const nightColIdx = dayColIdx + 1;
-
-                    const dayVal = getVal(userRow[dayColIdx]);
-                    const nightVal = getVal(userRow[nightColIdx]);
+                    const dVal = getVal(userRow.c[2 + (d - 1) * 2]), nVal = getVal(userRow.c[3 + (d - 1) * 2]);
                     const dateKey = `${yearNum}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                    
-                    // Функція перевірки символів
-                    const checkType = (v) => {
-                        if (v === 'В' || v === 'B' || v === 'ВІДПУСТКА') return 'VAC';
-                        if (v === 'Л' || v === 'L' || v === 'ЛІКАРНЯНИЙ') return 'SICK';
-                        if (v === 'З' || v === '3') return 'EXTRA';
-                        if (v === '1' || v === '2') return 'REG';
-                        return null;
-                    };
+                    const t1 = checkType(dVal), t2 = checkType(nVal);
 
-                    const t1 = checkType(dayVal);
-                    const t2 = checkType(nightVal);
+                    // Підрахунок статистики тільки для поточного місяця
+                    if (monthIdx === currentM) {
+                        if (t1 === 'REG') stats.reg++; if (t1 === 'EXTRA') stats.extra++; if (t1 === 'SICK') stats.sick++; if (t1 === 'VAC') stats.vac++;
+                        if (t2 === 'REG') stats.reg++; if (t2 === 'EXTRA') stats.extra++; if (t2 === 'SICK') stats.sick++; if (t2 === 'VAC') stats.vac++;
+                    }
 
-                    // Пріоритети відображення: Відпустка > Лікарняний > Додаткова > Звичайна
                     if (t1 === 'VAC' || t2 === 'VAC') shiftsDatabase[dateKey] = 'VAC';
                     else if (t1 === 'SICK' || t2 === 'SICK') shiftsDatabase[dateKey] = 'SICK';
                     else if (t1 === 'EXTRA' || t2 === 'EXTRA') shiftsDatabase[dateKey] = 'EXTRA';
@@ -243,142 +264,107 @@
                 }
             }
 
-            // Завантаження даних
-            const [currentTable, nextTable] = await Promise.all([
-                fetchMonthData(currentM, currentY),
-                fetchMonthData(nextM, nextY)
-            ]);
+            function renderMyRequests() {
+                const reqs = JSON.parse(localStorage.getItem('my_shift_reqs') || '[]');
+                const container = document.getElementById('my-requests-list');
+                if (reqs.length === 0) {
+                    container.innerHTML = '<p class="text-sm text-slate-500 dark:text-slate-400">Немає історіі заявок.</p>';
+                    return;
+                }
+                container.innerHTML = reqs.map(r => `
+                    <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-100 dark:border-slate-600">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-sm dark:text-white">${r.date}</span>
+                            <span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-400 rounded-full">${r.status}</span>
+                        </div>
+                        <div class="text-xs text-slate-600 dark:text-slate-300">${r.type}</div>
+                    </div>
+                `).join('');
+            }
 
-            parseShifts(currentTable, currentM, currentY);
-            parseShifts(nextTable, nextM, nextY);
-            document.getElementById('calendar-loader').classList.add('hidden');
+            async function loadData() {
+                // Віддаємо з кешу миттєво, якщо він є
+                const c1 = localStorage.getItem(`portal_cache_${ukrMonths[currentM]} ${currentY}`);
+                const c2 = localStorage.getItem(`portal_cache_${ukrMonths[nextM]} ${nextY}`);
+                
+                if (c1 && c2) {
+                    document.getElementById('calendar-loader').classList.add('hidden');
+                    parseShifts({rows: JSON.parse(c1).rows}, currentM, currentY);
+                    parseShifts({rows: JSON.parse(c2).rows}, nextM, nextY);
+                    renderUI();
+                }
 
-            // Генерація HTML календаря
+                // Запит у фоні
+                const [t1, t2] = await Promise.all([fetchMonthData(currentM, currentY), fetchMonthData(nextM, nextY)]);
+                if (t1 && t2) {
+                    shiftsDatabase = {}; stats = { reg: 0, extra: 0, sick: 0, vac: 0 }; // Скидання
+                    parseShifts(t1, currentM, currentY); parseShifts(t2, nextM, nextY);
+                    document.getElementById('calendar-loader').classList.add('hidden');
+                    renderUI();
+                }
+            }
+
+            function renderUI() {
+                document.getElementById('stat-reg').textContent = stats.reg;
+                document.getElementById('stat-extra').textContent = stats.extra;
+                document.getElementById('stat-sick').textContent = stats.sick;
+                document.getElementById('stat-vac').textContent = stats.vac;
+                renderMyRequests();
+                
+                const wrapper = document.getElementById('calendars-wrapper');
+                wrapper.innerHTML = buildCalendarHTML(currentM, currentY) + buildCalendarHTML(nextM, nextY);
+            }
+
             function buildCalendarHTML(monthIdx, yearNum) {
                 const monthName = ukrMonths[monthIdx];
-                const firstDayIndex = new Date(yearNum, monthIdx, 1).getDay(); 
-                const shiftFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1; 
+                const shiftFirstDay = new Date(yearNum, monthIdx, 1).getDay() === 0 ? 6 : new Date(yearNum, monthIdx, 1).getDay() - 1; 
                 const daysInMonth = new Date(yearNum, monthIdx + 1, 0).getDate();
 
-                let html = `
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                        <h3 class="text-center font-bold text-slate-800 text-lg mb-4">${monthName} ${yearNum}</h3>
-                        <div class="calendar-grid mb-2">
-                            <div class="day-header">Пн</div><div class="day-header">Вт</div><div class="day-header">Ср</div>
-                            <div class="day-header">Чт</div><div class="day-header">Пт</div><div class="day-header">Сб</div>
-                            <div class="day-header text-rose-500">Нд</div>
-                        </div>
-                        <div class="calendar-grid">
-                `;
-
-                for (let i = 0; i < shiftFirstDay; i++) {
-                    html += `<div class="empty-day"></div>`;
-                }
-
+                let html = `<div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm"><h3 class="text-center font-bold text-lg mb-4">${monthName} ${yearNum}</h3><div class="calendar-grid mb-2 text-slate-500 dark:text-slate-400"><div class="day-header">Пн</div><div class="day-header">Вт</div><div class="day-header">Ср</div><div class="day-header">Чт</div><div class="day-header">Пт</div><div class="day-header">Сб</div><div class="day-header text-rose-500">Нд</div></div><div class="calendar-grid bg-white dark:bg-slate-800">`;
+                for (let i = 0; i < shiftFirstDay; i++) html += `<div class="empty-day bg-white dark:bg-slate-800 border-white dark:border-slate-800"></div>`;
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dateStr = `${yearNum}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                    const shiftType = shiftsDatabase[dateStr];
-                    
-                    let shiftClass = '';
-                    if (shiftType === 'REG') shiftClass = 'shift-reg';
-                    if (shiftType === 'EXTRA') shiftClass = 'shift-extra';
-                    if (shiftType === 'SICK') shiftClass = 'shift-sick';
-                    if (shiftType === 'VAC') shiftClass = 'shift-vac';
-
-                    let todayClass = (dateStr === todayDateString) ? 'is-today' : '';
-
-                    html += `
-                        <div class="calendar-day ${shiftClass} ${todayClass}" data-date="${dateStr}">
-                            ${d}
-                        </div>
-                    `;
+                    const t = shiftsDatabase[dateStr];
+                    let cls = t==='REG'?'shift-reg':t==='EXTRA'?'shift-extra':t==='SICK'?'shift-sick':t==='VAC'?'shift-vac':'bg-white dark:bg-slate-800';
+                    let today = dateStr === todayDateString ? 'is-today' : '';
+                    html += `<div class="calendar-day ${cls} ${today}" data-date="${dateStr}">${d}</div>`;
                 }
-                html += `</div></div>`;
-                return html;
+                return html + `</div></div>`;
             }
 
-            const wrapper = document.getElementById('calendars-wrapper');
-            wrapper.innerHTML = buildCalendarHTML(currentM, currentY) + buildCalendarHTML(nextM, nextY);
+            loadData();
 
-            // --- Логіка Модального вікна ---
-            const modal = document.getElementById('request-modal');
-            const shiftForm = document.getElementById('shift-form');
-            const successMsg = document.getElementById('success-message');
-            const dateInput = document.getElementById('shift-date');
-
-            function openModal(dateStr) {
-                // Відкриваємо модалку, ставимо обрану дату та скидаємо решту полів
-                shiftForm.reset();
-                shiftForm.classList.remove('hidden');
-                successMsg.classList.add('hidden');
-                
-                // За замовчуванням Денна зміна (вже прописано в HTML: selected)
-                if(dateStr) dateInput.value = dateStr;
-                
-                modal.classList.remove('hidden');
-            }
-
-            function closeModal() {
-                modal.classList.add('hidden');
-            }
-
-            // Відкриття при кліку на день у календарі
-            wrapper.addEventListener('click', (e) => {
-                const dayEl = e.target.closest('.calendar-day');
-                if (!dayEl) return;
-                const chosenDate = dayEl.getAttribute('data-date');
-                openModal(chosenDate);
+            // Модалка
+            const modal = document.getElementById('request-modal'), shiftForm = document.getElementById('shift-form'), dateInput = document.getElementById('shift-date');
+            document.getElementById('calendars-wrapper').addEventListener('click', e => {
+                const el = e.target.closest('.calendar-day');
+                if (el) { shiftForm.reset(); shiftForm.classList.remove('hidden'); document.getElementById('success-message').classList.add('hidden'); dateInput.value = el.dataset.date; modal.classList.remove('hidden'); }
             });
+            const closeModal = () => modal.classList.add('hidden');
+            document.getElementById('close-modal-x').onclick = closeModal; document.getElementById('cancel-modal-btn').onclick = closeModal; document.getElementById('close-modal-success').onclick = closeModal;
 
-            // Закриття модалки
-            document.getElementById('close-modal-x').addEventListener('click', closeModal);
-            document.getElementById('cancel-modal-btn').addEventListener('click', closeModal);
-            document.getElementById('close-modal-success').addEventListener('click', closeModal);
-            
-            // Закриття при кліку поза вікном
-            modal.addEventListener('click', (e) => {
-                if(e.target === modal) closeModal();
-            });
-
-            // Відправка форми
-            const submitBtn = document.getElementById('submit-btn');
-            const submitSpinner = document.getElementById('submit-spinner');
-
+            // Відправка
             shiftForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                submitBtn.disabled = true;
-                submitSpinner.classList.remove('hidden');
-
-                const dateVal = new Date(dateInput.value).toLocaleDateString('uk-UA');
-                const typeVal = document.getElementById('shift-type').value;
-                const commentVal = document.getElementById('shift-comment').value.trim();
-
-                const logText = `ЗАЯВКА НА ЗМІНУ: ${dateVal} | ${typeVal}${commentVal ? ' | Ком: ' + commentVal : ''}`;
-
-                const postData = {
-                    to: ["Buznitskiy7@gmail.com", "dyndarnastia@gmail.com"],
-                    subject: `Нова заявка на зміну від ${currentUser}`,
-                    body: `Співробітник: ${currentUser}\nБажана дата: ${dateVal}\nЗміна: ${typeVal}\nКоментар: ${commentVal || 'немає'}`
-                };
+                document.getElementById('submit-btn').disabled = true; document.getElementById('submit-spinner').classList.remove('hidden');
+                const dVal = new Date(dateInput.value).toLocaleDateString('uk-UA'), tVal = document.getElementById('shift-type').value, cVal = document.getElementById('shift-comment').value;
 
                 try {
-                    const formData = new FormData();
-                    formData.append('user', currentUser);
-                    formData.append('action', logText);
+                    // Збереження в локальну історію (Мої заявки)
+                    const reqs = JSON.parse(localStorage.getItem('my_shift_reqs') || '[]');
+                    reqs.unshift({ date: dVal, type: tVal, status: '⏳ Очікує керівника' });
+                    localStorage.setItem('my_shift_reqs', JSON.stringify(reqs.slice(0, 5)));
+                    renderMyRequests();
 
-                    // Відправка логу та імейлу
-                    await fetch(LOG_SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+                    const postData = { to: ["Buznitskiy7@gmail.com", "dyndarnastia@gmail.com"], subject: `Заявка: ${currentUser}`, body: `Працівник: ${currentUser}\nДата: ${dVal}\nЗміна: ${tVal}\nКоментар: ${cVal}`};
+                    const fd = new FormData(); fd.append('user', currentUser); fd.append('action', `ЗАЯВКА: ${dVal} | ${tVal}`);
+                    
+                    await fetch(LOG_SCRIPT_URL, { method: 'POST', body: fd, mode: 'no-cors' });
                     await fetch(LOG_SCRIPT_URL, { method: 'POST', body: JSON.stringify(postData), mode: 'no-cors' });
 
-                    // Ховаємо форму, показуємо повідомлення про успіх
-                    shiftForm.classList.add('hidden');
-                    successMsg.classList.remove('hidden');
-                } catch(err) {
-                    alert('Помилка при відправленні. Спробуйте пізніше.');
-                } finally {
-                    submitBtn.disabled = false;
-                    submitSpinner.classList.add('hidden');
-                }
+                    shiftForm.classList.add('hidden'); document.getElementById('success-message').classList.remove('hidden');
+                } catch(err) {} 
+                finally { document.getElementById('submit-btn').disabled = false; document.getElementById('submit-spinner').classList.add('hidden'); }
             });
         });
     </script>
