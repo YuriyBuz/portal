@@ -177,6 +177,23 @@
                 return; 
             }
 
+            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTQQ6ReHphuC36fPdT4VzALJaWr6W0SiZXwhaEFxgnnSmLtt9HSwnITh7R4eN84wbAgQ/exec';
+            
+            // --- НОВА ФУНКЦІЯ ЛОГУВАННЯ ДІЙ ---
+            function logUserAction(actionDetails) {
+                const formData = new FormData();
+                formData.append('user', currentUser);
+                formData.append('action', actionDetails);
+                fetch(LOG_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                }).catch(err => console.error('Помилка логування:', err));
+            }
+
+            // Логуємо вхід на сторінку
+            logUserAction('Перегляд графіка виходу');
+
             document.getElementById('main-nav').style.display = 'block';
             document.getElementById('main-content').style.display = 'block';
             document.getElementById('user-greeting').textContent = `👤 ${currentUser}`;
@@ -184,6 +201,7 @@
             document.getElementById('theme-toggle').addEventListener('click', () => {
                 document.documentElement.classList.toggle('dark');
                 localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+                logUserAction('Зміна теми (Графік)'); // Логуємо зміну теми
             });
 
             // Очищення старих кешів
@@ -194,7 +212,6 @@
             });
 
             const SHEET_ID = '1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg';
-            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTQQ6ReHphuC36fPdT4VzALJaWr6W0SiZXwhaEFxgnnSmLtt9HSwnITh7R4eN84wbAgQ/exec';
             const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
 
             const now = new Date();
@@ -410,7 +427,10 @@
                     localStorage.setItem('my_shift_reqs', JSON.stringify(reqs.slice(0, 5)));
                     renderMyRequests();
 
-                    // ОНОВЛЕНО: Відправляємо JSON запит для створення заявки
+                    // Логуємо спробу відправки заявки через форму
+                    logUserAction(`Відправка заявки на зміну: ${dVal}`);
+
+                    // Відправляємо JSON запит для створення заявки
                     await fetch(LOG_SCRIPT_URL, { 
                         method: 'POST', 
                         body: JSON.stringify({ 
