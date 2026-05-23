@@ -89,7 +89,13 @@
     <script>
         // НОВЕ ПОСИЛАННЯ ВСТАВЛЕНО СЮДИ:
         const API_URL = 'https://script.google.com/macros/s/AKfycbxTQQ6ReHphuC36fPdT4VzALJaWr6W0SiZXwhaEFxgnnSmLtt9HSwnITh7R4eN84wbAgQ/exec';
-
+// Автоматичний вхід, якщо пароль було успішно введено на головній сторінці при кліку на лого
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('admin_auth') === 'true') {
+                document.getElementById('admin-pass').value = '8899';
+                checkPass();
+            }
+        });
         // Логіка перевірки пароля
         function checkPass() {
             const pass = document.getElementById('admin-pass').value;
