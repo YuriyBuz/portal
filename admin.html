@@ -6,175 +6,287 @@
     <title>Панель керівника | Foodline</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 font-sans text-slate-800">
+<body class="bg-slate-50 font-sans text-slate-800">
 
+    <!-- Екран авторизації -->
     <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
-            <h2 class="text-2xl font-bold mb-6">Вхід в Кабінет</h2>
-            <input type="password" id="admin-pass" placeholder="Пароль" class="w-full p-3 border rounded-lg mb-4 outline-none focus:ring-2 focus:ring-emerald-500 text-center text-2xl tracking-widest">
-            <button onclick="checkPass()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold hover:bg-slate-900 transition">Увійти</button>
-            <p id="error" class="text-red-500 mt-4 hidden">Невірний пароль</p>
+        <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-sm text-center border border-slate-100">
+            <div class="bg-emerald-50 text-emerald-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold mb-2 text-slate-800">Вхід в Кабінет</h2>
+            <p class="text-slate-500 mb-6 text-sm">Панель управління Foodline</p>
+            
+            <input type="password" id="admin-pass" placeholder="Введіть пароль" class="w-full p-4 border border-slate-200 rounded-xl mb-4 outline-none focus:ring-2 focus:ring-emerald-500 text-center text-2xl tracking-widest bg-slate-50 transition-all">
+            <button onclick="checkPass()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold hover:bg-slate-900 transition-colors shadow-md">Увійти</button>
+            <p id="error" class="text-red-500 mt-4 hidden text-sm font-medium bg-red-50 py-2 rounded-lg border border-red-100">Невірний пароль</p>
+            
+            <a href="./index.html" class="inline-block mt-6 text-sm text-slate-500 hover:text-slate-800 hover:underline">Повернутися на портал</a>
         </div>
     </div>
 
+    <!-- Головна панель керування -->
     <div id="admin-content" class="hidden">
-        <nav class="bg-white border-b p-4 sticky top-0 z-50 shadow-sm">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <h1 class="font-bold text-xl text-emerald-700">📊 Панель управління Foodline</h1>
-                <a href="index.html" class="text-slate-500 hover:text-emerald-600 font-medium">← На портал</a>
+        <nav class="bg-white border-b border-slate-200 p-4 sticky top-0 z-50 shadow-sm flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <a href="./index.html" class="text-emerald-600 font-bold flex items-center gap-2 hover:text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+                    На портал
+                </a>
+                <h1 class="text-xl font-bold text-slate-800 hidden sm:block">Панель керівника</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <select id="month-select" onchange="loadStats()" class="appearance-none pl-4 pr-10 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 hover:bg-slate-100 outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-700 cursor-pointer transition-colors shadow-sm">
+                        <!-- Місяці генеруються автоматично через JS -->
+                    </select>
+                    <svg class="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <button onclick="logout()" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Вийти">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                </button>
             </div>
         </nav>
 
-        <main class="max-w-7xl mx-auto p-4 sm:p-8 space-y-8">
-            
-            <section class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-                <div class="p-6 bg-emerald-50 border-b">
-                    <h2 class="text-lg font-bold text-emerald-800">⏳ Заявки на додаткові зміни</h2>
+        <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+            <!-- Індикатор завантаження -->
+            <div id="loading" class="hidden fixed inset-0 bg-white/70 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div class="flex flex-col items-center gap-4 bg-white p-6 rounded-2xl shadow-xl border border-slate-100">
+                    <svg class="animate-spin h-10 w-10 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="text-slate-600 font-bold">Оновлення даних...</p>
+                </div>
+            </div>
+
+            <!-- Блок "Заявки на зміну" -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-3">
+                        <span class="bg-emerald-100 text-emerald-600 p-2 rounded-xl">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                        </span>
+                        Заявки що потребують уваги
+                    </h2>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left whitespace-nowrap">
-                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-slate-50/80 text-slate-500 uppercase text-xs font-bold tracking-wider">
                             <tr>
-                                <th class="p-4">Працівник</th>
-                                <th class="p-4">Дата</th>
-                                <th class="p-4">Зміна</th>
+                                <th class="p-4">Дата / Працівник</th>
+                                <th class="p-4">Тип зміни</th>
                                 <th class="p-4">Коментар</th>
-                                <th class="p-4 text-center">Дія</th>
+                                <th class="p-4">Статус</th>
+                                <th class="p-4 text-right">Дії</th>
                             </tr>
                         </thead>
-                        <tbody id="req-table" class="divide-y text-sm">
-                            </tbody>
+                        <tbody id="request-body" class="divide-y divide-slate-100">
+                            <!-- Рядки заявок генеруватимуться тут -->
+                        </tbody>
                     </table>
+                </div>
+                <div id="no-requests" class="hidden p-12 text-center flex flex-col items-center gap-3">
+                    <div class="bg-slate-100 p-4 rounded-full text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <p class="text-slate-500 font-medium text-lg">Немає нових заявок</p>
                 </div>
             </section>
 
-            <section class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-                <div class="p-6 bg-blue-50 border-b flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <h2 class="text-lg font-bold text-blue-800">📈 Статистика за місяць</h2>
-                    <select id="month-select" onchange="loadStats()" class="p-2 border border-slate-300 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="Травень 2024">Травень 2024</option>
-                        <option value="Червень 2024">Червень 2024</option>
-                        <option value="Липень 2024">Липень 2024</option>
-                        <option value="Серпень 2024">Серпень 2024</option>
-                    </select>
+            <!-- Блок "Статистика працівників" -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-3">
+                        <span class="bg-blue-100 text-blue-600 p-2 rounded-xl">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                        </span>
+                        Статистика працівників
+                    </h2>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left whitespace-nowrap">
-                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-slate-50/80 text-slate-500 uppercase text-xs font-bold tracking-wider">
                             <tr>
-                                <th class="p-4">ПІБ</th>
-                                <th class="p-4">Змін за планом</th>
-                                <th class="p-4">Додаткових (З)</th>
-                                <th class="p-4">Лікарняні</th>
-                                <th class="p-4">Відпустки</th>
-                                <th class="p-4">Залишок відпустки</th>
+                                <th class="p-4">ПІБ Працівника</th>
+                                <th class="p-4 text-center">План</th>
+                                <th class="p-4 text-center text-emerald-600">Факт</th>
+                                <th class="p-4 text-center text-blue-500">Лікарняні</th>
+                                <th class="p-4 text-center text-amber-500">Відпустка</th>
+                                <th class="p-4 text-center bg-slate-100/50">Залишок Відпустки</th>
                             </tr>
                         </thead>
-                        <tbody id="stats-table" class="divide-y text-sm">
-                             </tbody>
+                        <tbody id="stats-body" class="divide-y divide-slate-100">
+                            <!-- Рядки статистики генеруватимуться тут -->
+                        </tbody>
                     </table>
                 </div>
             </section>
-
         </main>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwvkGTwNAiJ-FBkge75yy4uEUDw1HVW-P6B4InvjwS3PaNrUl3fiKgEtIFPeBVralh6Xw/exec';
+        // ВАЖЛИВО: Оновлений URL вашого бекенду
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxNH-856whYn0-EzRG5suseSau72zHHlpm94i7AfuroQfkFDXhy90iQBr4iUUXPY4wsjg/exec';
 
-        // ОНОВЛЕНО: Автоматичний вхід, якщо пароль було успішно введено на головній сторінці при кліку на лого
         document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('admin_auth') === 'true') {
-                document.getElementById('admin-pass').value = '8899';
-                checkPass();
+            const isAuth = sessionStorage.getItem('admin_auth');
+            if(isAuth === 'true') {
+                showAdmin();
             }
+
+            // Додаємо обробку кнопки Enter для зручного входу
+            document.getElementById('admin-pass').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkPass();
+                }
+            });
         });
 
-        // Логіка перевірки пароля
         function checkPass() {
             const pass = document.getElementById('admin-pass').value;
+            // Якщо бажаєте, можете замінити 8899 на інший пароль
             if(pass === '8899') {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('admin-content').classList.remove('hidden');
-                loadStats();
+                sessionStorage.setItem('admin_auth', 'true');
+                showAdmin();
             } else {
                 document.getElementById('error').classList.remove('hidden');
             }
         }
 
-        // Обробка натискання Enter у полі вводу пароля
-        document.getElementById('admin-pass').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') checkPass();
-        });
+        function logout() {
+            sessionStorage.removeItem('admin_auth');
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('admin-content').classList.add('hidden');
+            document.getElementById('admin-pass').value = '';
+        }
 
-        // Завантаження даних з Google Таблиці
+        function showAdmin() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('admin-content').classList.remove('hidden');
+            initMonths();
+            loadStats();
+        }
+
+        function initMonths() {
+            const select = document.getElementById('month-select');
+            if (!select) return;
+            select.innerHTML = ''; // Очищаємо список
+            
+            const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+            const now = new Date();
+            let currentMonth = now.getMonth();
+            let currentYear = now.getFullYear();
+
+            // Генеруємо список: 1 попередній місяць, поточний та 3 наступних
+            for (let i = -1; i <= 3; i++) {
+                let d = new Date(currentYear, currentMonth + i, 1);
+                let monthStr = ukrMonths[d.getMonth()] + " " + d.getFullYear();
+                let option = document.createElement('option');
+                option.value = monthStr;
+                option.textContent = monthStr;
+                if (i === 0) option.selected = true; // Робимо поточний місяць обраним за замовчуванням
+                select.appendChild(option);
+            }
+        }
+
         async function loadStats() {
             const month = document.getElementById('month-select').value;
+            document.getElementById('loading').classList.remove('hidden');
+            
             try {
-                const r = await fetch(API_URL, {
+                const res = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({ requestType: 'get_admin_data', monthYear: month })
                 });
-                const data = await r.json();
+                const data = await res.json();
                 
-                if (data.error) {
-                    alert('Помилка: ' + data.error + '. Впевніться, що вкладка з таким місяцем існує в таблиці.');
-                    return;
+                if(data.error) {
+                    // Якщо таблиці/вкладки немає, виводимо повідомлення
+                    document.getElementById('stats-body').innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500 font-medium">${data.error}</td></tr>`;
+                    document.getElementById('request-body').innerHTML = '';
+                    document.getElementById('no-requests').classList.remove('hidden');
+                } else {
+                    renderStats(data.stats || []);
+                    renderRequests(data.requests || []);
                 }
-                
-                renderRequests(data.requests, month);
-                renderStats(data.stats);
-            } catch(e) { 
-                console.error(e);
-                alert("Помилка завантаження даних. Перевірте з'єднання або налаштування доступу."); 
+            } catch(e) {
+                console.error('API Error:', e);
+                alert('Виникла помилка завантаження даних. Перевірте підключення до Інтернету.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
             }
         }
 
-        // Рендер таблиці заявок
-        function renderRequests(reqs, month) {
-            const tbody = document.getElementById('req-table');
-            if (!reqs || reqs.length === 0 || !reqs.some(r => r[5] === 'Очікує')) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">Немає нових заявок, що очікують погодження.</td></tr>';
+        function renderRequests(reqs) {
+            const tbody = document.getElementById('request-body');
+            const noReqs = document.getElementById('no-requests');
+            
+            // Фільтруємо і показуємо лише заявки зі статусом "Очікує"
+            const activeReqs = reqs.filter(r => r[5] === 'Очікує');
+
+            if(activeReqs.length === 0) {
+                tbody.innerHTML = '';
+                noReqs.classList.remove('hidden');
                 return;
             }
-
-            tbody.innerHTML = reqs.filter(r => r[5] === 'Очікує').map(r => `
-                <tr>
-                    <td class="p-4 font-bold text-slate-700">${r[2]}</td>
-                    <td class="p-4">${r[1]}</td>
-                    <td class="p-4">${r[3]}</td>
-                    <td class="p-4 text-slate-500 italic truncate max-w-[200px]" title="${r[4] || '-'}">${r[4] || '-'}</td>
-                    <td class="p-4 flex gap-2 justify-center">
-                        <button onclick="updateStatus('${r[0]}', 'Схвалено', '${r[2]}', '${r[1]}', '${month}')" class="bg-emerald-500 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-600 transition shadow-sm text-sm font-medium">👍 Погодити</button>
-                        <button onclick="updateStatus('${r[0]}', 'Відхилено', '${r[2]}', '${r[1]}', '${month}')" class="bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition shadow-sm text-sm font-medium">👎 Відхилити</button>
+            
+            noReqs.classList.add('hidden');
+            tbody.innerHTML = activeReqs.map(r => {
+                const month = document.getElementById('month-select').value;
+                return `
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="p-4">
+                        <div class="font-bold text-slate-800">${r[1]}</div>
+                        <div class="text-sm text-slate-500">${r[2]}</div>
+                    </td>
+                    <td class="p-4">
+                        <span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg text-sm font-bold border border-emerald-100">${r[3]}</span>
+                    </td>
+                    <td class="p-4 text-slate-600 max-w-[200px] truncate" title="${r[4]}">${r[4] || '—'}</td>
+                    <td class="p-4">
+                        <span class="bg-amber-50 text-amber-600 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-200 flex items-center gap-2 w-max shadow-sm">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                            ${r[5]}
+                        </span>
+                    </td>
+                    <td class="p-4 text-right space-x-2">
+                        <button onclick="updateStatus('${r[0]}', 'Погоджено', '${r[2]}', '${r[1]}', '${month}')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">Схвалити</button>
+                        <button onclick="updateStatus('${r[0]}', 'Відхилено', '${r[2]}', '${r[1]}', '${month}')" class="bg-slate-100 hover:bg-red-50 hover:border-red-100 text-slate-600 hover:text-red-600 border border-slate-200 px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-sm">Відхилити</button>
                     </td>
                 </tr>
-            `).join('');
+                `
+            }).join('');
         }
 
-        // Рендер таблиці статистики
         function renderStats(stats) {
-            const tbody = document.getElementById('stats-table');
-            if (!stats || stats.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500">Немає даних для відображення.</td></tr>';
+            const tbody = document.getElementById('stats-body');
+            if(stats.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500 font-medium">Немає даних у графіку на цей місяць</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = stats.map(s => `
-                <tr class="hover:bg-slate-50">
-                    <td class="p-4 font-medium text-slate-700">${s.name}</td>
-                    <td class="p-4 text-center">${s.scheduled}</td>
-                    <td class="p-4 text-center text-emerald-600 font-bold">${s.worked}</td>
-                    <td class="p-4 text-center text-blue-500 font-medium">${s.sick}</td>
-                    <td class="p-4 text-center text-amber-500 font-medium">${s.vac}</td>
-                    <td class="p-4 text-center bg-slate-50 font-bold">${s.vacLeft} дн.</td>
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="p-4 font-bold text-slate-800">${s.name}</td>
+                    <td class="p-4 text-center text-slate-600 font-medium text-lg">${s.scheduled}</td>
+                    <td class="p-4 text-center text-emerald-600 font-bold text-lg bg-emerald-50/50">${s.worked}</td>
+                    <td class="p-4 text-center text-blue-500 font-bold">${s.sick}</td>
+                    <td class="p-4 text-center text-amber-500 font-bold">${s.vac}</td>
+                    <td class="p-4 text-center bg-slate-50 font-bold text-slate-700 border-l border-slate-100">${s.vacLeft} дн.</td>
                 </tr>
             `).join('');
         }
 
-        // Оновлення статусу заявки
         async function updateStatus(id, status, user, date, month) {
-            if(!confirm(`Змінити статус заявки для ${user} на: ${status}?`)) return;
+            // Візуальне підтвердження дії
+            const isApproved = status === 'Погоджено';
+            const confirmMsg = isApproved 
+                ? `✅ Ви впевнені, що хочете СХВАЛИТИ заявку для ${user} на ${date}?` 
+                : `❌ Ви впевнені, що хочете ВІДХИЛИТИ заявку для ${user} на ${date}?`;
+                
+            if(!confirm(confirmMsg)) return;
+            
+            document.getElementById('loading').classList.remove('hidden');
             
             try {
                 await fetch(API_URL, {
@@ -188,10 +300,13 @@
                         monthName: month
                     })
                 });
-                // Перезавантажуємо дані після оновлення
+                
+                // Перезавантажуємо дані після оновлення для актуалізації таблиць
                 loadStats();
             } catch (e) {
-                alert('Виникла помилка під час оновлення статусу.');
+                console.error('Update Error:', e);
+                alert('Виникла помилка під час оновлення статусу. Перевірте з\'єднання.');
+                document.getElementById('loading').classList.add('hidden');
             }
         }
     </script>
