@@ -46,16 +46,6 @@
         
         .video-card:hover { border-color: #ef4444 !important; }
         .video-card:hover h2, .video-card:hover p, .video-card:hover > svg { color: #ef4444 !important; }
-
-        .admin-card { background-color: #1e293b !important; border-color: #334155 !important; }
-        .dark .admin-card { background-color: #0f172a !important; border-color: #1e293b !important; }
-        .admin-card h2 { color: #ffffff !important; }
-        .admin-card p { color: #94a3b8 !important; }
-        .admin-card:hover { border-color: #f59e0b !important; background-color: #0f172a !important; }
-        .dark .admin-card:hover { background-color: #1e293b !important; }
-        .admin-card:hover h2 { color: #f59e0b !important; }
-        .admin-card:hover p { color: #cbd5e1 !important; }
-        .admin-card:hover > svg { color: #f59e0b !important; }
     </style>
 </head>
 <body class="font-sans text-slate-800 bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
@@ -83,7 +73,9 @@
     <div id="login-container" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100 dark:border-slate-700">
             <div class="text-center mb-8">
-                <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-32 h-auto mx-auto mb-4 rounded-lg bg-white p-2 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
+                <a href="admin.html" title="Вхід для керівника" class="inline-block transition-transform hover:scale-105 active:scale-95">
+                    <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-32 h-auto mx-auto mb-4 rounded-lg bg-white p-2 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
+                </a>
                 <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Вхід на портал</h2>
                 <p class="text-slate-500 dark:text-slate-400 text-sm mt-2">Будь ласка, авторизуйтесь для доступу</p>
             </div>
@@ -134,14 +126,16 @@
             </div>
 
             <div class="text-center">
-                <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-40 h-auto mx-auto mb-6 rounded-lg bg-white p-3 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
+                <a href="admin.html" title="Вхід для керівника" class="inline-block transition-transform hover:scale-105 active:scale-95">
+                    <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-40 h-auto mx-auto mb-6 rounded-lg bg-white p-3 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
+                </a>
                 <h1 class="text-3xl sm:text-5xl font-bold text-slate-800 dark:text-white mb-2">Портал працівника</h1>
                 <p class="text-slate-500 dark:text-slate-400 text-xl">Навчання, графіки та корисна інформація</p>
             </div>
         </header>
 
         <main>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 
                 <a href="schedule.html" class="link-card schedule-card bg-white dark:bg-slate-800 text-slate-800 dark:text-white border-slate-200 dark:border-slate-700 group">
                     <svg class="text-blue-500 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 15h1.5v1.5h-1.5V15zM15 15h1.5v1.5H15V15zM7.5 15h1.5v1.5H7.5V15zM11.25 11.25h1.5v1.5h-1.5v-1.5zM15 11.25h1.5v1.5H15v-1.5zM7.5 11.25h1.5v1.5H7.5v-1.5z" /></svg>
@@ -165,12 +159,6 @@
                     <svg class="text-red-500 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z" /></svg>
                     <h2>Навчальні відео</h2>
                     <p class="text-slate-500 dark:text-slate-400">Інструкції та відеоматеріали</p>
-                </a>
-
-                <a href="admin.html" class="link-card admin-card group">
-                    <svg class="text-amber-400 group-hover:scale-110 transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" /></svg>
-                    <h2>Кабінет керівника</h2>
-                    <p>Управління та статистика</p>
                 </a>
 
             </div>
@@ -206,6 +194,34 @@
                 document.getElementById('user-greeting').textContent = `👤 ${userName}`;
             }
 
+            // --- Система Логування ---
+            // Оновлено на нове посилання Google Apps Script
+            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNBG3qHrnsTQc3J6L4ymjZV2SpnRRIdVR953tn8I5pgrBW6Jv7q9MHhG5rm0W8SC2x9w/exec';
+
+            function logUserAction(actionDetails) {
+                const userName = sessionStorage.getItem('portal_user');
+                if (!userName || LOG_SCRIPT_URL === 'ВАШ_URL_ВЕБ_ДОДАТКУ_APPS_SCRIPT') return;
+
+                const formData = new FormData();
+                formData.append('user', userName);
+                formData.append('action', actionDetails);
+
+                fetch(LOG_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors',
+                    keepalive: true
+                }).catch(err => console.error('Помилка логування:', err));
+            }
+
+            // Відстеження кліків по кнопках меню
+            document.querySelectorAll('.link-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const buttonName = this.querySelector('h2').innerText;
+                    logUserAction(`Натиснуто: ${buttonName}`);
+                });
+            });
+
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const u = document.getElementById('login-phone').value.trim(), p = document.getElementById('login-password').value.trim();
@@ -214,6 +230,7 @@
                 if (u === '8899' && p === '9988') {
                     sessionStorage.setItem('portal_user', 'Тестовий Користувач');
                     showApp('Тестовий Користувач');
+                    logUserAction('Вхід в систему');
                     loginBtn.disabled = false; loginSpinner.classList.add('hidden');
                     return;
                 }
@@ -231,13 +248,18 @@
                             auth = true; fName = sName; break;
                         }
                     }
-                    if (auth) { sessionStorage.setItem('portal_user', fName); showApp(fName); }
+                    if (auth) { 
+                        sessionStorage.setItem('portal_user', fName); 
+                        showApp(fName); 
+                        logUserAction('Вхід в систему');
+                    }
                     else { loginError.classList.remove('hidden'); }
                 } catch(err) { loginError.textContent="Помилка з'єднання."; loginError.classList.remove('hidden'); } 
                 finally { loginBtn.disabled = false; loginSpinner.classList.add('hidden'); }
             });
 
             document.getElementById('logout-btn').addEventListener('click', () => {
+                logUserAction('Вихід з системи');
                 sessionStorage.removeItem('portal_user'); window.location.reload();
             });
         });
