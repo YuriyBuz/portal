@@ -110,6 +110,23 @@
                 return;
             }
 
+            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTQQ6ReHphuC36fPdT4VzALJaWr6W0SiZXwhaEFxgnnSmLtt9HSwnITh7R4eN84wbAgQ/exec';
+
+            // --- НОВА ФУНКЦІЯ ЛОГУВАННЯ ДІЙ ---
+            function logUserAction(actionDetails) {
+                const formData = new FormData();
+                formData.append('user', currentUser);
+                formData.append('action', actionDetails);
+                fetch(LOG_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                }).catch(err => console.error('Помилка логування:', err));
+            }
+
+            // Логуємо відкриття сторінки
+            logUserAction('Відкрив форму додаткової зміни');
+
             document.getElementById('main-nav').style.display = 'block';
             document.getElementById('main-content').style.display = 'block';
 
@@ -128,8 +145,6 @@
             const submitSpinner = document.getElementById('submit-spinner');
             const successMsg = document.getElementById('success-message');
 
-            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTQQ6ReHphuC36fPdT4VzALJaWr6W0SiZXwhaEFxgnnSmLtt9HSwnITh7R4eN84wbAgQ/exec';
-
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 successMsg.classList.add('hidden');
@@ -146,6 +161,9 @@
                 const reqs = JSON.parse(localStorage.getItem('my_shift_reqs') || '[]');
                 reqs.unshift({ date: formattedDate, type: type, status: '⏳ Очікує' });
                 localStorage.setItem('my_shift_reqs', JSON.stringify(reqs.slice(0, 5)));
+
+                // Логуємо факт відправки форми
+                logUserAction(`Подав заявку на зміну: ${formattedDate}`);
 
                 // 2. Відправляємо на скрипт (JSON-формат для Адмін Панелі)
                 fetch(LOG_SCRIPT_URL, {
