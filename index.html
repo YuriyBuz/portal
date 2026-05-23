@@ -70,10 +70,10 @@
     <div id="login-container" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100 dark:border-slate-700">
             <div class="text-center mb-8">
-                <a href="#" onclick="promptAdminPassword(event)" title="Вхід для керівника" class="inline-block transition-transform hover:scale-105 active:scale-95">
+                <a href="#" id="admin-logo-login" title="Вхід для керівника" class="cursor-pointer inline-block transition-transform hover:scale-105 active:scale-95">
                     <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-32 h-auto mx-auto mb-4 rounded-lg bg-white p-2 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
                 </a>
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Вхід на портал</h2>
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Вхід на portal</h2>
                 <p class="text-slate-500 dark:text-slate-400 text-sm mt-2">Будь ласка, авторизуйтесь для доступу</p>
             </div>
 
@@ -99,17 +99,6 @@
 
     <div id="app-container" class="hidden container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
         
-        <div id="news-banner" class="max-w-5xl mx-auto mb-6 bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-4 sm:p-5 rounded-2xl shadow-md flex justify-between items-center relative overflow-hidden">
-            <div class="relative z-10">
-                <span class="font-bold uppercase tracking-wider text-[10px] sm:text-xs bg-white text-emerald-600 px-2 py-1 rounded-full mb-2 inline-block shadow-sm">Оновлення</span>
-                <p class="font-medium text-sm sm:text-base">Тепер портал підтримує кешування та темну тему! Ваш графік завантажується миттєво.</p>
-            </div>
-            <button onclick="this.parentElement.style.display='none'" class="text-white hover:text-emerald-100 p-2 relative z-10 transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <svg class="absolute right-0 top-0 h-full w-48 text-white opacity-10 transform translate-x-16" fill="currentColor" viewBox="0 0 100 100"><path d="M50 0L100 50L50 100L0 50Z"></path></svg>
-        </div>
-
         <header class="relative mb-10">
             <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
                 <div id="current-date" class="text-slate-500 dark:text-slate-400 text-sm sm:text-base font-medium"></div>
@@ -123,7 +112,7 @@
             </div>
 
             <div class="text-center">
-                <a href="#" onclick="promptAdminPassword(event)" title="Вхід для керівника" class="inline-block transition-transform hover:scale-105 active:scale-95">
+                <a href="#" id="admin-logo-app" title="Вхід для керівника" class="cursor-pointer inline-block transition-transform hover:scale-105 active:scale-95">
                     <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-40 h-auto mx-auto mb-6 rounded-lg bg-white p-3 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
                 </a>
                 <h1 class="text-3xl sm:text-5xl font-bold text-slate-800 dark:text-white mb-2">Портал працівника</h1>
@@ -258,27 +247,27 @@
                 logUserAction('Вихід з системи');
                 sessionStorage.removeItem('portal_user'); 
                 
-                // Замість window.location.reload() ховаємо контент і показуємо екран входу
                 document.getElementById('app-container').classList.add('hidden');
                 document.getElementById('login-container').classList.remove('hidden');
                 document.getElementById('login-phone').value = '';
                 document.getElementById('login-password').value = '';
             });
+
+            // ОНОВЛЕНО: Надійне додавання подій кліку для обох логотипів (усуває проблеми з ініціалізацією)
+            const handleAdminClick = (e) => {
+                e.preventDefault();
+                const pass = prompt("Введіть пароль для доступу до панелі керівника:");
+                if (pass === '8899') {
+                    sessionStorage.setItem('admin_auth', 'true');
+                    window.location.href = './admin.html';
+                } else if (pass !== null) {
+                    alert("Невірний пароль!");
+                }
+            };
+
+            document.getElementById('admin-logo-login')?.addEventListener('click', handleAdminClick);
+            document.getElementById('admin-logo-app')?.addEventListener('click', handleAdminClick);
         });
-        
-        // ОНОВЛЕНО: Функція для запиту пароля при кліку на логотип
-        window.promptAdminPassword = function(e) {
-            e.preventDefault(); // Зупиняє звичайний перехід по посиланню
-            const pass = prompt("Введіть пароль для доступу до панелі керівника:");
-            
-            // Перевіряємо, чи введено пароль 8899
-            if (pass === '8899') {
-                sessionStorage.setItem('admin_auth', 'true'); // Зберігаємо сесію, щоб не вводити пароль двічі
-                window.location.href = './admin.html';
-            } else if (pass !== null) {
-                alert("Невірний пароль!");
-            }
-        };
     </script>
 </body>
 </html>
