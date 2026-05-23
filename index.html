@@ -72,7 +72,7 @@
         <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100 dark:border-slate-700">
             <div class="text-center mb-8">
                 <!-- Пряме посилання на сторінку керівника -->
-                <a href="./admin.html" title="Вхід для керівника" class="inline-block transition-transform hover:scale-105 active:scale-95">
+                <a href="#" onclick="promptAdminPassword(event)" title="Вхід для керівника" class="inline-block transition-transform hover:scale-105 active:scale-95">
                     <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-32 h-auto mx-auto mb-4 rounded-lg bg-white p-2 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
                 </a>
                 <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Вхід на портал</h2>
@@ -127,7 +127,7 @@
 
             <div class="text-center">
                 <!-- Пряме посилання на сторінку керівника -->
-                <a href="./admin.html" title="Вхід для керівника" class="inline-block transition-transform hover:scale-105 active:scale-95">
+                <a href="#" onclick="promptAdminPassword(event)" title="Вхід для керівника" class="inline-block transition-transform hover:scale-105 active:scale-95">
                     <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-40 h-auto mx-auto mb-6 rounded-lg bg-white p-3 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
                 </a>
                 <h1 class="text-3xl sm:text-5xl font-bold text-slate-800 dark:text-white mb-2">Портал працівника</h1>
@@ -269,6 +269,19 @@
                 document.getElementById('login-password').value = '';
             });
         });
+        // Функція для запиту пароля при кліку на логотип
+            window.promptAdminPassword = function(e) {
+                e.preventDefault(); // Зупиняє звичайний перехід по посиланню
+                const pass = prompt("Введіть пароль для доступу до панелі керівника:");
+                
+                // Перевіряємо, чи введено пароль 8899 (який використовується у вашому admin.html)
+                if (pass === '8899') {
+                    sessionStorage.setItem('admin_auth', 'true'); // Зберігаємо сесію, щоб не вводити пароль двічі
+                    window.location.href = './admin.html';
+                } else if (pass !== null) {
+                    alert("Невірний пароль!");
+                }
+            };
     </script>
 </body>
 </html>
