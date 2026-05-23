@@ -79,7 +79,7 @@
 
             <form id="login-form" class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Телефон або ПІБ</label>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Телефон, ПІБ або Логін</label>
                     <input type="text" id="login-phone" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="Наприклад: 0662415546">
                 </div>
                 <div>
@@ -87,7 +87,7 @@
                     <input type="password" id="login-password" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="Введіть ваш пароль">
                 </div>
                 <div id="login-error" class="hidden text-red-500 text-sm text-center bg-red-50 dark:bg-red-900/30 p-3 rounded-lg border border-red-100 dark:border-red-800">
-                    Невірний телефон/ПІБ або пароль.
+                    Невірний логін або пароль.
                 </div>
                 <button type="submit" id="login-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md">
                     <span>Увійти</span>
@@ -107,6 +107,12 @@
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                     </button>
                     <span id="user-greeting" class="text-emerald-700 dark:text-emerald-400 font-medium text-sm sm:text-base bg-emerald-50 dark:bg-emerald-900/30 px-4 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800 truncate max-w-[200px] sm:max-w-xs"></span>
+                    
+                    <!-- Кнопка налаштувань -->
+                    <button id="settings-btn" class="p-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors" title="Налаштування профілю">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </button>
+
                     <button id="logout-btn" class="text-sm bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white py-1.5 px-4 rounded-lg transition-colors font-medium shadow-sm">Вийти</button>
                 </div>
             </div>
@@ -151,6 +157,38 @@
         </main>
     </div>
     
+    <!-- Модальне вікно налаштувань профілю -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                <h3 class="text-xl font-bold text-slate-800 dark:text-white">Налаштування</h3>
+                <button type="button" id="close-settings-btn" class="text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Встановіть новий логін та пароль для входу на портал.</p>
+                <form id="settings-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Новий Логін / Телефон</label>
+                        <input type="text" id="new-login" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Новий Пароль</label>
+                        <input type="text" id="new-password" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
+                    </div>
+                    <div id="settings-success" class="hidden text-emerald-600 text-sm text-center bg-emerald-50 dark:bg-emerald-900/30 p-2 rounded-lg border border-emerald-100 dark:border-emerald-800">
+                        Дані успішно збережено!
+                    </div>
+                    <button type="submit" id="save-settings-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2 transition-colors">
+                        <span>Зберегти</span>
+                        <svg id="settings-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dateElement = document.getElementById('current-date');
@@ -180,8 +218,8 @@
                 document.getElementById('user-greeting').textContent = `👤 ${userName}`;
             }
 
-            // Система Логування
-            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjySB6kD2nNpPRkTagthLHLpHRH9fodoBFuQOf-qVSOm-d1Yv7a3_3ZGsqcmHGh1BbAg/exec';
+            // Система Логування та скрипт бекенду
+            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPSnAGm8szeEe2fi9AkvvtMCBYnYfAHBOewLed-D0OkBCfjzJKZbGoAARnlGf5qmPHjA/exec';
 
             function logUserAction(actionDetails) {
                 const userName = sessionStorage.getItem('portal_user');
@@ -228,8 +266,29 @@
 
                     for (let row of data.table.rows) {
                         if (!row || !row.c) continue;
-                        const sName = row.c[1]?.v || '', sPhone = (row.c[2]?.v || '').toString(), sPass = (row.c[6]?.v || '').toString();
-                        if ((normU.length >= 9 && normU === sPhone.replace(/\D/g, '').slice(-10) || sName.toLowerCase() === u.toLowerCase()) && sPass === p) {
+                        
+                        const sName = row.c[1]?.v || '';
+                        
+                        // Отримуємо старі дані (колонки C та G)
+                        const oldPhone = (row.c[2]?.v || '').toString();
+                        const oldPass = (row.c[6]?.v || '').toString();
+                        
+                        // Отримуємо НОВІ дані з J та K (індекси 9 та 10), якщо вони є
+                        const newPhone = (row.c[9] && row.c[9].v) ? row.c[9].v.toString() : '';
+                        const newPass = (row.c[10] && row.c[10].v) ? row.c[10].v.toString() : '';
+
+                        // Використовуємо нові, якщо є. Інакше - старі
+                        const sPhone = newPhone !== '' ? newPhone : oldPhone;
+                        const sPass = newPass !== '' ? newPass : oldPass;
+
+                        const sPhoneNorm = sPhone.replace(/\D/g, '').slice(-10);
+
+                        // Перевірка авторизації
+                        const isPhoneMatch = (normU.length >= 9 && normU === sPhoneNorm);
+                        const isNameMatch = (sName.toLowerCase() === u.toLowerCase());
+                        const isLoginMatch = (sPhone.toLowerCase() === u.toLowerCase()); // Додано для кастомних текстових логінів
+
+                        if ((isPhoneMatch || isNameMatch || isLoginMatch) && sPass === p) {
                             auth = true; fName = sName; break;
                         }
                     }
@@ -251,6 +310,59 @@
                 document.getElementById('login-container').classList.remove('hidden');
                 document.getElementById('login-phone').value = '';
                 document.getElementById('login-password').value = '';
+            });
+
+            // Налаштування профілю (Зміна логіну та паролю)
+            const settingsModal = document.getElementById('settings-modal');
+            const closeSettingsBtn = document.getElementById('close-settings-btn');
+            const settingsBtn = document.getElementById('settings-btn');
+            const settingsForm = document.getElementById('settings-form');
+            const saveSettingsBtn = document.getElementById('save-settings-btn');
+            const settingsSpinner = document.getElementById('settings-spinner');
+            const settingsSuccess = document.getElementById('settings-success');
+
+            settingsBtn.addEventListener('click', () => {
+                settingsModal.classList.remove('hidden');
+                settingsSuccess.classList.add('hidden');
+                document.getElementById('new-login').value = '';
+                document.getElementById('new-password').value = '';
+            });
+
+            closeSettingsBtn.addEventListener('click', () => {
+                settingsModal.classList.add('hidden');
+            });
+
+            settingsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const newLogin = document.getElementById('new-login').value.trim();
+                const newPassword = document.getElementById('new-password').value.trim();
+                const currentUser = sessionStorage.getItem('portal_user');
+
+                saveSettingsBtn.disabled = true;
+                settingsSpinner.classList.remove('hidden');
+                settingsSuccess.classList.add('hidden');
+
+                try {
+                    await fetch(LOG_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            requestType: 'update_credentials',
+                            user: currentUser,
+                            newPhone: newLogin,
+                            newPassword: newPassword
+                        }),
+                        mode: 'no-cors'
+                    });
+                    
+                    logUserAction('Змінив логін та пароль');
+                    settingsSuccess.classList.remove('hidden');
+                    setTimeout(() => settingsModal.classList.add('hidden'), 2000);
+                } catch (err) {
+                    alert('Помилка при збереженні. Спробуйте пізніше.');
+                } finally {
+                    saveSettingsBtn.disabled = false;
+                    settingsSpinner.classList.add('hidden');
+                }
             });
 
             // ОНОВЛЕНО: Надійне додавання подій кліку для обох логотипів (усуває проблеми з ініціалізацією)
