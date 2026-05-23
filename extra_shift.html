@@ -37,7 +37,7 @@
         </div>
     </nav>
 
-    <!-- Основний контент (прихований до авторизації) -->
+    <!-- Основний контент -->
     <main class="flex-grow max-w-3xl mx-auto w-full px-4 sm:px-6 py-8" id="main-content" style="display: none;">
         
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -91,23 +91,18 @@
                 </form>
             </div>
         </div>
-
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. БЕЗПЕКА: Перевірка авторизації (Аналогічно schedule.html)
             const currentUser = sessionStorage.getItem('portal_user');
             
             if (!currentUser) {
                 document.body.innerHTML = `
                     <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50">
                         <div class="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full border border-slate-200">
-                            <svg class="w-16 h-16 text-emerald-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
                             <h2 class="text-2xl font-bold text-slate-800 mb-2">Доступ закрито</h2>
-                            <p class="text-slate-500 mb-8">Будь ласка, авторизуйтесь на головній сторінці порталу для доступу.</p>
+                            <p class="text-slate-500 mb-8">Будь ласка, авторизуйтесь на головній сторінці порталу.</p>
                             <a href="./index.html" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg w-full block transition-colors shadow-sm">Перейти до входу</a>
                         </div>
                     </div>
@@ -115,76 +110,63 @@
                 return;
             }
 
-            // Якщо авторизований - показуємо контент
             document.getElementById('main-nav').style.display = 'block';
             document.getElementById('main-content').style.display = 'block';
 
-            // Відображаємо ім'я користувача
             const greetingEl = document.getElementById('user-greeting');
             if (greetingEl) {
                 greetingEl.textContent = `👤 ${currentUser}`;
                 greetingEl.classList.remove('hidden');
             }
 
-            // Встановлюємо мінімальну дату (щоб не можна було обрати вчора)
             const dateInput = document.getElementById('shift-date');
             const today = new Date().toISOString().split('T')[0];
             dateInput.min = today;
 
-            // Логіка відправлення форми
             const form = document.getElementById('shift-form');
             const submitBtn = document.getElementById('submit-btn');
             const submitSpinner = document.getElementById('submit-spinner');
             const successMsg = document.getElementById('success-message');
 
-            // URL вашого Apps Script (з попередніх налаштувань)
-            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNBG3qHrnsTQc3J6L4ymjZV2SpnRRIdVR953tn8I5pgrBW6Jv7q9MHhG5rm0W8SC2x9w/exec';
+            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTQQ6ReHphuC36fPdT4VzALJaWr6W0SiZXwhaEFxgnnSmLtt9HSwnITh7R4eN84wbAgQ/exec';
 
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
-                
-                // Ховаємо попереднє повідомлення
                 successMsg.classList.add('hidden');
-                
-                // Блокуємо кнопку
                 submitBtn.disabled = true;
                 submitBtn.classList.add('opacity-90', 'cursor-not-allowed');
                 submitSpinner.classList.remove('hidden');
 
                 const date = document.getElementById('shift-date').value;
-                // Форматуємо дату для читабельності
                 const formattedDate = new Date(date).toLocaleDateString('uk-UA');
-                
                 const type = document.getElementById('shift-type').value;
                 const comment = document.getElementById('shift-comment').value.trim();
 
-                // Формуємо рядок, який запишеться у колонку "Дія" в Google Таблицю
-                let actionText = `ЗАЯВКА НА ЗМІНУ: ${formattedDate} | Зміна: ${type}`;
-                if (comment) {
-                    actionText += ` | Коментар: ${comment}`;
-                }
+                // 1. Додаємо до історії на порталі працівника
+                const reqs = JSON.parse(localStorage.getItem('my_shift_reqs') || '[]');
+                reqs.unshift({ date: formattedDate, type: type, status: '⏳ Очікує' });
+                localStorage.setItem('my_shift_reqs', JSON.stringify(reqs.slice(0, 5)));
 
-                const formData = new FormData();
-                formData.append('user', currentUser);
-                formData.append('action', actionText);
-
-                // Відправляємо запит
+                // 2. Відправляємо на скрипт (JSON-формат для Адмін Панелі)
                 fetch(LOG_SCRIPT_URL, {
                     method: 'POST',
-                    body: formData,
-                    mode: 'no-cors' // Важливо для Google Scripts
+                    body: JSON.stringify({
+                        requestType: 'submit_request',
+                        user: currentUser,
+                        date: formattedDate,
+                        type: type,
+                        comment: comment || 'немає'
+                    }),
+                    mode: 'no-cors'
                 })
                 .then(() => {
-                    // Показуємо успіх
                     successMsg.classList.remove('hidden');
                     form.reset();
                 })
                 .catch(err => {
-                    console.error('Помилка відправлення:', err);
                     alert('Виникла помилка при відправленні. Спробуйте пізніше.');
                 })
                 .finally(() => {
-                    // Розблоковуємо кнопку
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('opacity-90', 'cursor-not-allowed');
                     submitSpinner.classList.add('hidden');
