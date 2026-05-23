@@ -13,9 +13,7 @@
     <link rel="apple-touch-icon" href="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Налаштування Tailwind для темної теми
         tailwind.config = { darkMode: 'class' };
-        // Автоматичне визначення теми
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         }
@@ -51,7 +49,6 @@
 <body class="font-sans text-slate-800 bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
 
     <script>
-        // Реєстрація PWA Service Worker (для мобільного додатка)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed', err));
@@ -70,30 +67,14 @@
         document.getElementById('manifest-link').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
     </script>
 
-    <!-- Секретне модальне вікно для керівника -->
-    <div id="admin-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 border border-slate-200 dark:border-slate-700 text-center relative">
-            <button onclick="closeAdminModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            <div class="mx-auto w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center mb-4 text-emerald-600 dark:text-emerald-400">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
-            </div>
-            <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-4">Вхід керівника</h3>
-            <input type="password" id="secret-admin-pass" onkeypress="if(event.key==='Enter') checkAdminModalPass()" placeholder="Введіть пароль" class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none mb-4 text-center tracking-widest text-lg transition-all">
-            <p id="admin-error" class="hidden text-red-500 text-sm mb-4 bg-red-50 dark:bg-red-900/30 p-2 rounded-lg border border-red-100 dark:border-red-800">Невірний пароль</p>
-            <button onclick="checkAdminModalPass()" class="w-full bg-slate-800 dark:bg-slate-950 text-white font-bold py-3 rounded-lg hover:bg-slate-900 dark:hover:bg-black transition-colors shadow-sm">Перейти в кабінет</button>
-        </div>
-    </div>
-
     <!-- Екран авторизації -->
     <div id="login-container" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100 dark:border-slate-700">
             <div class="text-center mb-8">
-                <!-- ОНОВЛЕНИЙ ЛОГОТИП (з викликом модалки) -->
-                <div onclick="openAdminModal()" title="Вхід для керівника" class="cursor-pointer inline-block transition-transform hover:scale-105 active:scale-95">
+                <!-- Пряме посилання на сторінку керівника -->
+                <a href="./admin.html" title="Вхід для керівника" class="inline-block transition-transform hover:scale-105 active:scale-95">
                     <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-32 h-auto mx-auto mb-4 rounded-lg bg-white p-2 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
-                </div>
+                </a>
                 <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Вхід на портал</h2>
                 <p class="text-slate-500 dark:text-slate-400 text-sm mt-2">Будь ласка, авторизуйтесь для доступу</p>
             </div>
@@ -145,10 +126,10 @@
             </div>
 
             <div class="text-center">
-                <!-- ОНОВЛЕНИЙ ЛОГОТИП (з викликом модалки) -->
-                <div onclick="openAdminModal()" title="Вхід для керівника" class="cursor-pointer inline-block transition-transform hover:scale-105 active:scale-95">
+                <!-- Пряме посилання на сторінку керівника -->
+                <a href="./admin.html" title="Вхід для керівника" class="inline-block transition-transform hover:scale-105 active:scale-95">
                     <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-40 h-auto mx-auto mb-6 rounded-lg bg-white p-3 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
-                </div>
+                </a>
                 <h1 class="text-3xl sm:text-5xl font-bold text-slate-800 dark:text-white mb-2">Портал працівника</h1>
                 <p class="text-slate-500 dark:text-slate-400 text-xl">Навчання, графіки та корисна інформація</p>
             </div>
@@ -186,28 +167,6 @@
     </div>
     
     <script>
-        // --- ЛОГІКА МОДАЛЬНОГО ВІКНА КЕРІВНИКА ---
-        window.openAdminModal = function() {
-            document.getElementById('admin-modal').classList.remove('hidden');
-            document.getElementById('admin-error').classList.add('hidden');
-            document.getElementById('secret-admin-pass').value = '';
-            setTimeout(() => document.getElementById('secret-admin-pass').focus(), 100);
-        };
-
-        window.closeAdminModal = function() {
-            document.getElementById('admin-modal').classList.add('hidden');
-        };
-
-        window.checkAdminModalPass = function() {
-            const pass = document.getElementById('secret-admin-pass').value;
-            if (pass === '8899') {
-                // Використовуємо абсолютне посилання на ваш GitHub Pages, щоб уникнути помилок Canvas
-                window.location.href = 'https://yuriybuz.github.io/portal/admin.html';
-            } else {
-                document.getElementById('admin-error').classList.remove('hidden');
-            }
-        };
-
         document.addEventListener('DOMContentLoaded', () => {
             const dateElement = document.getElementById('current-date');
             const now = new Date();
@@ -237,7 +196,7 @@
             }
 
             // Система Логування
-            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNBG3qHrnsTQc3J6L4ymjZV2SpnRRIdVR953tn8I5pgrBW6Jv7q9MHhG5rm0W8SC2x9w/exec';
+            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTQQ6ReHphuC36fPdT4VzALJaWr6W0SiZXwhaEFxgnnSmLtt9HSwnITh7R4eN84wbAgQ/exec';
 
             function logUserAction(actionDetails) {
                 const userName = sessionStorage.getItem('portal_user');
