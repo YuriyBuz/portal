@@ -39,7 +39,7 @@
 <body class="font-sans text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-col transition-colors duration-200">
 
     <!-- Верхня панель навігації -->
-    <nav class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+    <nav class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center gap-4">
@@ -89,11 +89,11 @@
                         <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#bfdbfe] border border-[#93c5fd]"></span> Лікарняний (Л)</div>
                         <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#fde047] border border-[#facc15]"></span> Відпустка (В)</div>
                     </div>
-                    <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-4">* Натисніть на будь-яку дату в календарі, щоб подати заявку.</p>
+                    <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-4">* Натисніть на будь-яку вільну майбутню дату в календарі, щоб подати заявку.</p>
                 </div>
             </div>
 
-            <!-- Права колонка: Статистика, Форма, Історія -->
+            <!-- Права колонка: Статистика, Історія -->
             <div class="space-y-6">
                 
                 <!-- Статистика -->
@@ -123,53 +123,15 @@
                     </div>
                 </div>
 
-                <!-- Форма заявки (схована до вибору дати) -->
-                <section id="shift-form-section" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hidden transition-all">
-                    <div class="bg-emerald-50 dark:bg-emerald-900/30 p-4 border-b border-emerald-100 dark:border-emerald-800">
-                        <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                            <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                            Заявка на <span id="selected-date-text" class="text-emerald-600 dark:text-emerald-400">...</span>
-                        </h3>
-                    </div>
-                    <form id="shift-form" class="p-5 space-y-4">
-                        <div id="shift-form-inputs" class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Тип зміни</label>
-                                <select id="shift-type" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">
-                                    <option value="" disabled selected>Оберіть...</option>
-                                    <option value="День">День</option>
-                                    <option value="Ніч">Ніч</option>
-                                    <option value="Підробіток">Підробіток (кілька годин)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Коментар</label>
-                                <textarea id="shift-comment" rows="2" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500 resize-none"></textarea>
-                            </div>
-                        </div>
-
-                        <div id="success-message" class="hidden text-sm text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 p-3 rounded-lg border border-emerald-200 dark:border-emerald-800 text-center font-medium">
-                            Заявку відправлено керівнику!
-                        </div>
-
-                        <div id="shift-form-actions">
-                            <button type="submit" id="submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg transition-colors flex justify-center items-center gap-2">
-                                <span>Відправити</span>
-                                <svg id="submit-spinner" class="animate-spin h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            </button>
-                        </div>
-                    </form>
-                </section>
-
                 <!-- Історія заявок -->
-                <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col max-h-[400px]">
+                <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col max-h-[500px]">
                     <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                         <h2 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                             <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             Мої заявки
                         </h2>
-                        <!-- Кнопка ручного оновлення -->
-                        <button onclick="loadMyRequestsOnline()" class="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 px-2 py-1.5 rounded-md transition-colors border border-emerald-200 dark:border-emerald-800" title="Оновити список">
+                        <!-- Кнопка ручного оновлення (З модальним вікном) -->
+                        <button onclick="loadMyRequestsOnline(true)" class="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 px-2 py-1.5 rounded-md transition-colors border border-emerald-200 dark:border-emerald-800" title="Оновити список">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
                             Оновити
                         </button>
@@ -188,8 +150,66 @@
         </div>
     </main>
 
+    <!-- МОДАЛЬНІ ВІКНА -->
+
+    <!-- Модальне вікно форми подачі заявки -->
+    <div id="request-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20">
+                <h3 class="text-xl font-bold text-emerald-800 dark:text-emerald-400">Заявка на <span id="modal-date-text">...</span></h3>
+                <button type="button" onclick="document.getElementById('request-modal').classList.add('hidden')" class="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-800 p-1 rounded-md transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            
+            <form id="shift-form" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Тип зміни <span class="text-red-500">*</span></label>
+                    <select id="shift-type" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-emerald-500 outline-none">
+                        <!-- За замовчуванням обрано День -->
+                        <option value="День" selected>День</option>
+                        <option value="Ніч">Ніч</option>
+                        <option value="Підробіток">Підробіток (кілька годин)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Коментар</label>
+                    <textarea id="shift-comment" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-emerald-500 outline-none resize-none" placeholder="Наприклад: можу тільки в першу половину дня..."></textarea>
+                </div>
+                
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="document.getElementById('request-modal').classList.add('hidden')" class="w-1/3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold py-3 rounded-lg transition-colors">Скасувати</button>
+                    <button type="submit" id="submit-btn" class="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2 shadow-sm">
+                        <span>Відправити</span>
+                        <svg id="submit-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальне вікно "Завантаження / Оновлення" -->
+    <div id="loading-modal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl flex flex-col items-center gap-4 border border-slate-200 dark:border-slate-700">
+            <svg class="animate-spin h-10 w-10 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p class="text-slate-700 dark:text-slate-200 font-bold">Оновлення даних...</p>
+        </div>
+    </div>
+
+    <!-- Модальне вікно "Успіх" -->
+    <div id="success-modal" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden text-center p-8 border border-slate-200 dark:border-slate-700">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800 dark:text-white">Заявку відправлено!</h3>
+            <p class="text-slate-500 dark:text-slate-400 mb-6">Ваш запит успішно передано керівнику.</p>
+            <button type="button" onclick="document.getElementById('success-modal').classList.add('hidden')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition-colors shadow-sm">Чудово</button>
+        </div>
+    </div>
+
     <script>
-        const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTLPe1ucmGBj64hHeyUkLVts_ZdMzneb-aXkeRpCg2FnpqoPhtgtyOyptMSbh0Cx_TEA/exec';
+        const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby70AJKwannxgQlYebNrxvXDNVRSnLeTT8B1B4sCmtvFl5EIBgSevYs2ZxixKV32yR3aA/exec';
         const SHEET_ID = '1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg'; // ID таблиці з графіками
         
         let selectedDateStr = null;
@@ -340,7 +360,7 @@
                     
                     const isToday = (d === today.getDate() && monthIdx === today.getMonth() && yearNum === today.getFullYear()) ? 'is-today' : '';
 
-                    html += `<div class="calendar-day ${cls} ${isToday}" data-date="${dateStr}">${d}</div>`;
+                    html += `<div class="calendar-day ${cls} ${isToday}" data-date="${dateStr}" data-type="${t || 'EMPTY'}">${d}</div>`;
                 }
                 return html + `</div></div>`;
             }
@@ -374,40 +394,37 @@
                 document.getElementById('stat-sick').textContent = stats.sick;
                 document.getElementById('stat-vac').textContent = stats.vac;
 
-                // Додаємо події кліку на дні
+                // ЛОГІКА КЛІКІВ ПО КАЛЕНДАРЮ
                 document.querySelectorAll('.calendar-day:not(.empty-day)').forEach(dayDiv => {
                     dayDiv.addEventListener('click', () => {
                         const cellDateStr = dayDiv.getAttribute('data-date'); // Формат YYYY-MM-DD
+                        const shiftType = dayDiv.getAttribute('data-type');
                         
-                        // Перевірка на минулі дні
                         const [y, m, d] = cellDateStr.split('-');
                         const cellDateObj = new Date(y, m - 1, d);
                         const todayObj = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                         
-                        if (cellDateObj < todayObj) {
-                            alert("Неможливо подати заявку на минулу дату.");
+                        // 1. Якщо минула або поточна дата - нічого не відбувається
+                        if (cellDateObj <= todayObj) {
                             return;
                         }
 
+                        // 2. Якщо вже стоїть робоча зміна (REG) - нічого не відбувається
+                        if (shiftType === 'REG') {
+                            return;
+                        }
+
+                        // Дозволено: відкриваємо модальне вікно
                         document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected-day'));
                         dayDiv.classList.add('selected-day');
                         
                         selectedDateStr = cellDateStr;
                         const displayDate = `${d}.${m}.${y}`;
                         
-                        document.getElementById('selected-date-text').textContent = displayDate;
-                        document.getElementById('shift-form-section').classList.remove('hidden');
-                        
-                        // Скидаємо форму
+                        document.getElementById('modal-date-text').textContent = displayDate;
                         document.getElementById('shift-form').reset();
-                        document.getElementById('shift-form-inputs').classList.remove('hidden');
-                        document.getElementById('shift-form-actions').classList.remove('hidden');
-                        document.getElementById('success-message').classList.add('hidden');
                         
-                        // Плавно скролимо до форми на мобільних пристроях
-                        if (window.innerWidth < 1024) {
-                            document.getElementById('shift-form-section').scrollIntoView({ behavior: 'smooth' });
-                        }
+                        document.getElementById('request-modal').classList.remove('hidden');
                     });
                 });
             }
@@ -453,9 +470,10 @@
                     // Завантажуємо оновлені дані з бази
                     await loadMyRequestsOnline();
 
-                    document.getElementById('shift-form-inputs').classList.add('hidden');
-                    document.getElementById('shift-form-actions').classList.add('hidden');
-                    document.getElementById('success-message').classList.remove('hidden');
+                    // Ховаємо форму, показуємо модалку успіху
+                    document.getElementById('request-modal').classList.add('hidden');
+                    document.getElementById('success-modal').classList.remove('hidden');
+                    
                 } catch(err) { 
                     alert('Помилка при відправленні запиту.'); 
                 } finally { 
@@ -470,13 +488,18 @@
             setInterval(loadMyRequestsOnline, 600000);
         });
 
-        // Завантаження заявок онлайн
-        window.loadMyRequestsOnline = async function() {
+        // Завантаження заявок онлайн (З можливістю показати модальне вікно оновлення)
+        window.loadMyRequestsOnline = async function(showLoadingModal = false) {
             const currentUser = sessionStorage.getItem('portal_user');
             if (!currentUser) return;
             
             const list = document.getElementById('requests-list');
-            const loading = document.getElementById('requests-loading');
+            const loadingText = document.getElementById('requests-loading');
+            const loadingModal = document.getElementById('loading-modal');
+            
+            if (showLoadingModal && loadingModal) {
+                loadingModal.classList.remove('hidden');
+            }
             
             try {
                 const res = await fetch(LOG_SCRIPT_URL, {
@@ -486,7 +509,7 @@
                 
                 const onlineReqs = await res.json();
                 
-                loading.classList.add('hidden');
+                loadingText.classList.add('hidden');
                 list.classList.remove('hidden');
 
                 if (onlineReqs.length === 0) {
@@ -514,9 +537,13 @@
                 }
             } catch (e) {
                 console.error("Помилка завантаження заявок", e);
-                loading.classList.add('hidden');
+                loadingText.classList.add('hidden');
                 list.classList.remove('hidden');
                 list.innerHTML = `<p class="text-sm text-red-500 text-center py-4">Помилка з'єднання.</p>`;
+            } finally {
+                if (showLoadingModal && loadingModal) {
+                    loadingModal.classList.add('hidden');
+                }
             }
         }
     </script>
