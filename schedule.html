@@ -20,21 +20,27 @@
         .calendar-day { 
             aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; 
             justify-content: center; border-radius: 0.5rem; border: 1px solid #e2e8f0; 
-            cursor: pointer; transition: all 0.2s; position: relative;
+            cursor: pointer; transition: all 0.2s; position: relative; font-size: 0.95rem; font-weight: 500;
         }
         .dark .calendar-day { border-color: #334155; }
-        .calendar-day:hover { border-color: #10b981; transform: scale(1.05); z-index: 10; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .calendar-day.today { border-color: #10b981; border-width: 2px; font-weight: bold; }
-        .calendar-day.selected { background-color: #10b981; color: white; border-color: #10b981; }
-        .calendar-day.empty { background-color: transparent; border-color: transparent; cursor: default; }
-        .calendar-day.empty:hover { transform: none; box-shadow: none; border-color: transparent; }
+        .calendar-day:hover:not(.empty-day) { transform: scale(1.05); z-index: 10; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .empty-day { background-color: transparent !important; border-color: transparent !important; cursor: default; }
+        
+        /* Кольори для змін */
+        .shift-reg { background-color: #b6d7a8 !important; color: #1e3a1e !important; border-color: #94c180 !important; font-weight: bold; }
+        .shift-extra { background-color: #6ee7b7 !important; color: #064e3b !important; border-color: #34d399 !important; font-weight: bold; }
+        .shift-sick { background-color: #bfdbfe !important; color: #1e3a8a !important; border-color: #93c5fd !important; font-weight: bold; }
+        .shift-vac { background-color: #fde047 !important; color: #713f12 !important; border-color: #facc15 !important; font-weight: bold; }
+        
+        .is-today { outline: 3px solid #059669; outline-offset: -2px; font-weight: 900; }
+        .selected-day { ring: 4px; ring-color: #10b981; transform: scale(1.05); z-index: 20; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); border-color: #059669 !important; }
     </style>
 </head>
 <body class="font-sans text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-col transition-colors duration-200">
 
     <!-- Верхня панель навігації -->
     <nav class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center gap-4">
                     <a href="index.html" class="text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1 font-medium bg-slate-50 dark:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-600">
@@ -58,41 +64,67 @@
         </div>
     </nav>
 
-    <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-8">
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-8">
+        
+        <!-- Індикатор завантаження графіка -->
+        <div id="calendar-loader" class="text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-8">
+            <svg class="animate-spin h-8 w-8 text-emerald-600 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p class="text-slate-500 dark:text-slate-400 text-sm">Синхронізація графіка з базою даних...</p>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <!-- Ліва колонка: Календар -->
-            <div class="lg:col-span-2">
-                <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-slate-800 dark:text-white" id="current-month-year">...</h2>
-                        <div class="flex gap-2">
-                            <button id="prev-month" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                            <button id="next-month" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button>
-                        </div>
+            <!-- Ліва колонка: Календарі на два місяці -->
+            <div class="lg:col-span-2 space-y-6">
+                <div id="calendars-wrapper" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+                    <!-- Календарі генеруватимуться через JS -->
+                </div>
+                
+                <!-- Умовні позначення -->
+                <div id="legend-block" class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hidden">
+                    <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-3 text-center">Умовні позначення</h3>
+                    <div class="flex flex-wrap gap-4 text-xs font-medium justify-center text-slate-700 dark:text-slate-300">
+                        <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#b6d7a8] border border-[#85b873]"></span> Робоча (1)</div>
+                        <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#6ee7b7] border border-[#34d399]"></span> Додаткова (З)</div>
+                        <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#bfdbfe] border border-[#93c5fd]"></span> Лікарняний (Л)</div>
+                        <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-[#fde047] border border-[#facc15]"></span> Відпустка (В)</div>
                     </div>
-                    
-                    <div class="calendar-grid mb-2 text-slate-500 dark:text-slate-400">
-                        <div class="day-header">Пн</div>
-                        <div class="day-header">Вв</div>
-                        <div class="day-header">Ср</div>
-                        <div class="day-header">Чт</div>
-                        <div class="day-header">Пт</div>
-                        <div class="day-header text-red-400">Сб</div>
-                        <div class="day-header text-red-400">Нд</div>
-                    </div>
-                    
-                    <div id="calendar-days" class="calendar-grid">
-                        <!-- Дні генеруватимуться через JS -->
-                    </div>
-                </section>
+                    <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-4">* Натисніть на будь-яку дату в календарі, щоб подати заявку.</p>
+                </div>
             </div>
 
-            <!-- Права колонка: Форма + Історія -->
+            <!-- Права колонка: Статистика, Форма, Історія -->
             <div class="space-y-6">
                 
+                <!-- Статистика -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <h2 class="text-lg font-bold mb-4 text-slate-800 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                        Особистий кабінет
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider" id="stat-month-label">Статистика</p>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                            <span class="text-slate-600 dark:text-slate-300">Робочі зміни</span>
+                            <span id="stat-reg" class="font-bold text-base text-slate-800 dark:text-white">0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                            <span class="text-slate-600 dark:text-slate-300">Додаткові зміни</span>
+                            <span id="stat-extra" class="font-bold text-base text-emerald-600 dark:text-emerald-400">0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                            <span class="text-slate-600 dark:text-slate-300">Лікарняні дні</span>
+                            <span id="stat-sick" class="font-bold text-base text-blue-600 dark:text-blue-400">0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2">
+                            <span class="text-slate-600 dark:text-slate-300">Дні відпустки</span>
+                            <span id="stat-vac" class="font-bold text-base text-amber-600 dark:text-amber-400">0</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Форма заявки (схована до вибору дати) -->
-                <section id="shift-form-section" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hidden">
+                <section id="shift-form-section" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hidden transition-all">
                     <div class="bg-emerald-50 dark:bg-emerald-900/30 p-4 border-b border-emerald-100 dark:border-emerald-800">
                         <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                             <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -130,7 +162,7 @@
                 </section>
 
                 <!-- Історія заявок -->
-                <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col h-[400px]">
+                <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col max-h-[400px]">
                     <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                         <h2 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                             <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -158,9 +190,12 @@
 
     <script>
         const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTLPe1ucmGBj64hHeyUkLVts_ZdMzneb-aXkeRpCg2FnpqoPhtgtyOyptMSbh0Cx_TEA/exec';
+        const SHEET_ID = '1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg'; // ID таблиці з графіками
         
-        let currentDate = new Date();
         let selectedDateStr = null;
+        let shiftsDatabase = {}; 
+        let stats = { reg: 0, extra: 0, sick: 0, vac: 0 };
+        const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
 
         document.addEventListener('DOMContentLoaded', () => {
             const currentUser = sessionStorage.getItem('portal_user');
@@ -187,84 +222,6 @@
                 localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
             });
 
-            // Календар
-            const monthYearEl = document.getElementById('current-month-year');
-            const calendarDaysEl = document.getElementById('calendar-days');
-            const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
-
-            function renderCalendar() {
-                calendarDaysEl.innerHTML = '';
-                const year = currentDate.getFullYear();
-                const month = currentDate.getMonth();
-                
-                monthYearEl.textContent = `${ukrMonths[month]} ${year}`;
-                
-                const firstDay = new Date(year, month, 1).getDay();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                const startDay = firstDay === 0 ? 6 : firstDay - 1; // Пн - 0, Нд - 6
-                
-                const today = new Date();
-                
-                // Пусті клітинки до першого дня
-                for (let i = 0; i < startDay; i++) {
-                    const emptyDiv = document.createElement('div');
-                    emptyDiv.className = 'calendar-day empty';
-                    calendarDaysEl.appendChild(emptyDiv);
-                }
-                
-                // Дні місяця
-                for (let i = 1; i <= daysInMonth; i++) {
-                    const dayDiv = document.createElement('div');
-                    dayDiv.className = 'calendar-day bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-medium';
-                    dayDiv.textContent = i;
-                    
-                    const cellDateStr = `${String(i).padStart(2, '0')}.${String(month + 1).padStart(2, '0')}.${year}`;
-                    dayDiv.dataset.date = cellDateStr;
-                    
-                    if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
-                        dayDiv.classList.add('today');
-                    }
-                    
-                    // Клік по дню
-                    dayDiv.addEventListener('click', () => {
-                        // Не даємо подати заявку на минулі дні
-                        const cellDateObj = new Date(year, month, i);
-                        const todayObj = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                        if (cellDateObj < todayObj) {
-                            alert("Неможливо подати заявку на минулу дату.");
-                            return;
-                        }
-
-                        document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
-                        dayDiv.classList.add('selected');
-                        
-                        selectedDateStr = cellDateStr;
-                        document.getElementById('selected-date-text').textContent = cellDateStr;
-                        document.getElementById('shift-form-section').classList.remove('hidden');
-                        
-                        // Скидаємо форму
-                        document.getElementById('shift-form').reset();
-                        document.getElementById('shift-form-inputs').classList.remove('hidden');
-                        document.getElementById('shift-form-actions').classList.remove('hidden');
-                        document.getElementById('success-message').classList.add('hidden');
-                    });
-                    
-                    calendarDaysEl.appendChild(dayDiv);
-                }
-            }
-
-            document.getElementById('prev-month').addEventListener('click', () => {
-                currentDate.setMonth(currentDate.getMonth() - 1);
-                renderCalendar();
-            });
-            
-            document.getElementById('next-month').addEventListener('click', () => {
-                currentDate.setMonth(currentDate.getMonth() + 1);
-                renderCalendar();
-            });
-
-            renderCalendar();
-
             // Логування
             function logUserAction(action) {
                 const formData = new FormData();
@@ -274,7 +231,191 @@
             }
             logUserAction("Переглядає свій графік");
 
-            // Обробка форми
+            // --- ЗАВАНТАЖЕННЯ ГРАФІКА З ТАБЛИЦІ ---
+            const checkType = (v) => {
+                if (!v) return null;
+                const match = v.toString().trim().toUpperCase().match(/[A-ZА-ЯІЇЄҐ0-9]/i);
+                if (!match) return null;
+                const char = match[0];
+                if (char === 'В' || char === 'B') return 'VAC';
+                if (char === 'Л' || char === 'L') return 'SICK';
+                if (char === 'З' || char === '3') return 'EXTRA';
+                if (char === '1' || char === '2') return 'REG';
+                return null;
+            };
+
+            const getVal = (cell) => {
+                if (!cell) return '';
+                if (cell.f !== undefined && cell.f !== null) return cell.f.toString().trim();
+                if (cell.v !== undefined && cell.v !== null) return cell.v.toString().trim();
+                return '';
+            };
+
+            async function fetchMonthData(monthIdx, yearNum) {
+                const sheetName = `${ukrMonths[monthIdx]} ${yearNum}`;
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+                try {
+                    const r = await fetch(url);
+                    if (r.ok) {
+                        const txt = await r.text();
+                        const match = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\);/);
+                        if (match) {
+                            return JSON.parse(match[1]).table;
+                        }
+                    }
+                } catch(e) {}
+                return null;
+            }
+
+            function parseShifts(table, monthIdx, yearNum) {
+                if (!table || !table.rows || table.rows.length === 0) return;
+                
+                let userRow = null;
+                for (const row of table.rows) {
+                    if (row && row.c && row.c[0]) {
+                        const nameInSheet = getVal(row.c[0]).toLowerCase();
+                        if (nameInSheet.includes(currentUser.toLowerCase().split(' ')[0])) {
+                            userRow = row.c;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!userRow) return;
+
+                const daysInMonth = new Date(yearNum, monthIdx + 1, 0).getDate();
+                const now = new Date();
+                
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dayColIdx = 2 + (d - 1) * 2;
+                    const nightColIdx = 3 + (d - 1) * 2;
+
+                    const dVal = getVal(userRow[dayColIdx]);
+                    const nVal = getVal(userRow[nightColIdx]);
+                    
+                    const dateKey = `${yearNum}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const t1 = checkType(dVal), t2 = checkType(nVal);
+
+                    // Підрахунок статистики тільки для поточного місяця
+                    if (monthIdx === now.getMonth() && yearNum === now.getFullYear()) {
+                        if (t1 === 'REG') stats.reg++; if (t1 === 'EXTRA') stats.extra++; if (t1 === 'SICK') stats.sick++; if (t1 === 'VAC') stats.vac++;
+                        if (t2 === 'REG') stats.reg++; if (t2 === 'EXTRA') stats.extra++; if (t2 === 'SICK') stats.sick++; if (t2 === 'VAC') stats.vac++;
+                    }
+
+                    if (t1 === 'VAC' || t2 === 'VAC') shiftsDatabase[dateKey] = 'VAC';
+                    else if (t1 === 'SICK' || t2 === 'SICK') shiftsDatabase[dateKey] = 'SICK';
+                    else if (t1 === 'EXTRA' || t2 === 'EXTRA') shiftsDatabase[dateKey] = 'EXTRA';
+                    else if (t1 === 'REG' || t2 === 'REG') shiftsDatabase[dateKey] = 'REG';
+                }
+            }
+
+            function buildMonthHTML(monthIdx, yearNum) {
+                const monthName = ukrMonths[monthIdx];
+                const shiftFirstDay = new Date(yearNum, monthIdx, 1).getDay() === 0 ? 6 : new Date(yearNum, monthIdx, 1).getDay() - 1; 
+                const daysInMonth = new Date(yearNum, monthIdx + 1, 0).getDate();
+                const today = new Date();
+
+                let html = `<div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <h3 class="text-center font-bold text-lg mb-4 text-slate-800 dark:text-white">${monthName} ${yearNum}</h3>
+                    <div class="calendar-grid mb-2 text-slate-500 dark:text-slate-400">
+                        <div class="day-header">Пн</div><div class="day-header">Вт</div><div class="day-header">Ср</div>
+                        <div class="day-header">Чт</div><div class="day-header">Пт</div>
+                        <div class="day-header text-rose-500">Сб</div><div class="day-header text-rose-500">Нд</div>
+                    </div>
+                    <div class="calendar-grid">`;
+                
+                for (let i = 0; i < shiftFirstDay; i++) {
+                    html += `<div class="calendar-day empty-day"></div>`;
+                }
+                
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateStr = `${yearNum}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const t = shiftsDatabase[dateStr];
+                    
+                    let cls = 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200';
+                    if (t === 'REG') cls = 'shift-reg';
+                    else if (t === 'EXTRA') cls = 'shift-extra';
+                    else if (t === 'SICK') cls = 'shift-sick';
+                    else if (t === 'VAC') cls = 'shift-vac';
+                    
+                    const isToday = (d === today.getDate() && monthIdx === today.getMonth() && yearNum === today.getFullYear()) ? 'is-today' : '';
+
+                    html += `<div class="calendar-day ${cls} ${isToday}" data-date="${dateStr}">${d}</div>`;
+                }
+                return html + `</div></div>`;
+            }
+
+            async function loadScheduleData() {
+                const now = new Date();
+                const currentM = now.getMonth(), currentY = now.getFullYear();
+                const nextM = (currentM + 1) % 12, nextY = currentM === 11 ? currentY + 1 : currentY;
+                
+                document.getElementById('stat-month-label').textContent = `за ${ukrMonths[currentM]}`;
+                
+                const t1 = await fetchMonthData(currentM, currentY);
+                const t2 = await fetchMonthData(nextM, nextY);
+                
+                shiftsDatabase = {}; 
+                stats = { reg: 0, extra: 0, sick: 0, vac: 0 };
+                
+                if (t1) parseShifts(t1, currentM, currentY);
+                if (t2) parseShifts(t2, nextM, nextY);
+                
+                // Оновлення UI
+                document.getElementById('calendar-loader').classList.add('hidden');
+                document.getElementById('calendars-wrapper').classList.remove('hidden');
+                document.getElementById('legend-block').classList.remove('hidden');
+                
+                const wrapper = document.getElementById('calendars-wrapper');
+                wrapper.innerHTML = buildMonthHTML(currentM, currentY) + buildMonthHTML(nextM, nextY);
+                
+                document.getElementById('stat-reg').textContent = stats.reg;
+                document.getElementById('stat-extra').textContent = stats.extra;
+                document.getElementById('stat-sick').textContent = stats.sick;
+                document.getElementById('stat-vac').textContent = stats.vac;
+
+                // Додаємо події кліку на дні
+                document.querySelectorAll('.calendar-day:not(.empty-day)').forEach(dayDiv => {
+                    dayDiv.addEventListener('click', () => {
+                        const cellDateStr = dayDiv.getAttribute('data-date'); // Формат YYYY-MM-DD
+                        
+                        // Перевірка на минулі дні
+                        const [y, m, d] = cellDateStr.split('-');
+                        const cellDateObj = new Date(y, m - 1, d);
+                        const todayObj = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                        
+                        if (cellDateObj < todayObj) {
+                            alert("Неможливо подати заявку на минулу дату.");
+                            return;
+                        }
+
+                        document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected-day'));
+                        dayDiv.classList.add('selected-day');
+                        
+                        selectedDateStr = cellDateStr;
+                        const displayDate = `${d}.${m}.${y}`;
+                        
+                        document.getElementById('selected-date-text').textContent = displayDate;
+                        document.getElementById('shift-form-section').classList.remove('hidden');
+                        
+                        // Скидаємо форму
+                        document.getElementById('shift-form').reset();
+                        document.getElementById('shift-form-inputs').classList.remove('hidden');
+                        document.getElementById('shift-form-actions').classList.remove('hidden');
+                        document.getElementById('success-message').classList.add('hidden');
+                        
+                        // Плавно скролимо до форми на мобільних пристроях
+                        if (window.innerWidth < 1024) {
+                            document.getElementById('shift-form-section').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    });
+                });
+            }
+
+            // Запускаємо завантаження графіка
+            loadScheduleData();
+
+            // Обробка форми заявки
             const form = document.getElementById('shift-form');
             const sBtn = document.getElementById('submit-btn');
 
@@ -286,11 +427,15 @@
                 const cVal = document.getElementById('shift-comment').value;
                 if(!tVal) return;
 
+                // Форматуємо дату для бекенду (з YYYY-MM-DD в DD.MM.YYYY)
+                const [y, m, d] = selectedDateStr.split('-');
+                const formattedDate = `${d}.${m}.${y}`;
+
                 sBtn.disabled = true;
                 document.getElementById('submit-spinner').classList.remove('hidden');
 
                 try {
-                    logUserAction(`Відправка заявки на зміну: ${selectedDateStr}`);
+                    logUserAction(`Відправка заявки на зміну: ${formattedDate}`);
 
                     // Відправляємо JSON запит для створення заявки
                     await fetch(LOG_SCRIPT_URL, { 
@@ -298,7 +443,7 @@
                         body: JSON.stringify({ 
                             requestType: 'submit_request',
                             user: currentUser, 
-                            date: selectedDateStr, 
+                            date: formattedDate, 
                             type: tVal, 
                             comment: cVal || 'немає'
                         }), 
@@ -319,14 +464,14 @@
                 }
             });
 
-            // Запускаємо відразу при завантаженні графіку
+            // Запускаємо відразу історію заявок
             loadMyRequestsOnline();
             // Ставимо інтервал оновлення (10 хв)
             setInterval(loadMyRequestsOnline, 600000);
         });
 
-        // НОВА ФУНКЦІЯ: Завантаження заявок онлайн
-        async function loadMyRequestsOnline() {
+        // Завантаження заявок онлайн
+        window.loadMyRequestsOnline = async function() {
             const currentUser = sessionStorage.getItem('portal_user');
             if (!currentUser) return;
             
@@ -351,7 +496,6 @@
                         let statusColor = r.status === 'Погоджено' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800' : 
                                           (r.status === 'Відхилено' ? 'text-red-500 bg-red-50 border-red-200 dark:bg-red-900/30 dark:border-red-800' : 'text-amber-500 bg-amber-50 border-amber-200 dark:bg-amber-900/30 dark:border-amber-800');
                         
-                        // Безпечне форматування дати
                         let displayDate = r.date;
                         if (typeof displayDate === 'string' && displayDate.includes('T')) {
                             const d = new Date(displayDate);
