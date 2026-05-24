@@ -38,6 +38,12 @@
                 <h1 class="text-xl font-bold text-slate-800 hidden sm:block">Панель керівника</h1>
             </div>
             <div class="flex items-center gap-3">
+                <!-- НОВА КНОПКА ОНОВЛЕННЯ -->
+                <button onclick="loadStats()" class="flex items-center gap-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-2 rounded-lg transition-colors text-sm font-bold shadow-sm" title="Примусово оновити дані">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    <span class="hidden sm:inline">Оновити</span>
+                </button>
+                
                 <div class="relative">
                     <select id="month-select" onchange="loadStats()" class="appearance-none pl-4 pr-10 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 hover:bg-slate-100 outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-700 cursor-pointer transition-colors shadow-sm">
                         <!-- Місяці генеруються автоматично через JS -->
@@ -126,7 +132,7 @@
 
     <script>
         // ВАЖЛИВО: Оновлений URL вашого бекенду
-        const API_URL = 'https://script.google.com/macros/s/AKfycbya9cTjkD97u7uO-KuUIMcY6nuqIJgWbM5q79O8zyQC3V0QC0q_Hrh8h5LQTCkBL3GGSg/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxTLPe1ucmGBj64hHeyUkLVts_ZdMzneb-aXkeRpCg2FnpqoPhtgtyOyptMSbh0Cx_TEA/exec';
 
         document.addEventListener('DOMContentLoaded', () => {
             const isAuth = sessionStorage.getItem('admin_auth');
