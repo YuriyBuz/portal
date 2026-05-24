@@ -6,191 +6,290 @@
     <title>Заявка на зміну | Портал працівника</title>
     <meta name="theme-color" content="#059669">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
     <style>
-        body { background-color: #f8fafc; }
+        body { background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        .dark body { background-color: #0f172a; }
     </style>
 </head>
-<body class="font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="font-sans text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-col transition-colors duration-200">
 
-    <!-- Верхня панель навігації (прихована до авторизації) -->
-    <nav class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50" id="main-nav" style="display: none;">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Верхня панель навігації -->
+    <nav class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center gap-4">
-                    <a href="./index.html" class="text-slate-500 hover:text-emerald-600 transition-colors flex items-center gap-1 font-medium bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                    <a href="index.html" class="text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1 font-medium bg-slate-50 dark:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-600">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                         </svg>
-                        <span class="hidden sm:inline">На портал</span>
+                        <span class="hidden sm:inline">Назад</span>
                     </a>
-                    <h1 class="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
-                        <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Заявка на зміну
-                    </h1>
+                    <h1 class="text-lg font-bold text-slate-800 dark:text-white truncate">Додаткова зміна</h1>
                 </div>
-                <div class="flex items-center">
-                    <span id="user-greeting" class="text-emerald-700 font-medium text-sm bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 hidden sm:block"></span>
+                <div class="flex items-center gap-3">
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    </button>
+                    <div class="text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800 flex items-center gap-2 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="user-name" class="truncate max-w-[120px] sm:max-w-[200px]">...</span>
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Основний контент -->
-    <main class="flex-grow max-w-3xl mx-auto w-full px-4 sm:px-6 py-8" id="main-content" style="display: none;">
-        
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="bg-emerald-50 p-6 border-b border-emerald-100">
-                <h2 class="text-xl font-bold text-emerald-800 mb-2">Подати заявку на додаткову зміну</h2>
-                <p class="text-emerald-600 text-sm">Заповніть форму нижче, щоб повідомити керівництво про ваше бажання вийти на додаткову робочу зміну.</p>
-            </div>
-
-            <div class="p-6 sm:p-8">
-                <!-- Повідомлення про успішне відправлення -->
-                <div id="success-message" class="hidden mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-4 rounded-lg flex items-start gap-3">
-                    <svg class="w-6 h-6 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+    <main class="flex-grow max-w-4xl mx-auto w-full px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Форма подачі заявки -->
+            <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden h-fit">
+                <div class="bg-emerald-50 dark:bg-emerald-900/30 p-5 border-b border-emerald-100 dark:border-emerald-800 flex items-center gap-4">
+                    <div class="bg-emerald-500 text-white p-2.5 rounded-xl shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
                     <div>
-                        <h3 class="font-bold text-green-800">Заявку успішно відправлено!</h3>
-                        <p class="text-sm mt-1">Ваш запит збережено в системі. Керівник зв'яжеться з вами для підтвердження.</p>
+                        <h2 class="text-xl font-bold text-slate-800 dark:text-white">Нова заявка</h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Запит на додаткові години</p>
                     </div>
                 </div>
-
-                <form id="shift-form" class="space-y-6">
+                
+                <form id="shift-form" class="p-6 space-y-5">
                     <div>
-                        <label for="shift-date" class="block text-sm font-medium text-slate-700 mb-1">Бажана дата виходу <span class="text-red-500">*</span></label>
-                        <input type="date" id="shift-date" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-slate-700 bg-white shadow-sm">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Бажана дата виходу <span class="text-red-500">*</span></label>
+                        <input type="date" id="shift-date" required class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-sm">
                     </div>
-
+                    
                     <div>
-                        <label for="shift-type" class="block text-sm font-medium text-slate-700 mb-1">Тип зміни <span class="text-red-500">*</span></label>
-                        <select id="shift-type" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-slate-700 bg-white shadow-sm">
-                            <option value="" disabled selected>Оберіть зміну...</option>
-                            <option value="Денна (08:00 - 20:00)">Денна зміна (08:00 - 20:00)</option>
-                            <option value="Нічна (20:00 - 08:00)">Нічна зміна (20:00 - 08:00)</option>
-                            <option value="Будь-яка (День/Ніч)">Будь-яка вільна зміна</option>
-                        </select>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Тип зміни <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <select id="shift-type" required class="w-full appearance-none px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-sm cursor-pointer">
+                                <option value="" disabled selected>Оберіть тип зміни...</option>
+                                <option value="День">День</option>
+                                <option value="Ніч">Ніч</option>
+                                <option value="Підробіток (кілька годин)">Підробіток (кілька годин)</option>
+                            </select>
+                            <svg class="w-5 h-5 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
                     </div>
-
+                    
                     <div>
-                        <label for="shift-comment" class="block text-sm font-medium text-slate-700 mb-1">Коментар (необов'язково)</label>
-                        <textarea id="shift-comment" rows="3" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-slate-700 bg-white shadow-sm resize-none" placeholder="Наприклад: можу вийти тільки до 15:00..."></textarea>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Коментар (необов'язково)</label>
+                        <textarea id="shift-comment" rows="2" placeholder="Наприклад: можу вийти тільки після 10:00" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-sm resize-none"></textarea>
                     </div>
 
-                    <div class="pt-2">
-                        <button type="submit" id="submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md">
-                            <span>Відправити заявку</span>
-                            <svg id="submit-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                        </button>
+                    <div id="success-msg" class="hidden flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-xl border border-emerald-200 dark:border-emerald-800 mt-2">
+                        <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p class="text-sm font-medium">Заявку успішно відправлено на розгляд керівнику!</p>
                     </div>
+
+                    <button type="submit" id="submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all flex justify-center items-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98]">
+                        <span>Відправити заявку</span>
+                        <svg id="submit-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </button>
                 </form>
-            </div>
+            </section>
+
+            <!-- Історія заявок -->
+            <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[600px]">
+                <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                    <h2 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Мої останні заявки
+                    </h2>
+                    <button onclick="loadMyRequestsOnline()" class="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 p-1.5 rounded-lg transition-colors" title="Оновити список">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                    </button>
+                </div>
+                
+                <div class="p-5 overflow-y-auto flex-grow bg-slate-50/50 dark:bg-slate-800/20">
+                    <div id="requests-loading" class="flex justify-center items-center py-8">
+                        <svg class="animate-spin h-8 w-8 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </div>
+                    
+                    <div id="requests-list" class="space-y-3 hidden">
+                        <!-- Заявки завантажуватимуться сюди з БД -->
+                    </div>
+                </div>
+            </section>
         </div>
     </main>
 
     <script>
+        // ВАЖЛИВО: Оновлений URL вашого бекенду
+        const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbya9cTjkD97u7uO-KuUIMcY6nuqIJgWbM5q79O8zyQC3V0QC0q_Hrh8h5LQTCkBL3GGSg/exec';
+
         document.addEventListener('DOMContentLoaded', () => {
             const currentUser = sessionStorage.getItem('portal_user');
             
+            // Замість перенаправлення location.href, що викликає помилку в Canvas, 
+            // просто відображаємо повідомлення
             if (!currentUser) {
                 document.body.innerHTML = `
-                    <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50">
-                        <div class="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full border border-slate-200">
-                            <h2 class="text-2xl font-bold text-slate-800 mb-2">Доступ закрито</h2>
-                            <p class="text-slate-500 mb-8">Будь ласка, авторизуйтесь на головній сторінці порталу.</p>
-                            <a href="./index.html" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg w-full block transition-colors shadow-sm">Перейти до входу</a>
+                    <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+                        <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
+                            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            </div>
+                            <h2 class="text-xl font-bold mb-2 text-slate-800 dark:text-white">Помилка доступу</h2>
+                            <p class="text-slate-500 dark:text-slate-400 mb-6">Будь ласка, авторизуйтесь для доступу до цієї сторінки.</p>
+                            <a href="index.html" class="inline-block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-md">Перейти до входу</a>
                         </div>
                     </div>
                 `;
                 return;
             }
+            
+            document.getElementById('user-name').textContent = currentUser;
 
-            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwvkGTwNAiJ-FBkge75yy4uEUDw1HVW-P6B4InvjwS3PaNrUl3fiKgEtIFPeBVralh6Xw/exec';
+            // Налаштування теми
+            const themeBtn = document.getElementById('theme-toggle');
+            themeBtn.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            });
 
-            // --- НОВА ФУНКЦІЯ ЛОГУВАННЯ ДІЙ ---
+            // Мінімальна дата - сьогодні
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('shift-date').min = today;
+
+            // Перше завантаження заявок онлайн
+            loadMyRequestsOnline();
+
+            // Автоматичне оновлення статусів заявок кожні 10 хвилин (600 000 мілісекунд)
+            setInterval(loadMyRequestsOnline, 600000);
+
+            // Функція логування
             function logUserAction(actionDetails) {
                 const formData = new FormData();
                 formData.append('user', currentUser);
                 formData.append('action', actionDetails);
-                fetch(LOG_SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'no-cors'
-                }).catch(err => console.error('Помилка логування:', err));
+                fetch(LOG_SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' }).catch(()=>console.log("Log fail"));
             }
 
-            // Логуємо відкриття сторінки
-            logUserAction('Відкрив форму додаткової зміни');
+            logUserAction("Відкрив сторінку: Заявка на зміну");
 
-            document.getElementById('main-nav').style.display = 'block';
-            document.getElementById('main-content').style.display = 'block';
-
-            const greetingEl = document.getElementById('user-greeting');
-            if (greetingEl) {
-                greetingEl.textContent = `👤 ${currentUser}`;
-                greetingEl.classList.remove('hidden');
-            }
-
-            const dateInput = document.getElementById('shift-date');
-            const today = new Date().toISOString().split('T')[0];
-            dateInput.min = today;
-
+            // Обробка форми подачі
             const form = document.getElementById('shift-form');
             const submitBtn = document.getElementById('submit-btn');
             const submitSpinner = document.getElementById('submit-spinner');
-            const successMsg = document.getElementById('success-message');
+            const successMsg = document.getElementById('success-msg');
 
-            form.addEventListener('submit', (e) => {
+            form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                successMsg.classList.add('hidden');
+                
+                const rawDate = document.getElementById('shift-date').value;
+                const type = document.getElementById('shift-type').value;
+                const comment = document.getElementById('shift-comment').value;
+                
+                if(!rawDate || !type) return;
+
+                // Переформатовуємо дату в DD.MM.YYYY
+                const dParts = rawDate.split('-');
+                const formattedDate = `${dParts[2]}.${dParts[1]}.${dParts[0]}`;
+
                 submitBtn.disabled = true;
                 submitBtn.classList.add('opacity-90', 'cursor-not-allowed');
                 submitSpinner.classList.remove('hidden');
+                successMsg.classList.add('hidden');
 
-                const date = document.getElementById('shift-date').value;
-                const formattedDate = new Date(date).toLocaleDateString('uk-UA');
-                const type = document.getElementById('shift-type').value;
-                const comment = document.getElementById('shift-comment').value.trim();
+                try {
+                    // Відправляємо заявку
+                    await fetch(LOG_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            requestType: 'submit_request',
+                            user: currentUser,
+                            date: formattedDate,
+                            type: type,
+                            comment: comment || 'немає'
+                        }),
+                        mode: 'no-cors'
+                    });
 
-                // 1. Додаємо до історії на порталі працівника
-                const reqs = JSON.parse(localStorage.getItem('my_shift_reqs') || '[]');
-                reqs.unshift({ date: formattedDate, type: type, status: '⏳ Очікує' });
-                localStorage.setItem('my_shift_reqs', JSON.stringify(reqs.slice(0, 5)));
-
-                // Логуємо факт відправки форми
-                logUserAction(`Подав заявку на зміну: ${formattedDate}`);
-
-                // 2. Відправляємо на скрипт (JSON-формат для Адмін Панелі)
-                fetch(LOG_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        requestType: 'submit_request',
-                        user: currentUser,
-                        date: formattedDate,
-                        type: type,
-                        comment: comment || 'немає'
-                    }),
-                    mode: 'no-cors'
-                })
-                .then(() => {
-                    successMsg.classList.remove('hidden');
+                    logUserAction(`Подав заявку на зміну: ${formattedDate}`);
+                    
                     form.reset();
-                })
-                .catch(err => {
-                    alert('Виникла помилка при відправленні. Спробуйте пізніше.');
-                })
-                .finally(() => {
+                    successMsg.classList.remove('hidden');
+                    
+                    // Відразу оновлюємо список заявок
+                    await loadMyRequestsOnline();
+
+                    // Ховаємо повідомлення про успіх через 5 секунд
+                    setTimeout(() => successMsg.classList.add('hidden'), 5000);
+
+                } catch (err) {
+                    alert('Виникла помилка при відправленні. Перевірте з\'єднання.');
+                } finally {
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('opacity-90', 'cursor-not-allowed');
                     submitSpinner.classList.add('hidden');
-                });
+                }
             });
         });
+
+        // Функція для завантаження історії заявок безпосередньо з Google Таблиці
+        async function loadMyRequestsOnline() {
+            const currentUser = sessionStorage.getItem('portal_user');
+            if (!currentUser) return;
+            
+            const list = document.getElementById('requests-list');
+            const loading = document.getElementById('requests-loading');
+            
+            try {
+                // Використовуємо вашу актуальну лінку
+                const res = await fetch(LOG_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ requestType: 'get_my_requests', user: currentUser })
+                });
+                
+                const onlineReqs = await res.json();
+                
+                loading.classList.add('hidden');
+                list.classList.remove('hidden');
+                
+                if (onlineReqs.length === 0) {
+                    list.innerHTML = `
+                        <div class="text-center py-6 text-slate-500 dark:text-slate-400">
+                            <p class="text-sm">Ви ще не подавали заявок.</p>
+                        </div>
+                    `;
+                } else {
+                    list.innerHTML = onlineReqs.map(r => {
+                        // Визначаємо колір статусу
+                        let statusColorClass = 'text-amber-500 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800'; // Для "Очікує"
+                        
+                        if (r.status === 'Погоджено') {
+                            statusColorClass = 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800';
+                        } else if (r.status === 'Відхилено') {
+                            statusColorClass = 'text-red-500 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800';
+                        }
+
+                        return `
+                        <div class="flex justify-between items-center p-4 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
+                            <div>
+                                <p class="font-bold text-slate-800 dark:text-white text-lg">${r.date}</p>
+                                <p class="text-sm text-slate-500 dark:text-slate-300 font-medium">${r.type}</p>
+                            </div>
+                            <span class="text-xs font-bold px-3 py-1.5 rounded-lg border ${statusColorClass}">
+                                ${r.status}
+                            </span>
+                        </div>
+                    `}).join('');
+                }
+            } catch (e) {
+                console.error("Помилка синхронізації заявок", e);
+                loading.classList.add('hidden');
+                list.classList.remove('hidden');
+                list.innerHTML = `<p class="text-sm text-red-500 p-4 text-center">Не вдалося завантажити історію. Перевірте з'єднання.</p>`;
+            }
+        }
     </script>
 </body>
 </html>
