@@ -125,179 +125,340 @@
     </main>
 
     <script>
-        // ВАЖЛИВО: Оновлений URL вашого бекенду
-        const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwt3DZaZ6gov8v0QuPLLXsRGcFEs8IEEWfqsOgTsW2yGuSoB9i5Hx95R_LdUJuVkW1MbA/exec';
+const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvtbq2U1aCVB1H2SbZGJHBZRX2FAYSz-s0OOSJJ_tYQFU_2vgTBnliLyPedZQga19EBg/exec';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const currentUser = sessionStorage.getItem('portal_user');
-            
-            if (!currentUser) {
-                document.body.innerHTML = `
-                    <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
-                        <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
-                            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                            </div>
-                            <h2 class="text-xl font-bold mb-2 text-slate-800 dark:text-white">Помилка доступу</h2>
-                            <p class="text-slate-500 dark:text-slate-400 mb-6">Будь ласка, авторизуйтесь для доступу до цієї сторінки.</p>
-                            <a href="index.html" class="inline-block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-md">Перейти до входу</a>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-            
-            document.getElementById('user-name').textContent = currentUser;
+document.addEventListener('DOMContentLoaded', () => {
 
-            // Налаштування теми
-            const themeBtn = document.getElementById('theme-toggle');
-            themeBtn.addEventListener('click', () => {
-                document.documentElement.classList.toggle('dark');
-                localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-            });
+    const currentUser = sessionStorage.getItem('portal_user');
 
-            // Мінімальна дата - сьогодні
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('shift-date').min = today;
+    if (!currentUser) {
+        window.location.href = 'index.html';
+        return;
+    }
 
-            // Перше завантаження заявок онлайн
-            loadMyRequestsOnline();
+    document.getElementById('user-name').textContent = currentUser;
 
-            // Автоматичне оновлення статусів заявок кожні 10 хвилин (600 000 мілісекунд)
-            setInterval(loadMyRequestsOnline, 600000);
+    // ---------------- ТЕМА ----------------
 
-            // Функція логування
-            function logUserAction(actionDetails) {
-                const formData = new FormData();
-                formData.append('user', currentUser);
-                formData.append('action', actionDetails);
-                fetch(LOG_SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' }).catch(()=>console.log("Log fail"));
-            }
+    const themeBtn = document.getElementById('theme-toggle');
 
-            logUserAction("Відкрив сторінку: Заявка на зміну");
+    themeBtn.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
 
-            // Обробка форми подачі
-            const form = document.getElementById('shift-form');
-            const submitBtn = document.getElementById('submit-btn');
-            const submitSpinner = document.getElementById('submit-spinner');
-            const successMsg = document.getElementById('success-msg');
+        localStorage.setItem(
+            'color-theme',
+            document.documentElement.classList.contains('dark')
+                ? 'dark'
+                : 'light'
+        );
+    });
 
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const rawDate = document.getElementById('shift-date').value;
-                const type = document.getElementById('shift-type').value;
-                const comment = document.getElementById('shift-comment').value;
-                
-                if(!rawDate || !type) return;
+    // ---------------- ДАТА ----------------
 
-                // Переформатовуємо дату в DD.MM.YYYY
-                const dParts = rawDate.split('-');
-                const formattedDate = `${dParts[2]}.${dParts[1]}.${dParts[0]}`;
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
 
-                submitBtn.disabled = true;
-                submitBtn.classList.add('opacity-90', 'cursor-not-allowed');
-                submitSpinner.classList.remove('hidden');
-                successMsg.classList.add('hidden');
+    const today = now.toISOString().split('T')[0];
 
-                try {
-                    // Відправляємо заявку
-                    await fetch(LOG_SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            requestType: 'submit_request',
-                            user: currentUser,
-                            date: formattedDate,
-                            type: type,
-                            comment: comment || 'немає'
-                        }),
-                        mode: 'no-cors'
-                    });
+    document.getElementById('shift-date').min = today;
 
-                    logUserAction(`Подав заявку на зміну: ${formattedDate}`);
-                    
-                    form.reset();
-                    successMsg.classList.remove('hidden');
-                    
-                    // Відразу оновлюємо список заявок
-                    await loadMyRequestsOnline();
+    // ---------------- INIT ----------------
 
-                    // Ховаємо повідомлення про успіх через 5 секунд
-                    setTimeout(() => successMsg.classList.add('hidden'), 5000);
+    loadMyRequestsOnline();
 
-                } catch (err) {
-                    alert('Виникла помилка при відправленні. Перевірте з\'єднання.');
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.classList.remove('opacity-90', 'cursor-not-allowed');
-                    submitSpinner.classList.add('hidden');
-                }
-            });
-        });
+    setInterval(loadMyRequestsOnline, 600000);
 
-        // Функція для завантаження історії заявок безпосередньо з Google Таблиці
-        async function loadMyRequestsOnline() {
-            const currentUser = sessionStorage.getItem('portal_user');
-            if (!currentUser) return;
-            
-            const list = document.getElementById('requests-list');
-            const loading = document.getElementById('requests-loading');
-            
-            try {
-                // Використовуємо вашу актуальну лінку
-                const res = await fetch(LOG_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ requestType: 'get_my_requests', user: currentUser })
-                });
-                
-                const onlineReqs = await res.json();
-                
-                loading.classList.add('hidden');
-                list.classList.remove('hidden');
-                
-                if (onlineReqs.length === 0) {
-                    list.innerHTML = `
-                        <div class="text-center py-6 text-slate-500 dark:text-slate-400">
-                            <p class="text-sm">Ви ще не подавали заявок.</p>
-                        </div>
-                    `;
-                } else {
-                    list.innerHTML = onlineReqs.map(r => {
-                        // Визначаємо колір статусу
-                        let statusColorClass = 'text-amber-500 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800'; // Для "Очікує"
-                        
-                        if (r.status === 'Погоджено') {
-                            statusColorClass = 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800';
-                        } else if (r.status === 'Відхилено') {
-                            statusColorClass = 'text-red-500 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800';
-                        }
+    logUserAction('Відкрив сторінку: Заявка на зміну');
 
-                        // ДОДАНО: Безпечне форматування дати у разі повернення ISO формату
-                        let displayDate = r.date;
-                        if (typeof displayDate === 'string' && displayDate.includes('T')) {
-                            const d = new Date(displayDate);
-                            displayDate = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
-                        }
+    // ---------------- FORM ----------------
 
-                        return `
-                        <div class="flex justify-between items-center p-4 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
-                            <div>
-                                <p class="font-bold text-slate-800 dark:text-white text-lg">${displayDate}</p>
-                                <p class="text-sm text-slate-500 dark:text-slate-300 font-medium">${r.type}</p>
-                            </div>
-                            <span class="text-xs font-bold px-3 py-1.5 rounded-lg border ${statusColorClass}">
-                                ${r.status}
-                            </span>
-                        </div>
-                    `}).join('');
-                }
-            } catch (e) {
-                console.error("Помилка синхронізації заявок", e);
-                loading.classList.add('hidden');
-                list.classList.remove('hidden');
-                list.innerHTML = `<p class="text-sm text-red-500 p-4 text-center">Не вдалося завантажити історію. Перевірте з'єднання.</p>`;
-            }
+    const form = document.getElementById('shift-form');
+
+    const submitBtn = document.getElementById('submit-btn');
+
+    const submitSpinner = document.getElementById('submit-spinner');
+
+    const successMsg = document.getElementById('success-msg');
+
+    form.addEventListener('submit', async (e) => {
+
+        e.preventDefault();
+
+        if (submitBtn.disabled) return;
+
+        const rawDate = document.getElementById('shift-date').value;
+
+        const type = document.getElementById('shift-type').value;
+
+        const comment = document.getElementById('shift-comment').value;
+
+        if (!rawDate || !type) {
+            alert('Заповніть всі обов’язкові поля');
+            return;
         }
-    </script>
-</body>
-</html>
+
+        const dParts = rawDate.split('-');
+
+        const formattedDate =
+            `${dParts[2]}.${dParts[1]}.${dParts[0]}`;
+
+        submitBtn.disabled = true;
+
+        submitBtn.classList.add(
+            'opacity-90',
+            'cursor-not-allowed'
+        );
+
+        submitSpinner.classList.remove('hidden');
+
+        successMsg.classList.add('hidden');
+
+        try {
+
+            const response = await fetchWithTimeout(
+                LOG_SCRIPT_URL,
+                {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+
+                    body: JSON.stringify({
+                        requestType: 'submit_request',
+                        user: currentUser,
+                        date: formattedDate,
+                        type: type,
+                        comment: comment || 'немає'
+                    })
+                },
+                15000
+            );
+
+            const result = await response.text();
+
+            if (!result.includes('Success')) {
+                throw new Error(result);
+            }
+
+            logUserAction(
+                `Подав заявку: ${formattedDate}`
+            );
+
+            form.reset();
+
+            successMsg.classList.remove('hidden');
+
+            await loadMyRequestsOnline();
+
+            setTimeout(() => {
+                successMsg.classList.add('hidden');
+            }, 5000);
+
+        } catch (err) {
+
+            console.error(err);
+
+            alert(
+                'Помилка відправки заявки.\n' +
+                'Перевірте інтернет або зверніться до адміністратора.'
+            );
+
+        } finally {
+
+            submitBtn.disabled = false;
+
+            submitBtn.classList.remove(
+                'opacity-90',
+                'cursor-not-allowed'
+            );
+
+            submitSpinner.classList.add('hidden');
+        }
+    });
+});
+
+// ---------------- FETCH TIMEOUT ----------------
+
+async function fetchWithTimeout(
+    resource,
+    options = {},
+    timeout = 15000
+) {
+
+    const controller = new AbortController();
+
+    const id = setTimeout(() => {
+        controller.abort();
+    }, timeout);
+
+    const response = await fetch(resource, {
+        ...options,
+        signal: controller.signal
+    });
+
+    clearTimeout(id);
+
+    return response;
+}
+
+// ---------------- LOGGING ----------------
+
+function logUserAction(actionDetails) {
+
+    const currentUser =
+        sessionStorage.getItem('portal_user');
+
+    const formData = new FormData();
+
+    formData.append('user', currentUser);
+
+    formData.append('action', actionDetails);
+
+    fetch(LOG_SCRIPT_URL, {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors'
+    }).catch(() => {
+        console.log('Log fail');
+    });
+}
+
+// ---------------- LOAD REQUESTS ----------------
+
+async function loadMyRequestsOnline() {
+
+    const currentUser =
+        sessionStorage.getItem('portal_user');
+
+    if (!currentUser) return;
+
+    const list =
+        document.getElementById('requests-list');
+
+    const loading =
+        document.getElementById('requests-loading');
+
+    try {
+
+        loading.classList.remove('hidden');
+
+        const res = await fetchWithTimeout(
+            LOG_SCRIPT_URL,
+            {
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+
+                body: JSON.stringify({
+                    requestType: 'get_my_requests',
+                    user: currentUser
+                })
+            },
+            15000
+        );
+
+        if (!res.ok) {
+            throw new Error('Server Error');
+        }
+
+        const onlineReqs = await res.json();
+
+        if (!Array.isArray(onlineReqs)) {
+            throw new Error(
+                'Некоректна відповідь сервера'
+            );
+        }
+
+        loading.classList.add('hidden');
+
+        list.classList.remove('hidden');
+
+        if (onlineReqs.length === 0) {
+
+            list.innerHTML = `
+                <div class="text-center py-6 text-slate-500 dark:text-slate-400">
+                    <p class="text-sm">
+                        Ви ще не подавали заявок.
+                    </p>
+                </div>
+            `;
+
+            return;
+        }
+
+        list.innerHTML = onlineReqs.map(r => {
+
+            let statusColorClass =
+                'text-amber-500 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800';
+
+            if (r.status === 'Погоджено') {
+
+                statusColorClass =
+                    'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800';
+            }
+
+            if (r.status === 'Відхилено') {
+
+                statusColorClass =
+                    'text-red-500 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800';
+            }
+
+            let displayDate = r.date;
+
+            if (
+                typeof displayDate === 'string' &&
+                displayDate.includes('T')
+            ) {
+
+                const d = new Date(displayDate);
+
+                displayDate =
+                    `${String(d.getDate()).padStart(2, '0')}.` +
+                    `${String(d.getMonth() + 1).padStart(2, '0')}.` +
+                    `${d.getFullYear()}`;
+            }
+
+            return `
+                <div class="flex justify-between items-center p-4 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
+
+                    <div>
+                        <p class="font-bold text-slate-800 dark:text-white text-lg">
+                            ${displayDate}
+                        </p>
+
+                        <p class="text-sm text-slate-500 dark:text-slate-300 font-medium">
+                            ${r.type}
+                        </p>
+                    </div>
+
+                    <span class="text-xs font-bold px-3 py-1.5 rounded-lg border ${statusColorClass}">
+                        ${r.status}
+                    </span>
+
+                </div>
+            `;
+
+        }).join('');
+
+    } catch (e) {
+
+        console.error(
+            'Помилка синхронізації',
+            e
+        );
+
+        loading.classList.add('hidden');
+
+        list.classList.remove('hidden');
+
+        list.innerHTML = `
+            <p class="text-sm text-red-500 p-4 text-center">
+                Не вдалося завантажити історію.
+            </p>
+        `;
+    }
+}
+</script>
