@@ -1,564 +1,494 @@
+# admin.html (виправлена версія)
+
+```html
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ADMIN PANEL</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Адмін панель | Foodline</title>
 
-  <style>
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-      font-family:Arial,sans-serif;
-    }
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    body{
-      background:#f1f5f9;
-      color:#0f172a;
-      padding:20px;
-    }
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        };
 
-    .container{
-      max-width:1400px;
-      margin:auto;
-    }
-
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:25px;
-      gap:15px;
-      flex-wrap:wrap;
-    }
-
-    .title{
-      font-size:28px;
-      font-weight:700;
-    }
-
-    .month-select{
-      padding:10px 14px;
-      border-radius:10px;
-      border:1px solid #cbd5e1;
-      font-size:16px;
-      background:white;
-      cursor:pointer;
-    }
-
-    .cards{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
-      gap:20px;
-      margin-bottom:25px;
-    }
-
-    .card{
-      background:white;
-      padding:20px;
-      border-radius:16px;
-      box-shadow:0 2px 10px rgba(0,0,0,.05);
-    }
-
-    .card h3{
-      font-size:15px;
-      color:#64748b;
-      margin-bottom:10px;
-    }
-
-    .card .value{
-      font-size:34px;
-      font-weight:700;
-      color:#059669;
-    }
-
-    .section{
-      background:white;
-      padding:20px;
-      border-radius:16px;
-      box-shadow:0 2px 10px rgba(0,0,0,.05);
-      margin-bottom:25px;
-      overflow:auto;
-    }
-
-    .section-title{
-      font-size:22px;
-      font-weight:700;
-      margin-bottom:20px;
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      min-width:900px;
-    }
-
-    th{
-      background:#0f172a;
-      color:white;
-      padding:14px;
-      text-align:left;
-      font-size:14px;
-    }
-
-    td{
-      padding:14px;
-      border-bottom:1px solid #e2e8f0;
-      font-size:14px;
-    }
-
-    tr:hover{
-      background:#f8fafc;
-    }
-
-    .btn{
-      border:none;
-      padding:10px 14px;
-      border-radius:10px;
-      cursor:pointer;
-      color:white;
-      font-weight:600;
-      transition:.2s;
-    }
-
-    .btn:hover{
-      transform:translateY(-1px);
-    }
-
-    .approve{
-      background:#059669;
-    }
-
-    .reject{
-      background:#dc2626;
-    }
-
-    .status{
-      padding:6px 12px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:700;
-      display:inline-block;
-    }
-
-    .pending{
-      background:#fef3c7;
-      color:#92400e;
-    }
-
-    .approved{
-      background:#dcfce7;
-      color:#166534;
-    }
-
-    .rejected{
-      background:#fee2e2;
-      color:#991b1b;
-    }
-
-    .loader{
-      text-align:center;
-      padding:50px;
-      color:#64748b;
-      font-size:18px;
-    }
-
-    @media(max-width:768px){
-      .title{
-        font-size:22px;
-      }
-
-      .card .value{
-        font-size:26px;
-      }
-    }
-  </style>
+        if (
+            localStorage.getItem('color-theme') === 'dark' ||
+            (!('color-theme' in localStorage) &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches)
+        ) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
 </head>
 
-<body>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-white min-h-screen transition-colors duration-200">
 
-<div class="container">
+    <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
 
-  <div class="topbar">
-    <div class="title">ADMIN PANEL</div>
+            <div class="flex items-center gap-4">
+                <a href="index.html"
+                   class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm font-medium">
+                    ← Назад
+                </a>
 
-    <select id="monthSelect" class="month-select"></select>
-  </div>
+                <div>
+                    <h1 class="text-xl font-bold">Адмін панель</h1>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">
+                        Керування заявками працівників
+                    </p>
+                </div>
+            </div>
 
-  <div class="cards">
+            <div class="flex items-center gap-3">
 
-    <div class="card">
-      <h3>Працівників</h3>
-      <div class="value" id="employeesCount">0</div>
-    </div>
+                <button id="theme-toggle"
+                        class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    🌙
+                </button>
 
-    <div class="card">
-      <h3>Відпрацьовано змін</h3>
-      <div class="value" id="workedCount">0</div>
-    </div>
+                <button id="logout-btn"
+                        class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-colors">
+                    Вийти
+                </button>
+            </div>
+        </div>
+    </nav>
 
-    <div class="card">
-      <h3>Лікарняні</h3>
-      <div class="value" id="sickCount">0</div>
-    </div>
+    <main class="max-w-7xl mx-auto p-4 md:p-6">
 
-    <div class="card">
-      <h3>Відпустки</h3>
-      <div class="value" id="vacCount">0</div>
-    </div>
+        <!-- Статистика -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
 
-  </div>
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Всього заявок</p>
+                <h2 id="total-count" class="text-3xl font-bold">0</h2>
+            </div>
 
-  <div class="section">
+            <div class="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-5 border border-amber-200 dark:border-amber-800 shadow-sm">
+                <p class="text-sm text-amber-700 dark:text-amber-300 mb-1">Очікують</p>
+                <h2 id="pending-count" class="text-3xl font-bold text-amber-600">0</h2>
+            </div>
 
-    <div class="section-title">
-      Статистика працівників
-    </div>
+            <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-5 border border-emerald-200 dark:border-emerald-800 shadow-sm">
+                <p class="text-sm text-emerald-700 dark:text-emerald-300 mb-1">Погоджено</p>
+                <h2 id="approved-count" class="text-3xl font-bold text-emerald-600">0</h2>
+            </div>
 
-    <div id="statsTableContainer">
-      <div class="loader">Завантаження...</div>
-    </div>
+            <div class="bg-red-50 dark:bg-red-900/20 rounded-2xl p-5 border border-red-200 dark:border-red-800 shadow-sm">
+                <p class="text-sm text-red-700 dark:text-red-300 mb-1">Відхилено</p>
+                <h2 id="rejected-count" class="text-3xl font-bold text-red-600">0</h2>
+            </div>
+        </div>
 
-  </div>
 
-  <div class="section">
+        <!-- Панель управління -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 p-4">
 
-    <div class="section-title">
-      Заявки на зміни
-    </div>
+            <div class="flex flex-col lg:flex-row gap-4 justify-between">
 
-    <div id="requestsTableContainer">
-      <div class="loader">Завантаження...</div>
-    </div>
+                <div class="flex flex-col sm:flex-row gap-3 flex-1">
 
-  </div>
+                    <input
+                        type="text"
+                        id="search-input"
+                        placeholder="Пошук працівника..."
+                        class="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
 
-</div>
+                    <select id="status-filter"
+                            class="px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="all">Всі статуси</option>
+                        <option value="Очікує">Очікує</option>
+                        <option value="Погоджено">Погоджено</option>
+                        <option value="Відхилено">Відхилено</option>
+                    </select>
+                </div>
+
+                <button id="refresh-btn"
+                        class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition-colors">
+                    Оновити
+                </button>
+            </div>
+        </div>
+
+
+        <!-- Завантаження -->
+        <div id="loading"
+             class="flex items-center justify-center py-16">
+
+            <svg class="animate-spin h-10 w-10 text-emerald-500"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="none"
+                 viewBox="0 0 24 24">
+
+                <circle class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"></circle>
+
+                <path class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+        </div>
+
+
+        <!-- Таблиця -->
+        <div id="table-wrapper"
+             class="hidden bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full min-w-[1000px]">
+
+                    <thead class="bg-slate-100 dark:bg-slate-700 text-left text-sm uppercase">
+                        <tr>
+                            <th class="px-4 py-4">Працівник</th>
+                            <th class="px-4 py-4">Дата</th>
+                            <th class="px-4 py-4">Тип зміни</th>
+                            <th class="px-4 py-4">Коментар</th>
+                            <th class="px-4 py-4">Статус</th>
+                            <th class="px-4 py-4 text-center">Дії</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="requests-table"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
 
 <script>
 
-const WEB_APP_URL =
-'https://script.google.com/macros/s/AKfycbyvtbq2U1aCVB1H2SbZGJHBZRX2FAYSz-s0OOSJJ_tYQFU_2vgTBnliLyPedZQga19EBg/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_DTSE8UhTjHGomgD71-WkruxkGvt8d6mlJRWVTbmXhqxZDYYX0_fwQuNuQT4KGXusXg/exec';
 
-const ukrMonths = [
-  'Січень',
-  'Лютий',
-  'Березень',
-  'Квітень',
-  'Травень',
-  'Червень',
-  'Липень',
-  'Серпень',
-  'Вересень',
-  'Жовтень',
-  'Листопад',
-  'Грудень'
-];
+let allRequests = [];
 
-function generateMonths() {
 
-  const select = document.getElementById('monthSelect');
-
-  const now = new Date();
-
-  for(let i = -6; i <= 6; i++){
-
-    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-
-    const label =
-      ukrMonths[d.getMonth()] + ' ' + d.getFullYear();
-
-    const option = document.createElement('option');
-
-    option.value = label;
-    option.textContent = label;
-
-    if(i === 0){
-      option.selected = true;
-    }
-
-    select.appendChild(option);
-  }
-
-  select.addEventListener('change', () => {
-    loadAdminData(select.value);
-  });
+// Перевірка авторизації
+if (sessionStorage.getItem('admin_auth') !== 'true') {
+    window.location.href = 'index.html';
 }
 
-async function loadAdminData(monthYear){
 
-  try{
+// Темна тема
+const themeBtn = document.getElementById('theme-toggle');
 
-    document.getElementById('statsTableContainer').innerHTML =
-      '<div class="loader">Завантаження...</div>';
+themeBtn.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
 
-    document.getElementById('requestsTableContainer').innerHTML =
-      '<div class="loader">Завантаження...</div>';
+    localStorage.setItem(
+        'color-theme',
+        document.documentElement.classList.contains('dark')
+            ? 'dark'
+            : 'light'
+    );
+});
 
-    const response = await fetch(WEB_APP_URL, {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-        requestType:'get_admin_data',
-        monthYear:monthYear
-      })
+
+// Вихід
+const logoutBtn = document.getElementById('logout-btn');
+
+logoutBtn.addEventListener('click', () => {
+    sessionStorage.removeItem('admin_auth');
+    window.location.href = 'index.html';
+});
+
+
+// Завантаження заявок
+async function loadRequests() {
+
+    const loading = document.getElementById('loading');
+    const tableWrapper = document.getElementById('table-wrapper');
+
+    loading.classList.remove('hidden');
+    tableWrapper.classList.add('hidden');
+
+    try {
+
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                requestType: 'get_requests'
+            })
+        });
+
+        const data = await response.json();
+
+        allRequests = Array.isArray(data)
+            ? data
+            : [];
+
+        renderRequests(allRequests);
+        updateStats(allRequests);
+
+        loading.classList.add('hidden');
+        tableWrapper.classList.remove('hidden');
+
+    } catch (error) {
+
+        console.error(error);
+
+        loading.innerHTML = `
+            <div class="text-center text-red-500">
+                <p class="text-lg font-bold mb-2">Помилка завантаження</p>
+                <p>Не вдалося отримати заявки</p>
+            </div>
+        `;
+    }
+}
+
+
+// Рендер таблиці
+function renderRequests(requests) {
+
+    const table = document.getElementById('requests-table');
+
+    if (!requests.length) {
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-10 text-slate-500">
+                    Заявок немає
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    table.innerHTML = requests.map((request, index) => {
+
+        let badgeClass = 'bg-amber-100 text-amber-700';
+
+        if (request.status === 'Погоджено') {
+            badgeClass = 'bg-emerald-100 text-emerald-700';
+        }
+
+        if (request.status === 'Відхилено') {
+            badgeClass = 'bg-red-100 text-red-700';
+        }
+
+
+        return `
+            <tr class="border-t border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors">
+
+                <td class="px-4 py-4 font-medium">
+                    ${request.user || '-'}
+                </td>
+
+                <td class="px-4 py-4">
+                    ${request.date || '-'}
+                </td>
+
+                <td class="px-4 py-4">
+                    ${request.type || '-'}
+                </td>
+
+                <td class="px-4 py-4 max-w-[250px] break-words text-sm text-slate-500 dark:text-slate-300">
+                    ${request.comment || '-'}
+                </td>
+
+                <td class="px-4 py-4">
+                    <span class="px-3 py-1 rounded-lg text-sm font-bold ${badgeClass}">
+                        ${request.status || 'Очікує'}
+                    </span>
+                </td>
+
+                <td class="px-4 py-4">
+
+                    <div class="flex gap-2 justify-center">
+
+                        <button
+                            onclick="updateStatus(${index}, 'Погоджено')"
+                            class="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors">
+                            ✓
+                        </button>
+
+                        <button
+                            onclick="updateStatus(${index}, 'Відхилено')"
+                            class="px-3 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-colors">
+                            ✕
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+
+// Статистика
+function updateStats(requests) {
+
+    document.getElementById('total-count').textContent = requests.length;
+
+    document.getElementById('pending-count').textContent =
+        requests.filter(r => r.status === 'Очікує').length;
+
+    document.getElementById('approved-count').textContent =
+        requests.filter(r => r.status === 'Погоджено').length;
+
+    document.getElementById('rejected-count').textContent =
+        requests.filter(r => r.status === 'Відхилено').length;
+}
+
+
+// Зміна статусу
+async function updateStatus(index, status) {
+
+    const request = allRequests[index];
+
+    if (!request) return;
+
+    try {
+
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                requestType: 'update_request_status',
+                id: request.id,
+                status: status
+            })
+        });
+
+        request.status = status;
+
+        renderRequests(allRequests);
+        updateStats(allRequests);
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert('Помилка оновлення статусу');
+    }
+}
+
+
+// Фільтрація
+function applyFilters() {
+
+    const search = document
+        .getElementById('search-input')
+        .value
+        .toLowerCase();
+
+    const status = document
+        .getElementById('status-filter')
+        .value;
+
+
+    const filtered = allRequests.filter(request => {
+
+        const matchSearch =
+            (request.user || '')
+            .toLowerCase()
+            .includes(search);
+
+        const matchStatus =
+            status === 'all'
+            ? true
+            : request.status === status;
+
+        return matchSearch && matchStatus;
     });
 
-    const data = await response.json();
 
-    renderStats(data.stats || []);
-    renderRequests(data.requests || []);
-
-  }catch(err){
-
-    console.error(err);
-
-    document.getElementById('statsTableContainer').innerHTML =
-      '<div class="loader">Помилка завантаження</div>';
-
-    document.getElementById('requestsTableContainer').innerHTML =
-      '<div class="loader">Помилка завантаження</div>';
-  }
+    renderRequests(filtered);
 }
 
-function renderStats(stats){
 
-  let worked = 0;
-  let sick = 0;
-  let vac = 0;
+// Події
 
-  stats.forEach(s => {
-    worked += Number(s.worked || 0);
-    sick += Number(s.sick || 0);
-    vac += Number(s.vac || 0);
-  });
+document
+    .getElementById('refresh-btn')
+    .addEventListener('click', loadRequests);
 
-  document.getElementById('employeesCount').textContent =
-    stats.length;
 
-  document.getElementById('workedCount').textContent =
-    worked;
+document
+    .getElementById('search-input')
+    .addEventListener('input', applyFilters);
 
-  document.getElementById('sickCount').textContent =
-    sick;
 
-  document.getElementById('vacCount').textContent =
-    vac;
+document
+    .getElementById('status-filter')
+    .addEventListener('change', applyFilters);
 
-  let html = `
-    <table>
-      <thead>
-        <tr>
-          <th>Працівник</th>
-          <th>Заплановано</th>
-          <th>Відпрацьовано</th>
-          <th>Лікарняні</th>
-          <th>Відпустки</th>
-          <th>Залишок відпустки</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
 
-  stats.forEach(s => {
+// Автооновлення кожні 60 секунд
+setInterval(loadRequests, 60000);
 
-    html += `
-      <tr>
-        <td>${escapeHtml(s.name)}</td>
-        <td>${s.scheduled || 0}</td>
-        <td>${s.worked || 0}</td>
-        <td>${s.sick || 0}</td>
-        <td>${s.vac || 0}</td>
-        <td>${s.vacLeft || 0}</td>
-      </tr>
-    `;
-  });
 
-  html += `
-      </tbody>
-    </table>
-  `;
-
-  document.getElementById('statsTableContainer').innerHTML =
-    html;
-}
-
-function renderRequests(requests){
-
-  if(!requests.length){
-
-    document.getElementById('requestsTableContainer').innerHTML =
-      '<div class="loader">Немає заявок</div>';
-
-    return;
-  }
-
-  let html = `
-    <table>
-      <thead>
-        <tr>
-          <th>Дата</th>
-          <th>Працівник</th>
-          <th>Тип зміни</th>
-          <th>Коментар</th>
-          <th>Статус</th>
-          <th>Дії</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  requests.reverse().forEach(r => {
-
-    let statusClass = 'pending';
-
-    if(r[5] === 'Погоджено'){
-      statusClass = 'approved';
-    }
-
-    if(r[5] === 'Відхилено'){
-      statusClass = 'rejected';
-    }
-
-    html += `
-      <tr>
-
-        <td>${escapeHtml(r[1] || '')}</td>
-
-        <td>${escapeHtml(r[2] || '')}</td>
-
-        <td>${escapeHtml(r[3] || '')}</td>
-
-        <td>${escapeHtml(r[4] || '')}</td>
-
-        <td>
-          <span class="status ${statusClass}">
-            ${escapeHtml(r[5] || '')}
-          </span>
-        </td>
-
-        <td>
-    `;
-
-    if(r[5] === '⏳ Очікує погодження'){
-
-      html += `
-        <button
-          class="btn approve"
-          onclick='updateStatus(
-            "${r[0]}",
-            "Погоджено",
-            "${encodeURIComponent(r[1])}",
-            "${encodeURIComponent(r[2])}",
-            "${encodeURIComponent(r[3])}"
-          )'
-        >
-          Погодити
-        </button>
-
-        <button
-          class="btn reject"
-          onclick='updateStatus(
-            "${r[0]}",
-            "Відхилено",
-            "${encodeURIComponent(r[1])}",
-            "${encodeURIComponent(r[2])}",
-            "${encodeURIComponent(r[3])}"
-          )'
-        >
-          Відхилити
-        </button>
-      `;
-    }
-
-    html += `
-        </td>
-
-      </tr>
-    `;
-  });
-
-  html += `
-      </tbody>
-    </table>
-  `;
-
-  document.getElementById('requestsTableContainer').innerHTML =
-    html;
-}
-
-async function updateStatus(
-  requestId,
-  status,
-  date,
-  userName,
-  type
-){
-
-  try{
-
-    const response = await fetch(WEB_APP_URL, {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-        requestType:'update_request_status',
-        requestId:requestId,
-        status:status,
-        date:decodeURIComponent(date),
-        userName:decodeURIComponent(userName),
-        type:decodeURIComponent(type)
-      })
-    });
-
-    const text = await response.text();
-
-    if(text === 'OK'){
-
-      alert('Статус успішно оновлено');
-
-      loadAdminData(
-        document.getElementById('monthSelect').value
-      );
-
-    }else{
-
-      alert(text);
-    }
-
-  }catch(err){
-
-    console.error(err);
-
-    alert('Помилка зʼєднання');
-  }
-}
-
-function escapeHtml(text){
-
-  if(text === null || text === undefined){
-    return '';
-  }
-
-  return String(text)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-generateMonths();
-
-loadAdminData(
-  document.getElementById('monthSelect').value
-);
+// Старт
+loadRequests();
 
 </script>
 
 </body>
 </html>
+```
+
+## Що потрібно змінити у цьому файлі
+
+### 1. Вставити свій Apps Script URL
+
+Замінити:
+
+```javascript
+const SCRIPT_URL = 'ВАШ_GOOGLE_APPS_SCRIPT_URL';
+```
+
+на свій URL.
+
+---
+
+### 2. Apps Script повинен підтримувати:
+
+* `get_requests`
+* `update_request_status`
+
+---
+
+### 3. У таблиці заявок повинні бути колонки:
+
+* ID
+* User
+* Date
+* Type
+* Comment
+* Status
+
+---
+
+### 4. Потрібно щоб Apps Script повертав JSON
+
+Наприклад:
+
+```json
+[
+  {
+    "id": 1,
+    "user": "Іван",
+    "date": "25.05.2026",
+    "type": "День",
+    "comment": "Можу після 10",
+    "status": "Очікує"
+  }
+]
+```
