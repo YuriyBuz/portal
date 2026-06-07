@@ -218,12 +218,12 @@
                 document.getElementById('user-greeting').textContent = `👤 ${userName}`;
             }
 
-            // Система Логування та скрипт бекенду
-            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbya9cTjkD97u7uO-KuUIMcY6nuqIJgWbM5q79O8zyQC3V0QC0q_Hrh8h5LQTCkBL3GGSg/exec';
+            // ОНОВЛЕНИЙ URL ДЛЯ ЗАПИТІВ ДО ВАШОГО СКРИПТА
+            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUEMuGcphMyNskE_DD8fJU0RBJGhYLSyNcb8CIv2nsWrQ_rEOYfsECCuu0RG1by67CIA/exec';
 
             function logUserAction(actionDetails) {
                 const userName = sessionStorage.getItem('portal_user');
-                if (!userName || LOG_SCRIPT_URL === 'ВАШ_URL_ВЕБ_ДОДАТКУ_APPS_SCRIPT') return;
+                if (!userName) return;
 
                 const formData = new FormData();
                 formData.append('user', userName);
@@ -345,13 +345,15 @@
                 try {
                     await fetch(LOG_SCRIPT_URL, {
                         method: 'POST',
+                        headers: {
+                            'Content-Type': 'text/plain;charset=utf-8' // Виправлено CORS
+                        },
                         body: JSON.stringify({
                             requestType: 'update_credentials',
                             user: currentUser,
                             newPhone: newLogin,
                             newPassword: newPassword
-                        }),
-                        mode: 'no-cors'
+                        })
                     });
                     
                     logUserAction('Змінив логін та пароль');
@@ -365,7 +367,6 @@
                 }
             });
 
-            // ОНОВЛЕНО: Надійне додавання подій кліку для обох логотипів (усуває проблеми з ініціалізацією)
             const handleAdminClick = (e) => {
                 e.preventDefault();
                 const pass = prompt("Введіть пароль для доступу до панелі керівника:");
