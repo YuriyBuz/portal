@@ -104,7 +104,6 @@
                         Мої останні заявки
                     </h2>
                     
-                    <!-- Зроблено кнопку оновлення помітною -->
                     <button onclick="loadMyRequestsOnline()" class="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 px-3 py-1.5 rounded-lg transition-colors border border-emerald-200 dark:border-emerald-800" title="Оновити список">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
                         Оновити
@@ -125,7 +124,8 @@
     </main>
 
     <script>
-const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvtbq2U1aCVB1H2SbZGJHBZRX2FAYSz-s0OOSJJ_tYQFU_2vgTBnliLyPedZQga19EBg/exec';
+// ОНОВЛЕНИЙ URL ДЛЯ ЗАПИТІВ ДО ВАШОГО СКРИПТА
+const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUEMuGcphMyNskE_DD8fJU0RBJGhYLSyNcb8CIv2nsWrQ_rEOYfsECCuu0RG1by67CIA/exec';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -394,7 +394,7 @@ async function loadMyRequestsOnline() {
             let statusColorClass =
                 'text-amber-500 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800';
 
-            if (r.status === 'Погоджено') {
+            if (r.status === 'Погоджено' || r.status === 'Схвалено') {
 
                 statusColorClass =
                     'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800';
@@ -462,3 +462,6 @@ async function loadMyRequestsOnline() {
     }
 }
 </script>
+
+</body>
+</html>
