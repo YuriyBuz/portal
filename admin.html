@@ -36,7 +36,7 @@
                 <div>
                     <h1 class="text-xl font-bold">Адмін панель</h1>
                     <p class="text-sm text-slate-500 dark:text-slate-400">
-                        Керування заявками працівників
+                        Керування заявок
                     </p>
                 </div>
             </div>
@@ -166,7 +166,7 @@
 <script>
 
 // Оновлено URL скрипта
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUEMuGcphMyNskE_DD8fJU0RBJGhYLSyNcb8CIv2nsWrQ_rEOYfsECCuu0RG1by67CIA/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyakpnvVAgE_PMDC-7TZCODbG4gefSoPxDrCsRCkD97NFEk7dqk80rqd0-xNNriMqmv7Q/exec';
 
 let allRequests = [];
 
@@ -176,7 +176,6 @@ if (sessionStorage.getItem('admin_auth') !== 'true') {
     try {
         window.location.href = 'index.html';
     } catch (e) {
-        // Обробка для середовищ (sandbox), де недоступні відносні URL
         document.body.innerHTML = `
             <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
                 <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
@@ -228,17 +227,16 @@ async function loadRequests() {
     const loading = document.getElementById('loading');
     const tableWrapper = document.getElementById('table-wrapper');
 
-    if (!loading || !tableWrapper) return; // Уникнення помилки, якщо DOM очищено
+    if (!loading || !tableWrapper) return; 
 
     loading.classList.remove('hidden');
     tableWrapper.classList.add('hidden');
 
     try {
-
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'text/plain;charset=utf-8' // Виправлено для вирішення проблеми CORS
+                'Content-Type': 'text/plain;charset=utf-8' 
             },
             body: JSON.stringify({
                 requestType: 'get_requests'
@@ -264,7 +262,7 @@ async function loadRequests() {
         loading.innerHTML = `
             <div class="text-center text-red-500">
                 <p class="text-lg font-bold mb-2">Помилка завантаження</p>
-                <p>Не вдалося отримати заявки. Перевірте підключення або лог консолі.</p>
+                <p>Не вдалося отримати заявки. Перевірте підключення.</p>
             </div>
         `;
     }
@@ -278,7 +276,6 @@ function renderRequests(requests) {
     if (!table) return;
 
     if (!requests.length) {
-
         table.innerHTML = `
             <tr>
                 <td colspan="6" class="text-center py-10 text-slate-500">
@@ -286,7 +283,6 @@ function renderRequests(requests) {
                 </td>
             </tr>
         `;
-
         return;
     }
 
@@ -333,16 +329,28 @@ function renderRequests(requests) {
 
                     <div class="flex gap-2 justify-center">
 
+                        <!-- Погодити -->
                         <button
-                            onclick="updateStatus(${index}, 'Погоджено')"
-                            class="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors">
+                            onclick="updateStatus(${index}, 'Погоджено', this)"
+                            title="Погодити"
+                            class="w-10 h-10 flex justify-center items-center rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors">
                             ✓
                         </button>
 
+                        <!-- Відхилити -->
                         <button
-                            onclick="updateStatus(${index}, 'Відхилено')"
-                            class="px-3 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-colors">
+                            onclick="updateStatus(${index}, 'Відхилено', this)"
+                            title="Відхилити"
+                            class="w-10 h-10 flex justify-center items-center rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-colors">
                             ✕
+                        </button>
+
+                        <!-- Скинути / Скасувати рішення -->
+                        <button
+                            onclick="updateStatus(${index}, 'Очікує', this)"
+                            title="Скинути рішення (відмінити)"
+                            class="w-10 h-10 flex justify-center items-center rounded-lg bg-slate-400 hover:bg-slate-500 text-white text-sm font-medium transition-colors">
+                            ⟲
                         </button>
                     </div>
                 </td>
@@ -373,19 +381,29 @@ function updateStats(requests) {
 }
 
 
-// Зміна статусу
-async function updateStatus(index, status) {
+// Зміна статусу (З індикацією завантаження!)
+async function updateStatus(index, status, btnElement) {
 
     const request = allRequests[index];
-
     if (!request) return;
 
-    try {
+    // Зберігаємо оригінальний вигляд кнопки на випадок помилки
+    const originalContent = btnElement.innerHTML;
+    const originalClass = btnElement.className;
 
+    // Блокуємо ВСІ кнопки у цьому рядку, щоб не було подвійних кліків
+    const rowButtons = btnElement.parentElement.querySelectorAll('button');
+    rowButtons.forEach(b => b.disabled = true);
+
+    // Візуалізація завантаження
+    btnElement.innerHTML = `<svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>`;
+    btnElement.classList.add('opacity-75', 'cursor-wait');
+
+    try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'text/plain;charset=utf-8' // Виправлено для вирішення проблеми CORS
+                'Content-Type': 'text/plain;charset=utf-8'
             },
             body: JSON.stringify({
                 requestType: 'update_request_status',
@@ -394,16 +412,22 @@ async function updateStatus(index, status) {
             })
         });
 
+        // Успішно! Оновлюємо локальний стан
         request.status = status;
 
+        // Перемальовуємо таблицю (кнопки самі скинуться у початковий стан)
         renderRequests(allRequests);
         updateStats(allRequests);
 
     } catch (error) {
 
         console.error(error);
+        alert('Помилка оновлення статусу. Спробуйте ще раз.');
 
-        alert('Помилка оновлення статусу');
+        // Відновлюємо кнопку як було у разі помилки
+        btnElement.innerHTML = originalContent;
+        btnElement.className = originalClass;
+        rowButtons.forEach(b => b.disabled = false);
     }
 }
 
