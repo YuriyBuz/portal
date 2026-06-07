@@ -1,6 +1,3 @@
-# admin.html (виправлена версія)
-
-```html
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -168,21 +165,33 @@
 
 <script>
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_DTSE8UhTjHGomgD71-WkruxkGvt8d6mlJRWVTbmXhqxZDYYX0_fwQuNuQT4KGXusXg/exec';
+// Оновлено URL скрипта
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUEMuGcphMyNskE_DD8fJU0RBJGhYLSyNcb8CIv2nsWrQ_rEOYfsECCuu0RG1by67CIA/exec';
 
 let allRequests = [];
 
 
 // Перевірка авторизації
 if (sessionStorage.getItem('admin_auth') !== 'true') {
-    window.location.href = 'index.html';
+    try {
+        window.location.href = 'index.html';
+    } catch (e) {
+        // Обробка для середовищ (sandbox), де недоступні відносні URL
+        document.body.innerHTML = `
+            <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+                <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
+                    <h2 class="text-xl font-bold mb-2 text-slate-800 dark:text-white">Помилка доступу</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mb-6">Авторизуйтесь на головній сторінці.</p>
+                </div>
+            </div>`;
+    }
 }
 
 
 // Темна тема
 const themeBtn = document.getElementById('theme-toggle');
 
-themeBtn.addEventListener('click', () => {
+themeBtn?.addEventListener('click', () => {
     document.documentElement.classList.toggle('dark');
 
     localStorage.setItem(
@@ -197,9 +206,19 @@ themeBtn.addEventListener('click', () => {
 // Вихід
 const logoutBtn = document.getElementById('logout-btn');
 
-logoutBtn.addEventListener('click', () => {
+logoutBtn?.addEventListener('click', () => {
     sessionStorage.removeItem('admin_auth');
-    window.location.href = 'index.html';
+    try {
+        window.location.href = 'index.html';
+    } catch (e) {
+        document.body.innerHTML = `
+            <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+                <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
+                    <h2 class="text-xl font-bold mb-2 text-slate-800 dark:text-white">Вихід виконано</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mb-6">Оновіть сторінку або перейдіть на головну сторінку.</p>
+                </div>
+            </div>`;
+    }
 });
 
 
@@ -209,6 +228,8 @@ async function loadRequests() {
     const loading = document.getElementById('loading');
     const tableWrapper = document.getElementById('table-wrapper');
 
+    if (!loading || !tableWrapper) return; // Уникнення помилки, якщо DOM очищено
+
     loading.classList.remove('hidden');
     tableWrapper.classList.add('hidden');
 
@@ -217,7 +238,7 @@ async function loadRequests() {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'text/plain;charset=utf-8' // Виправлено для вирішення проблеми CORS
             },
             body: JSON.stringify({
                 requestType: 'get_requests'
@@ -243,7 +264,7 @@ async function loadRequests() {
         loading.innerHTML = `
             <div class="text-center text-red-500">
                 <p class="text-lg font-bold mb-2">Помилка завантаження</p>
-                <p>Не вдалося отримати заявки</p>
+                <p>Не вдалося отримати заявки. Перевірте підключення або лог консолі.</p>
             </div>
         `;
     }
@@ -254,6 +275,7 @@ async function loadRequests() {
 function renderRequests(requests) {
 
     const table = document.getElementById('requests-table');
+    if (!table) return;
 
     if (!requests.length) {
 
@@ -273,7 +295,7 @@ function renderRequests(requests) {
 
         let badgeClass = 'bg-amber-100 text-amber-700';
 
-        if (request.status === 'Погоджено') {
+        if (request.status === 'Погоджено' || request.status === 'Схвалено') {
             badgeClass = 'bg-emerald-100 text-emerald-700';
         }
 
@@ -333,15 +355,20 @@ function renderRequests(requests) {
 // Статистика
 function updateStats(requests) {
 
-    document.getElementById('total-count').textContent = requests.length;
+    const totalCount = document.getElementById('total-count');
+    const pendingCount = document.getElementById('pending-count');
+    const approvedCount = document.getElementById('approved-count');
+    const rejectedCount = document.getElementById('rejected-count');
 
-    document.getElementById('pending-count').textContent =
-        requests.filter(r => r.status === 'Очікує').length;
+    if (totalCount) totalCount.textContent = requests.length;
 
-    document.getElementById('approved-count').textContent =
-        requests.filter(r => r.status === 'Погоджено').length;
+    if (pendingCount) pendingCount.textContent =
+        requests.filter(r => r.status.includes('Очікує')).length;
 
-    document.getElementById('rejected-count').textContent =
+    if (approvedCount) approvedCount.textContent =
+        requests.filter(r => r.status === 'Погоджено' || r.status === 'Схвалено').length;
+
+    if (rejectedCount) rejectedCount.textContent =
         requests.filter(r => r.status === 'Відхилено').length;
 }
 
@@ -358,7 +385,7 @@ async function updateStatus(index, status) {
         await fetch(SCRIPT_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'text/plain;charset=utf-8' // Виправлено для вирішення проблеми CORS
             },
             body: JSON.stringify({
                 requestType: 'update_request_status',
@@ -384,14 +411,13 @@ async function updateStatus(index, status) {
 // Фільтрація
 function applyFilters() {
 
-    const search = document
-        .getElementById('search-input')
-        .value
-        .toLowerCase();
+    const searchInput = document.getElementById('search-input');
+    const statusFilter = document.getElementById('status-filter');
 
-    const status = document
-        .getElementById('status-filter')
-        .value;
+    if (!searchInput || !statusFilter) return;
+
+    const search = searchInput.value.toLowerCase();
+    const status = statusFilter.value;
 
 
     const filtered = allRequests.filter(request => {
@@ -401,10 +427,14 @@ function applyFilters() {
             .toLowerCase()
             .includes(search);
 
+        let reqStatus = request.status || 'Очікує';
+        if (reqStatus.includes('Очікує')) reqStatus = 'Очікує';
+        if (reqStatus === 'Схвалено') reqStatus = 'Погоджено';
+
         const matchStatus =
             status === 'all'
             ? true
-            : request.status === status;
+            : reqStatus === status;
 
         return matchSearch && matchStatus;
     });
@@ -418,77 +448,26 @@ function applyFilters() {
 
 document
     .getElementById('refresh-btn')
-    .addEventListener('click', loadRequests);
+    ?.addEventListener('click', loadRequests);
 
 
 document
     .getElementById('search-input')
-    .addEventListener('input', applyFilters);
+    ?.addEventListener('input', applyFilters);
 
 
 document
     .getElementById('status-filter')
-    .addEventListener('change', applyFilters);
+    ?.addEventListener('change', applyFilters);
 
 
-// Автооновлення кожні 60 секунд
-setInterval(loadRequests, 60000);
-
-
-// Старт
-loadRequests();
+// Автооновлення кожні 60 секунд та Старт (Тільки якщо авторизований)
+if (sessionStorage.getItem('admin_auth') === 'true') {
+    setInterval(loadRequests, 60000);
+    loadRequests();
+}
 
 </script>
 
 </body>
 </html>
-```
-
-## Що потрібно змінити у цьому файлі
-
-### 1. Вставити свій Apps Script URL
-
-Замінити:
-
-```javascript
-const SCRIPT_URL = 'ВАШ_GOOGLE_APPS_SCRIPT_URL';
-```
-
-на свій URL.
-
----
-
-### 2. Apps Script повинен підтримувати:
-
-* `get_requests`
-* `update_request_status`
-
----
-
-### 3. У таблиці заявок повинні бути колонки:
-
-* ID
-* User
-* Date
-* Type
-* Comment
-* Status
-
----
-
-### 4. Потрібно щоб Apps Script повертав JSON
-
-Наприклад:
-
-```json
-[
-  {
-    "id": 1,
-    "user": "Іван",
-    "date": "25.05.2026",
-    "type": "День",
-    "comment": "Можу після 10",
-    "status": "Очікує"
-  }
-]
-```
