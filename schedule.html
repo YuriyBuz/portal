@@ -130,7 +130,7 @@
                             <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             Мої заявки
                         </h2>
-                        <!-- Кнопка ручного оновлення (З модальним вікном) -->
+                        <!-- Кнопка ручного оновлення -->
                         <button onclick="loadMyRequestsOnline(true)" class="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 px-2 py-1.5 rounded-md transition-colors border border-emerald-200 dark:border-emerald-800" title="Оновити список">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
                             Оновити
@@ -166,7 +166,6 @@
                 <div>
                     <label class="block text-sm font-medium mb-1">Тип зміни <span class="text-red-500">*</span></label>
                     <select id="shift-type" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-emerald-500 outline-none">
-                        <!-- За замовчуванням обрано День -->
                         <option value="День" selected>День</option>
                         <option value="Ніч">Ніч</option>
                         <option value="Підробіток">Підробіток (кілька годин)</option>
@@ -209,8 +208,9 @@
     </div>
 
     <script>
-        const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvtbq2U1aCVB1H2SbZGJHBZRX2FAYSz-s0OOSJJ_tYQFU_2vgTBnliLyPedZQga19EBg/exec';
-        const SHEET_ID = '1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg'; // ID таблиці з графіками
+        // ОНОВЛЕНИЙ URL ДЛЯ ЗАПИТІВ ДО ВАШОГО СКРИПТА
+        const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUEMuGcphMyNskE_DD8fJU0RBJGhYLSyNcb8CIv2nsWrQ_rEOYfsECCuu0RG1by67CIA/exec';
+        const SHEET_ID = '1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg';
         
         let selectedDateStr = null;
         let shiftsDatabase = {}; 
@@ -220,7 +220,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             const currentUser = sessionStorage.getItem('portal_user');
             
-            // Перевірка авторизації
             if (!currentUser) {
                 document.body.innerHTML = `
                     <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
@@ -235,14 +234,12 @@
             
             document.getElementById('user-name').textContent = currentUser;
 
-            // Налаштування теми
             const themeBtn = document.getElementById('theme-toggle');
             themeBtn.addEventListener('click', () => {
                 document.documentElement.classList.toggle('dark');
                 localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
             });
 
-            // Логування
             function logUserAction(action) {
                 const formData = new FormData();
                 formData.append('user', currentUser);
@@ -251,7 +248,6 @@
             }
             logUserAction("Переглядає свій графік");
 
-            // --- ЗАВАНТАЖЕННЯ ГРАФІКА З ТАБЛИЦІ ---
             const checkType = (v) => {
                 if (!v) return null;
                 const match = v.toString().trim().toUpperCase().match(/[A-ZА-ЯІЇЄҐ0-9]/i);
@@ -316,7 +312,6 @@
                     const dateKey = `${yearNum}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                     const t1 = checkType(dVal), t2 = checkType(nVal);
 
-                    // Підрахунок статистики тільки для поточного місяця
                     if (monthIdx === now.getMonth() && yearNum === now.getFullYear()) {
                         if (t1 === 'REG') stats.reg++; if (t1 === 'EXTRA') stats.extra++; if (t1 === 'SICK') stats.sick++; if (t1 === 'VAC') stats.vac++;
                         if (t2 === 'REG') stats.reg++; if (t2 === 'EXTRA') stats.extra++; if (t2 === 'SICK') stats.sick++; if (t2 === 'VAC') stats.vac++;
@@ -381,7 +376,6 @@
                 if (t1) parseShifts(t1, currentM, currentY);
                 if (t2) parseShifts(t2, nextM, nextY);
                 
-                // Оновлення UI
                 document.getElementById('calendar-loader').classList.add('hidden');
                 document.getElementById('calendars-wrapper').classList.remove('hidden');
                 document.getElementById('legend-block').classList.remove('hidden');
@@ -394,27 +388,18 @@
                 document.getElementById('stat-sick').textContent = stats.sick;
                 document.getElementById('stat-vac').textContent = stats.vac;
 
-                // ЛОГІКА КЛІКІВ ПО КАЛЕНДАРЮ
                 document.querySelectorAll('.calendar-day:not(.empty-day)').forEach(dayDiv => {
                     dayDiv.addEventListener('click', () => {
-                        const cellDateStr = dayDiv.getAttribute('data-date'); // Формат YYYY-MM-DD
+                        const cellDateStr = dayDiv.getAttribute('data-date'); 
                         const shiftType = dayDiv.getAttribute('data-type');
                         
                         const [y, m, d] = cellDateStr.split('-');
                         const cellDateObj = new Date(y, m - 1, d);
                         const todayObj = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                         
-                        // 1. Якщо минула або поточна дата - нічого не відбувається
-                        if (cellDateObj <= todayObj) {
-                            return;
-                        }
+                        if (cellDateObj <= todayObj) return;
+                        if (shiftType === 'REG') return;
 
-                        // 2. Якщо вже стоїть робоча зміна (REG) - нічого не відбувається
-                        if (shiftType === 'REG') {
-                            return;
-                        }
-
-                        // Дозволено: відкриваємо модальне вікно
                         document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected-day'));
                         dayDiv.classList.add('selected-day');
                         
@@ -429,10 +414,8 @@
                 });
             }
 
-            // Запускаємо завантаження графіка
             loadScheduleData();
 
-            // Обробка форми заявки
             const form = document.getElementById('shift-form');
             const sBtn = document.getElementById('submit-btn');
 
@@ -444,7 +427,6 @@
                 const cVal = document.getElementById('shift-comment').value;
                 if(!tVal) return;
 
-                // Форматуємо дату для бекенду (з YYYY-MM-DD в DD.MM.YYYY)
                 const [y, m, d] = selectedDateStr.split('-');
                 const formattedDate = `${d}.${m}.${y}`;
 
@@ -454,23 +436,23 @@
                 try {
                     logUserAction(`Відправка заявки на зміну: ${formattedDate}`);
 
-                    // Відправляємо JSON запит для створення заявки
+                    // Виправлено: додано headers та видалено mode: 'no-cors' для правильного отримання відповіді
                     await fetch(LOG_SCRIPT_URL, { 
                         method: 'POST', 
+                        headers: {
+                            'Content-Type': 'text/plain;charset=utf-8'
+                        },
                         body: JSON.stringify({ 
                             requestType: 'submit_request',
                             user: currentUser, 
                             date: formattedDate, 
                             type: tVal, 
                             comment: cVal || 'немає'
-                        }), 
-                        mode: 'no-cors' 
+                        })
                     });
 
-                    // Завантажуємо оновлені дані з бази
                     await loadMyRequestsOnline();
 
-                    // Ховаємо форму, показуємо модалку успіху
                     document.getElementById('request-modal').classList.add('hidden');
                     document.getElementById('success-modal').classList.remove('hidden');
                     
@@ -482,13 +464,10 @@
                 }
             });
 
-            // Запускаємо відразу історію заявок
             loadMyRequestsOnline();
-            // Ставимо інтервал оновлення (10 хв)
             setInterval(loadMyRequestsOnline, 600000);
         });
 
-        // Завантаження заявок онлайн (З можливістю показати модальне вікно оновлення)
         window.loadMyRequestsOnline = async function(showLoadingModal = false) {
             const currentUser = sessionStorage.getItem('portal_user');
             if (!currentUser) return;
@@ -502,8 +481,12 @@
             }
             
             try {
+                // Виправлено: додано headers для правильного запиту
                 const res = await fetch(LOG_SCRIPT_URL, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
                     body: JSON.stringify({ requestType: 'get_my_requests', user: currentUser })
                 });
                 
@@ -516,7 +499,7 @@
                     list.innerHTML = `<p class="text-sm text-slate-500 dark:text-slate-400 text-center py-4">Ви ще не подавали заявок.</p>`;
                 } else {
                     list.innerHTML = onlineReqs.map(r => {
-                        let statusColor = r.status === 'Погоджено' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800' : 
+                        let statusColor = r.status === 'Погоджено' || r.status === 'Схвалено' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800' : 
                                           (r.status === 'Відхилено' ? 'text-red-500 bg-red-50 border-red-200 dark:bg-red-900/30 dark:border-red-800' : 'text-amber-500 bg-amber-50 border-amber-200 dark:bg-amber-900/30 dark:border-amber-800');
                         
                         let displayDate = r.date;
