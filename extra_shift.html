@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Заявка на зміну | Портал працівника</title>
+    <title>Заявки | Портал працівника</title>
     <meta name="theme-color" content="#059669">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -15,453 +15,275 @@
     <style>
         body { background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
         .dark body { background-color: #0f172a; }
+        .tab-btn.active { background-color: #059669; color: white; border-color: #059669; }
     </style>
 </head>
 <body class="font-sans text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-col transition-colors duration-200">
 
-    <!-- Верхня панель навігації -->
     <nav class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
         <div class="max-w-4xl mx-auto px-4 sm:px-6">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center gap-4">
-                    <a href="index.html" class="text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1 font-medium bg-slate-50 dark:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                        </svg>
+                    <a href="index.html" class="text-slate-500 dark:text-slate-400 hover:text-emerald-600 transition-colors flex items-center gap-1 font-medium bg-slate-50 dark:bg-slate-700 px-3 py-1.5 rounded-lg border">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
                         <span class="hidden sm:inline">Назад</span>
                     </a>
-                    <h1 class="text-lg font-bold text-slate-800 dark:text-white truncate">Додаткова зміна</h1>
+                    <h1 class="text-lg font-bold">Оформлення заявки</h1>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                    </button>
-                    <div class="text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800 flex items-center gap-2 shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span id="user-name" class="truncate max-w-[120px] sm:max-w-[200px]">...</span>
-                    </div>
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-amber-400 transition-colors"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg></button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <main class="flex-grow max-w-4xl mx-auto w-full px-4 py-8">
+    <main class="flex-grow max-w-4xl mx-auto w-full px-4 py-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             
-            <!-- Форма подачі заявки -->
+            <!-- Форма -->
             <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden h-fit">
-                <div class="bg-emerald-50 dark:bg-emerald-900/30 p-5 border-b border-emerald-100 dark:border-emerald-800 flex items-center gap-4">
-                    <div class="bg-emerald-500 text-white p-2.5 rounded-xl shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-800 dark:text-white">Нова заявка</h2>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Запит на додаткові години</p>
-                    </div>
+                <div class="p-4 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex gap-2 overflow-x-auto">
+                    <button type="button" onclick="switchTab('extra')" id="tab-extra" class="tab-btn active whitespace-nowrap px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 font-medium text-sm transition-colors">Додаткова зміна</button>
+                    <button type="button" onclick="switchTab('vacation')" id="tab-vacation" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 font-medium text-sm transition-colors text-slate-600 dark:text-slate-300">Відпустка</button>
+                    <button type="button" onclick="switchTab('sick')" id="tab-sick" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 font-medium text-sm transition-colors text-slate-600 dark:text-slate-300">Лікарняний</button>
                 </div>
                 
                 <form id="shift-form" class="p-6 space-y-5">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Бажана дата виходу <span class="text-red-500">*</span></label>
-                        <input type="date" id="shift-date" required class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-sm">
-                    </div>
                     
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Тип зміни <span class="text-red-500">*</span></label>
-                        <div class="relative">
-                            <select id="shift-type" required class="w-full appearance-none px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-sm cursor-pointer">
-                                <option value="" disabled selected>Оберіть тип зміни...</option>
-                                <option value="День">День</option>
-                                <option value="Ніч">Ніч</option>
-                                <option value="Підробіток (кілька годин)">Підробіток (кілька годин)</option>
-                            </select>
-                            <svg class="w-5 h-5 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <!-- Блок дати (одна дата) -->
+                    <div id="single-date-block">
+                        <label class="block text-sm font-medium mb-1.5">Бажана дата виходу <span class="text-red-500">*</span></label>
+                        <input type="date" id="shift-date" class="w-full px-4 py-3 rounded-xl border dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white outline-none">
+                    </div>
+
+                    <!-- Блок періоду (від і до) -->
+                    <div id="range-date-block" class="hidden grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1.5">Дата З <span class="text-red-500">*</span></label>
+                            <input type="date" id="date-from" class="w-full px-4 py-3 rounded-xl border dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1.5">Дата ПО <span class="text-red-500">*</span></label>
+                            <input type="date" id="date-to" class="w-full px-4 py-3 rounded-xl border dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white outline-none">
                         </div>
                     </div>
                     
+                    <!-- Тип зміни (тільки для додаткової) -->
+                    <div id="type-block">
+                        <label class="block text-sm font-medium mb-1.5">Тип зміни <span class="text-red-500">*</span></label>
+                        <select id="shift-type" class="w-full px-4 py-3 rounded-xl border dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white outline-none">
+                            <option value="День">День</option>
+                            <option value="Ніч">Ніч</option>
+                            <option value="Підробіток (кілька годин)">Підробіток (кілька годин)</option>
+                        </select>
+                    </div>
+
+                    <!-- Завантаження фото (Тільки лікарняний) -->
+                    <div id="photo-block" class="hidden">
+                        <label class="block text-sm font-medium mb-1.5">Фото медичної довідки</label>
+                        <input type="file" id="sick-photo" accept="image/*" capture="environment" class="w-full px-4 py-3 rounded-xl border border-dashed border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 dark:text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200">
+                        <p class="text-xs text-slate-500 mt-1">Зробіть фото довідки з телефону</p>
+                    </div>
+                    
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Коментар (необов'язково)</label>
-                        <textarea id="shift-comment" rows="2" placeholder="Наприклад: можу вийти тільки після 10:00" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-sm resize-none"></textarea>
+                        <label class="block text-sm font-medium mb-1.5">Коментар</label>
+                        <textarea id="shift-comment" rows="2" placeholder="Додаткова інформація..." class="w-full px-4 py-3 rounded-xl border dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white outline-none resize-none"></textarea>
                     </div>
 
-                    <div id="success-msg" class="hidden flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-xl border border-emerald-200 dark:border-emerald-800 mt-2">
-                        <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <p class="text-sm font-medium">Заявку успішно відправлено на розгляд керівнику!</p>
-                    </div>
-
-                    <button type="submit" id="submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all flex justify-center items-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98]">
+                    <button type="submit" id="submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl flex justify-center items-center gap-2">
                         <span>Відправити заявку</span>
-                        <svg id="submit-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <svg id="submit-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                     </button>
                 </form>
             </section>
 
-            <!-- Історія заявок -->
-            <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[600px]">
-                <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-                    <h2 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Мої останні заявки
-                    </h2>
-                    
-                    <button onclick="loadMyRequestsOnline()" class="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 px-3 py-1.5 rounded-lg transition-colors border border-emerald-200 dark:border-emerald-800" title="Оновити список">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
-                        Оновити
-                    </button>
+            <!-- Історія -->
+            <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col h-[500px]">
+                <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                    <h2 class="font-bold">Мої останні заявки</h2>
+                    <button onclick="loadMyRequestsOnline()" class="text-xs font-bold text-emerald-600">Оновити</button>
                 </div>
-                
-                <div class="p-5 overflow-y-auto flex-grow bg-slate-50/50 dark:bg-slate-800/20">
-                    <div id="requests-loading" class="flex justify-center items-center py-8">
-                        <svg class="animate-spin h-8 w-8 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    </div>
-                    
-                    <div id="requests-list" class="space-y-3 hidden">
-                        <!-- Заявки завантажуватимуться сюди з БД -->
-                    </div>
+                <div class="p-4 overflow-y-auto flex-grow bg-slate-50/50 dark:bg-slate-800/20" id="requests-list">
+                    <p class="text-center text-slate-500 py-4">Завантаження...</p>
                 </div>
             </section>
         </div>
     </main>
 
-    <script>
-// ОНОВЛЕНИЙ URL ДЛЯ ЗАПИТІВ ДО ВАШОГО СКРИПТА
-const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxNQazrJRAInFap6GZl199xiyyI7ti1AQLtIKiJLTzuP9qG0cc8PqRxXjjULzhBBmR7Ww/exec';
+    <!-- Успіх -->
+    <div id="success-modal" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 text-center max-w-sm w-full">
+            <h3 class="text-xl font-bold mb-2 text-emerald-600">Заявку відправлено!</h3>
+            <p class="text-slate-500 dark:text-slate-400 mb-6">Очікуйте на погодження керівником.</p>
+            <button onclick="document.getElementById('success-modal').classList.add('hidden')" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg">ОК</button>
+        </div>
+    </div>
 
-document.addEventListener('DOMContentLoaded', () => {
+<script>
+// ВАШ URL СЮДИ!
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwblPOQEuQ_p9Npkih6GGQ6aSAx-YixmSXD2DNWbp_eAJv88d0RI06d6Zq7-MB-D08RJg/exec';
 
-    const currentUser = sessionStorage.getItem('portal_user');
+let currentRequestType = 'extra'; // extra, vacation, sick
 
-    if (!currentUser) {
-        window.location.href = 'index.html';
-        return;
-    }
-
-    document.getElementById('user-name').textContent = currentUser;
-
-    // ---------------- ТЕМА ----------------
-
-    const themeBtn = document.getElementById('theme-toggle');
-
-    themeBtn.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-
-        localStorage.setItem(
-            'color-theme',
-            document.documentElement.classList.contains('dark')
-                ? 'dark'
-                : 'light'
-        );
-    });
-
-    // ---------------- ДАТА ----------------
-
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-
-    const today = now.toISOString().split('T')[0];
-
-    document.getElementById('shift-date').min = today;
-
-    // ---------------- INIT ----------------
-
-    loadMyRequestsOnline();
-
-    setInterval(loadMyRequestsOnline, 600000);
-
-    logUserAction('Відкрив сторінку: Заявка на зміну');
-
-    // ---------------- FORM ----------------
-
-    const form = document.getElementById('shift-form');
-
-    const submitBtn = document.getElementById('submit-btn');
-
-    const submitSpinner = document.getElementById('submit-spinner');
-
-    const successMsg = document.getElementById('success-msg');
-
-    form.addEventListener('submit', async (e) => {
-
-        e.preventDefault();
-
-        if (submitBtn.disabled) return;
-
-        const rawDate = document.getElementById('shift-date').value;
-
-        const type = document.getElementById('shift-type').value;
-
-        const comment = document.getElementById('shift-comment').value;
-
-        if (!rawDate || !type) {
-            alert('Заповніть всі обов’язкові поля');
-            return;
-        }
-
-        const dParts = rawDate.split('-');
-
-        const formattedDate =
-            `${dParts[2]}.${dParts[1]}.${dParts[0]}`;
-
-        submitBtn.disabled = true;
-
-        submitBtn.classList.add(
-            'opacity-90',
-            'cursor-not-allowed'
-        );
-
-        submitSpinner.classList.remove('hidden');
-
-        successMsg.classList.add('hidden');
-
-        try {
-
-            const response = await fetchWithTimeout(
-                LOG_SCRIPT_URL,
-                {
-                    method: 'POST',
-
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8'
-                    },
-
-                    body: JSON.stringify({
-                        requestType: 'submit_request',
-                        user: currentUser,
-                        date: formattedDate,
-                        type: type,
-                        comment: comment || 'немає'
-                    })
-                },
-                15000
-            );
-
-            const result = await response.text();
-
-            if (!result.includes('Success')) {
-                throw new Error(result);
-            }
-
-            logUserAction(
-                `Подав заявку: ${formattedDate}`
-            );
-
-            form.reset();
-
-            successMsg.classList.remove('hidden');
-
-            await loadMyRequestsOnline();
-
-            setTimeout(() => {
-                successMsg.classList.add('hidden');
-            }, 5000);
-
-        } catch (err) {
-
-            console.error(err);
-
-            alert(
-                'Помилка відправки заявки.\n' +
-                'Перевірте інтернет або зверніться до адміністратора.'
-            );
-
-        } finally {
-
-            submitBtn.disabled = false;
-
-            submitBtn.classList.remove(
-                'opacity-90',
-                'cursor-not-allowed'
-            );
-
-            submitSpinner.classList.add('hidden');
-        }
-    });
+document.getElementById('theme-toggle').addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
 });
 
-// ---------------- FETCH TIMEOUT ----------------
-
-async function fetchWithTimeout(
-    resource,
-    options = {},
-    timeout = 15000
-) {
-
-    const controller = new AbortController();
-
-    const id = setTimeout(() => {
-        controller.abort();
-    }, timeout);
-
-    const response = await fetch(resource, {
-        ...options,
-        signal: controller.signal
+function switchTab(type) {
+    currentRequestType = type;
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-emerald-600', 'text-white', 'border-emerald-600');
+        btn.classList.add('text-slate-600', 'dark:text-slate-300');
     });
+    const activeBtn = document.getElementById('tab-' + type);
+    activeBtn.classList.remove('text-slate-600', 'dark:text-slate-300');
+    activeBtn.classList.add('active');
 
-    clearTimeout(id);
-
-    return response;
-}
-
-// ---------------- LOGGING ----------------
-
-function logUserAction(actionDetails) {
-
-    const currentUser =
-        sessionStorage.getItem('portal_user');
-
-    const formData = new FormData();
-
-    formData.append('user', currentUser);
-
-    formData.append('action', actionDetails);
-
-    fetch(LOG_SCRIPT_URL, {
-        method: 'POST',
-        body: formData,
-        mode: 'no-cors'
-    }).catch(() => {
-        console.log('Log fail');
-    });
-}
-
-// ---------------- LOAD REQUESTS ----------------
-
-async function loadMyRequestsOnline() {
-
-    const currentUser =
-        sessionStorage.getItem('portal_user');
-
-    if (!currentUser) return;
-
-    const list =
-        document.getElementById('requests-list');
-
-    const loading =
-        document.getElementById('requests-loading');
-
-    try {
-
-        loading.classList.remove('hidden');
-
-        const res = await fetchWithTimeout(
-            LOG_SCRIPT_URL,
-            {
-                method: 'POST',
-
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-
-                body: JSON.stringify({
-                    requestType: 'get_my_requests',
-                    user: currentUser
-                })
-            },
-            15000
-        );
-
-        if (!res.ok) {
-            throw new Error('Server Error');
-        }
-
-        const onlineReqs = await res.json();
-
-        if (!Array.isArray(onlineReqs)) {
-            throw new Error(
-                'Некоректна відповідь сервера'
-            );
-        }
-
-        loading.classList.add('hidden');
-
-        list.classList.remove('hidden');
-
-        if (onlineReqs.length === 0) {
-
-            list.innerHTML = `
-                <div class="text-center py-6 text-slate-500 dark:text-slate-400">
-                    <p class="text-sm">
-                        Ви ще не подавали заявок.
-                    </p>
-                </div>
-            `;
-
-            return;
-        }
-
-        list.innerHTML = onlineReqs.map(r => {
-
-            let statusColorClass =
-                'text-amber-500 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800';
-
-            if (r.status === 'Погоджено' || r.status === 'Схвалено') {
-
-                statusColorClass =
-                    'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800';
-            }
-
-            if (r.status === 'Відхилено') {
-
-                statusColorClass =
-                    'text-red-500 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800';
-            }
-
-            let displayDate = r.date;
-
-            if (
-                typeof displayDate === 'string' &&
-                displayDate.includes('T')
-            ) {
-
-                const d = new Date(displayDate);
-
-                displayDate =
-                    `${String(d.getDate()).padStart(2, '0')}.` +
-                    `${String(d.getMonth() + 1).padStart(2, '0')}.` +
-                    `${d.getFullYear()}`;
-            }
-
-            return `
-                <div class="flex justify-between items-center p-4 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
-
-                    <div>
-                        <p class="font-bold text-slate-800 dark:text-white text-lg">
-                            ${displayDate}
-                        </p>
-
-                        <p class="text-sm text-slate-500 dark:text-slate-300 font-medium">
-                            ${r.type}
-                        </p>
-                    </div>
-
-                    <span class="text-xs font-bold px-3 py-1.5 rounded-lg border ${statusColorClass}">
-                        ${r.status}
-                    </span>
-
-                </div>
-            `;
-
-        }).join('');
-
-    } catch (e) {
-
-        console.error(
-            'Помилка синхронізації',
-            e
-        );
-
-        loading.classList.add('hidden');
-
-        list.classList.remove('hidden');
-
-        list.innerHTML = `
-            <p class="text-sm text-red-500 p-4 text-center">
-                Не вдалося завантажити історію.
-            </p>
-        `;
+    if (type === 'extra') {
+        document.getElementById('single-date-block').classList.remove('hidden');
+        document.getElementById('range-date-block').classList.add('hidden');
+        document.getElementById('type-block').classList.remove('hidden');
+        document.getElementById('photo-block').classList.add('hidden');
+    } else {
+        document.getElementById('single-date-block').classList.add('hidden');
+        document.getElementById('range-date-block').classList.remove('hidden');
+        document.getElementById('type-block').classList.add('hidden');
+        document.getElementById('photo-block').classList.toggle('hidden', type !== 'sick');
     }
 }
-</script>
 
+// Форматування дати DD.MM.YYYY
+function formatD(dStr) {
+    if(!dStr) return '';
+    const p = dStr.split('-');
+    return `${p[2]}.${p[1]}.${p[0]}`;
+}
+
+// Стиснення фото перед відправкою (щоб не зависало)
+function compressAndConvertImage(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1200;
+                const scaleSize = MAX_WIDTH / img.width;
+                canvas.width = MAX_WIDTH;
+                canvas.height = img.height * scaleSize;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                // Отримуємо base64 (відкидаємо 'data:image/jpeg;base64,')
+                const base64Str = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+                resolve(base64Str);
+            };
+        };
+        reader.onerror = error => reject(error);
+    });
+}
+
+document.getElementById('shift-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const spinner = document.getElementById('submit-spinner');
+    const user = sessionStorage.getItem('portal_user');
+    if (!user) return alert("Авторизуйтесь!");
+
+    let reqDate = '', reqTypeStr = '', fileData = null, fileName = '', mimeType = '';
+
+    if (currentRequestType === 'extra') {
+        if(!document.getElementById('shift-date').value) return alert("Оберіть дату");
+        reqDate = formatD(document.getElementById('shift-date').value);
+        reqTypeStr = "Додаткова зміна: " + document.getElementById('shift-type').value;
+    } else {
+        const dF = document.getElementById('date-from').value;
+        const dT = document.getElementById('date-to').value;
+        if(!dF || !dT) return alert("Оберіть період дат");
+        reqDate = `${formatD(dF)} - ${formatD(dT)}`;
+        reqTypeStr = currentRequestType === 'sick' ? "Лікарняний" : "Відпустка";
+
+        if (currentRequestType === 'sick') {
+            const fileInput = document.getElementById('sick-photo');
+            if(fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileName = "Лікарняний_" + user.replace(/\s/g, '_') + "_" + Date.now() + ".jpg";
+                mimeType = file.type;
+                try {
+                    btn.querySelector('span').textContent = "Стиснення фото...";
+                    fileData = await compressAndConvertImage(file);
+                } catch(err) {
+                    return alert("Помилка обробки фото");
+                }
+            }
+        }
+    }
+
+    const comment = document.getElementById('shift-comment').value;
+
+    btn.disabled = true; spinner.classList.remove('hidden');
+    btn.querySelector('span').textContent = "Відправка...";
+
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                requestType: 'submit_request',
+                user: user,
+                date: reqDate,
+                type: reqTypeStr,
+                comment: comment,
+                fileData: fileData,
+                fileName: fileName,
+                mimeType: mimeType
+            })
+        });
+
+        document.getElementById('shift-form').reset();
+        document.getElementById('success-modal').classList.remove('hidden');
+        loadMyRequestsOnline();
+    } catch(err) {
+        alert("Помилка відправки. Перевірте інтернет.");
+    } finally {
+        btn.disabled = false; spinner.classList.add('hidden');
+        btn.querySelector('span').textContent = "Відправити заявку";
+    }
+});
+
+async function loadMyRequestsOnline() {
+    const user = sessionStorage.getItem('portal_user');
+    if(!user) return;
+    const list = document.getElementById('requests-list');
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ requestType: 'get_my_requests', user: user })
+        });
+        const reqs = await res.json();
+        if(!reqs.length) return list.innerHTML = `<p class="text-center text-slate-500 py-4">Немає заявок</p>`;
+        
+        list.innerHTML = reqs.map(r => {
+            let cl = 'text-amber-600 bg-amber-50 border-amber-200';
+            if(r.status.includes('Погоджено')) cl = 'text-emerald-600 bg-emerald-50 border-emerald-200';
+            if(r.status.includes('Відхилено')) cl = 'text-red-600 bg-red-50 border-red-200';
+            return `
+            <div class="p-3 mb-2 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-100 dark:border-slate-600 flex justify-between items-center">
+                <div>
+                    <p class="font-bold text-sm">${r.date}</p>
+                    <p class="text-xs text-slate-500">${r.type}</p>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-1 rounded border ${cl}">${r.status}</span>
+            </div>`;
+        }).join('');
+    } catch(e) {
+        list.innerHTML = `<p class="text-red-500 text-center text-sm">Помилка завантаження</p>`;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadMyRequestsOnline);
+</script>
 </body>
 </html>
