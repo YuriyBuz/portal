@@ -127,21 +127,8 @@
                 <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
             </div>
 
-            <div class="overflow-x-auto bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <table class="w-full min-w-[800px] text-sm text-left">
-                    <thead class="bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-[10px] tracking-wider">
-                        <tr>
-                            <th class="px-4 py-3 rounded-tl-xl">Працівник</th>
-                            <th class="px-4 py-3">Дата</th>
-                            <th class="px-4 py-3">Зміна</th>
-                            <th class="px-4 py-3">Коментар / Довідка</th>
-                            <th class="px-4 py-3">Статус</th>
-                            <th class="px-4 py-3 text-center rounded-tr-xl">Дії</th>
-                        </tr>
-                    </thead>
-                    <tbody id="requests-table" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody>
-                </table>
-            </div>
+            <!-- Компактний вертикальний список карток для мобільних пристроїв -->
+            <div id="requests-list-container" class="flex flex-col gap-3"></div>
         </div>
 
         <!-- ================= СЕКЦІЯ 3: ПРАЦІВНИКИ ================= -->
@@ -351,7 +338,7 @@ window.switchTab = function(tabId) {
 // ================= СЕКЦІЯ ЗАЯВОК =================
 window.loadRequests = async function() {
     document.getElementById('req-loading').classList.remove('hidden');
-    document.getElementById('requests-table').innerHTML = '';
+    document.getElementById('requests-list-container').innerHTML = '';
     
     const data = await apiCall({ requestType: 'get_requests' });
     if (Array.isArray(data)) {
@@ -359,7 +346,7 @@ window.loadRequests = async function() {
         renderRequests(window.allRequests);
         updateStats();
     } else {
-        document.getElementById('requests-table').innerHTML = `<tr><td colspan="6" class="text-center py-10 font-bold text-red-500">Помилка завантаження. Перевірте з'єднання.</td></tr>`;
+        document.getElementById('requests-list-container').innerHTML = `<div class="text-center py-10 font-bold text-red-500">Помилка завантаження. Перевірте з'єднання.</div>`;
     }
     document.getElementById('req-loading').classList.add('hidden');
 };
@@ -372,36 +359,49 @@ function updateStats() {
 }
 
 function renderRequests(list) {
-    const table = document.getElementById('requests-table');
+    const container = document.getElementById('requests-list-container');
     if (!list.length) {
-        table.innerHTML = `<tr><td colspan="6" class="text-center py-10 font-bold text-slate-400">Заявок не знайдено</td></tr>`;
+        container.innerHTML = `<div class="text-center py-10 font-bold text-slate-400 bg-white dark:bg-slate-800 rounded-xl">Заявок не знайдено</div>`;
         return;
     }
 
-    table.innerHTML = list.map((r) => {
+    container.innerHTML = list.map((r) => {
         const statusStr = String(r.status || '');
         let badge = 'bg-amber-100 text-amber-700 border border-amber-200';
         if (statusStr === 'Погоджено' || statusStr === 'Схвалено') badge = 'bg-emerald-100 text-emerald-700 border border-emerald-200';
         if (statusStr === 'Відхилено') badge = 'bg-red-100 text-red-700 border border-red-200';
 
         let commentHtml = String(r.comment || '-').replace(/\n/g, '<br>');
-        commentHtml = commentHtml.replace(/(https:\/\/drive\.google\.com[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-500 underline font-bold">📄 Довідка</a>');
+        commentHtml = commentHtml.replace(/(https:\/\/drive\.google\.com[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-500 underline font-bold inline-flex items-center gap-1 mt-1">📄 Довідка</a>');
 
+        // Компактна вертикальна картка для мобільних та десктопів
         return `
-            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors group">
-                <td class="px-4 py-3 font-bold text-slate-800 dark:text-white leading-tight">${r.user}</td>
-                <td class="px-4 py-3 font-medium whitespace-nowrap">${r.date}</td>
-                <td class="px-4 py-3"><span class="bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded text-[10px] uppercase font-bold">${r.type}</span></td>
-                <td class="px-4 py-3 text-xs text-slate-600 dark:text-slate-300 max-w-[200px]">${commentHtml}</td>
-                <td class="px-4 py-3"><span class="px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider ${badge}">${statusStr}</span></td>
-                <td class="px-4 py-3">
-                    <div class="flex gap-1.5 justify-center opacity-70 group-hover:opacity-100 transition-opacity">
-                        <button onclick="updateReqStatus('${r.id}', 'Погоджено', '${r.user.replace(/'/g, "\\'")}', '${r.type.replace(/'/g, "\\'")}', this)" class="w-8 h-8 rounded-lg bg-emerald-100 hover:bg-emerald-500 text-emerald-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">✓</button>
-                        <button onclick="updateReqStatus('${r.id}', 'Відхилено', '${r.user.replace(/'/g, "\\'")}', '${r.type.replace(/'/g, "\\'")}', this)" class="w-8 h-8 rounded-lg bg-red-100 hover:bg-red-500 text-red-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">✕</button>
-                        <button onclick="updateReqStatus('${r.id}', 'Очікує', '${r.user.replace(/'/g, "\\'")}', '${r.type.replace(/'/g, "\\'")}', this)" class="w-8 h-8 rounded-lg bg-slate-200 hover:bg-slate-500 text-slate-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">⟲</button>
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center hover:border-emerald-300 dark:hover:border-emerald-600 transition-colors group">
+                <div class="flex-1 w-full">
+                    <div class="flex justify-between items-start">
+                        <span class="font-bold text-slate-800 dark:text-white text-base">${r.user}</span>
+                        <span class="md:hidden px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider ${badge}">${statusStr}</span>
                     </div>
-                </td>
-            </tr>
+                    <div class="flex flex-wrap gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 mt-1 items-center">
+                        <span class="font-bold text-slate-700 dark:text-slate-300">📅 ${r.date}</span>
+                        <span>•</span>
+                        <span class="bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded text-[10px] uppercase font-bold">${r.type}</span>
+                    </div>
+                    <div class="mt-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded-lg border border-slate-100 dark:border-slate-600">
+                        ${commentHtml}
+                    </div>
+                </div>
+                
+                <div class="flex flex-row md:flex-col justify-between items-center md:items-end w-full md:w-auto gap-3 pt-3 md:pt-0 border-t border-slate-100 dark:border-slate-700 md:border-0 mt-1 md:mt-0">
+                    <span class="hidden md:inline-block px-3 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider text-center w-full ${badge}">${statusStr}</span>
+                    
+                    <div class="flex gap-2 w-full justify-end">
+                        <button onclick="updateReqStatus('${r.id}', 'Погоджено', '${r.user.replace(/'/g, "\\'")}', '${r.type.replace(/'/g, "\\'")}', this)" class="flex-1 md:flex-none w-10 h-10 rounded-lg bg-emerald-100 hover:bg-emerald-500 text-emerald-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">✓</button>
+                        <button onclick="updateReqStatus('${r.id}', 'Відхилено', '${r.user.replace(/'/g, "\\'")}', '${r.type.replace(/'/g, "\\'")}', this)" class="flex-1 md:flex-none w-10 h-10 rounded-lg bg-red-100 hover:bg-red-500 text-red-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">✕</button>
+                        <button onclick="updateReqStatus('${r.id}', 'Очікує', '${r.user.replace(/'/g, "\\'")}', '${r.type.replace(/'/g, "\\'")}', this)" class="flex-1 md:flex-none w-10 h-10 rounded-lg bg-slate-200 hover:bg-slate-500 text-slate-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">⟲</button>
+                    </div>
+                </div>
+            </div>
         `;
     }).join('');
 }
@@ -424,7 +424,6 @@ window.updateReqStatus = async function(id, newStatus, user, type, btn) {
         rowBtns.forEach(b => b.disabled = false);
     }
 };
-
 
 // ================= СЕКЦІЯ ПРАЦІВНИКІВ =================
 function calculateAgeAndDays(dobStr) {
@@ -508,18 +507,17 @@ document.getElementById('add-emp-form').addEventListener('submit', async (e) => 
     loadEmployees(); 
 });
 
-
 // ================= СЕКЦІЯ ПОВНОГО ГРАФІКА =================
 function getPositionColor(pos) {
     const p = String(pos).toLowerCase();
-    if (p.includes('головний інженер') || p.includes('механік') || p.includes('налагоджувальник')) return 'bg-[#fcd34d] text-yellow-900 border-r-amber-400';
-    if (p.includes('варник')) return 'bg-[#fbcfe8] text-pink-900 border-r-pink-400';
-    if (p.includes('контролер')) return 'bg-[#e879f9] text-purple-900 border-r-purple-400';
-    if (p.includes('майстер')) return 'bg-[#86efac] text-green-900 border-r-green-400';
-    if (p.includes('оператор-налагоджувальник')) return 'bg-[#c4b5fd] text-fuchsia-900 border-r-fuchsia-400'; // Трохи фіолетовий
-    if (p.includes('оператор')) return 'bg-[#bae6fd] text-indigo-900 border-r-indigo-400'; // Блакитний
-    if (p.includes('вантажник')) return 'bg-[#d97706] text-white border-r-amber-600';
-    if (p.includes('працівник')) return 'bg-[#f472b6] text-white border-r-pink-500';
+    if (p.includes('головний інженер') || p.includes('механік') || p.includes('налагоджувальник')) return 'bg-[#fcd34d] text-yellow-900';
+    if (p.includes('варник')) return 'bg-[#fbcfe8] text-pink-900';
+    if (p.includes('контролер')) return 'bg-[#e879f9] text-purple-900';
+    if (p.includes('майстер')) return 'bg-[#86efac] text-green-900';
+    if (p.includes('оператор-налагоджувальник')) return 'bg-[#c4b5fd] text-fuchsia-900'; 
+    if (p.includes('оператор')) return 'bg-[#bae6fd] text-indigo-900'; 
+    if (p.includes('вантажник')) return 'bg-[#d97706] text-white';
+    if (p.includes('працівник')) return 'bg-[#f472b6] text-white';
     return 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white';
 }
 
@@ -543,7 +541,7 @@ window.showEmpModal = async function(name, position) {
     
     const posElem = document.getElementById('emp-modal-pos');
     posElem.textContent = position || 'Не вказано';
-    posElem.className = `font-bold text-right px-2 py-0.5 rounded text-[10px] uppercase tracking-wide ${getPositionColor(position).replace('border-r-', 'border-')}`;
+    posElem.className = `font-bold text-right px-2 py-0.5 rounded text-[10px] uppercase tracking-wide border border-slate-200 dark:border-slate-600 ${getPositionColor(position)}`;
 
     document.getElementById('emp-modal-phone').textContent = emp.phone || '-';
     document.getElementById('emp-modal-login').textContent = emp.login || '-';
@@ -564,6 +562,7 @@ window.loadSchedule = async function() {
     document.getElementById('sched-body').innerHTML = '';
     
     document.getElementById('schedule-title').textContent = `Графік ${mYear}`;
+    document.getElementById('schedule-title').classList.remove('hidden');
 
     const data = await apiCall({ requestType: 'get_full_schedule', monthYear: mYear });
     
@@ -624,7 +623,7 @@ window.loadSchedule = async function() {
             // Клітинка з ПІБ в 1 рядок, кольорова
             let rowHtml = `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors ${borderClass}">
                 <td onclick="showEmpModal('${emp.name.replace(/'/g, "\\'")}', '${(emp.position || '').replace(/'/g, "\\'")}')" class="px-2 py-0.5 sticky left-0 z-10 border-r-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] cursor-pointer hover:opacity-90 transition-opacity ${posColor}">
-                    <div class="font-bold text-[11px] whitespace-nowrap overflow-hidden text-ellipsis leading-tight tracking-tight" title="${emp.name}">${shortName}</div>
+                    <div class="font-bold text-[11px] whitespace-nowrap overflow-hidden text-ellipsis leading-tight tracking-tight text-left" title="${emp.name}">${shortName}</div>
                 </td>`;
             
             let shiftCount = 0;
@@ -660,7 +659,7 @@ window.loadSchedule = async function() {
                     return 'text-transparent hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-300 cursor-pointer';
                 };
 
-                rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day})" class="p-0 border-l border-slate-300 dark:border-slate-600 transition-colors cursor-pointer ${getCellColor(combinedVal)}">
+                rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day}, '${(emp.position || '').replace(/'/g, "\\'")}')" class="p-0 border-l border-slate-300 dark:border-slate-600 transition-colors cursor-pointer ${getCellColor(combinedVal)}">
                     <div class="flex items-center justify-center h-6 w-full px-0.5 text-[10px] font-bold leading-none tracking-tighter">
                         ${finalDisplay || ''}
                     </div>
@@ -679,7 +678,7 @@ window.loadSchedule = async function() {
 };
 
 // ================= МОДАЛКА РЕДАГУВАННЯ ЗМІНИ =================
-window.editCell = function(empName, day) {
+window.editCell = function(empName, day, pos) {
     window.editEmpName = empName;
     window.editDay = day;
     
@@ -689,9 +688,10 @@ window.editCell = function(empName, day) {
     const monthIdx = ukrMonths.indexOf(monthParts[0]);
     const yearStr = monthParts[1] ? monthParts[1] : new Date().getFullYear().toString();
     const year2Digit = yearStr.toString().slice(-2);
-    const month2Digit = String(monthIndex !== -1 ? monthIndex + 1 : 1).padStart(2, '0');
+    const month2Digit = String(monthIdx !== -1 ? monthIdx + 1 : 1).padStart(2, '0');
     
     document.getElementById('edit-modal-name').textContent = empName;
+    document.getElementById('edit-modal-pos-text').textContent = pos || '';
     document.getElementById('edit-modal-date').textContent = `${day}.${month2Digit}.${year2Digit}`;
     
     document.getElementById('edit-cell-val').value = '';
