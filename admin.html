@@ -66,38 +66,7 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-6 pb-20">
 
-        <!-- ================= СЕКЦІЯ 1: ГРАФІК ================= -->
-        <div id="section-schedule" class="hidden space-y-6">
-            <h2 id="schedule-title" class="text-2xl font-black text-slate-800 dark:text-white hidden">Графік</h2>
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-4">
-                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-center">
-                    <input type="text" id="sched-month-input" onchange="loadSchedule()" placeholder="Наприклад: Червень 2026" class="w-full sm:w-64 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-bold text-center sm:text-left transition-all focus:ring-2 focus:ring-emerald-500">
-                </div>
-                
-                <!-- Легенда (Розшифровка позначок) -->
-                <div class="text-xs font-medium flex flex-wrap gap-4 text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-4 bg-emerald-100 border border-emerald-300 rounded-sm"></span>Робоча (1, 2)</span>
-                    <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-4 bg-blue-100 border border-blue-300 rounded-sm"></span>Додаткова (З)</span>
-                    <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-4 bg-red-100 border border-red-300 rounded-sm"></span>Лікарняний (Л)</span>
-                    <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-4 bg-amber-100 border border-amber-300 rounded-sm"></span>Відпустка (В)</span>
-                    <span class="flex items-center gap-1.5 font-bold">1 (н) - Нічна зміна</span>
-                    <span class="flex items-center gap-1.5 font-bold">🎂 - День народження</span>
-                </div>
-            </div>
-
-            <div id="sched-loading" class="flex justify-center py-12 hidden">
-                <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-            </div>
-
-            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-x-auto pb-4">
-                <table class="w-full min-w-[1200px] text-xs text-center border-collapse">
-                    <thead id="sched-head" class="bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-bold uppercase border-b border-slate-300 dark:border-slate-600"></thead>
-                    <tbody id="sched-body"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- ================= СЕКЦІЯ 2: ЗАЯВКИ ================= -->
+        <!-- ================= СЕКЦІЯ 1: ЗАЯВКИ ================= -->
         <div id="section-requests" class="hidden">
             <!-- Зменшені контейнери для статистики -->
             <div class="grid grid-cols-4 gap-2 mb-6">
@@ -696,7 +665,7 @@ window.loadSchedule = async function() {
                     return 'text-transparent hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-300 cursor-pointer';
                 };
 
-                rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day})" class="p-0 border-l border-slate-300 dark:border-slate-600 transition-all cursor-pointer ${cellBottomBorder} ${getCellColor(combinedVal)}">
+                rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day}, '${(emp.position || '').replace(/'/g, "\\'")}')" class="p-0 border-l border-slate-300 dark:border-slate-600 transition-all cursor-pointer ${cellBottomBorder} ${getCellColor(combinedVal)}">
                     <div class="flex items-center justify-center h-7 w-full px-1 text-[11px] font-bold">
                         ${finalDisplay || ''}
                     </div>
@@ -715,11 +684,21 @@ window.loadSchedule = async function() {
 };
 
 // Запуск модального вікна редагування
-window.editCell = function(empName, day) {
+window.editCell = function(empName, day, position) {
+    const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+    const parts = window.currentScheduleMonth.split(' ');
+    const monthIdx = ukrMonths.indexOf(parts[0]) + 1;
+    const yearStr = parts[1] ? parts[1].substring(2, 4) : new Date().getFullYear().toString().substring(2, 4);
+    const monthStr = monthIdx < 10 ? '0' + monthIdx : monthIdx;
+    const formattedDate = `${day}.${monthStr}.${yearStr}`;
+
     window.editEmpName = empName;
     window.editDay = day;
-    document.getElementById('edit-modal-name').textContent = empName;
-    document.getElementById('edit-modal-date').textContent = `${day} числа`;
+    
+    let posStr = position && position !== 'undefined' ? ` (${position})` : '';
+    
+    document.getElementById('edit-modal-name').textContent = `${empName}${posStr}`;
+    document.getElementById('edit-modal-date').textContent = formattedDate;
     document.getElementById('edit-cell-val').value = '';
     document.getElementById('edit-cell-night').checked = false;
     document.getElementById('edit-cell-modal').classList.remove('hidden');
