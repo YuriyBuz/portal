@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Адмін панель | Foodline</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -12,493 +12,570 @@
         }
     </script>
     <style>
-        .admin-tab { display: none; }
-        .admin-tab.active { display: block; }
-        .tab-btn.active { background-color: #059669; color: white; border-color: #059669; }
-        
-        /* Таблиця графіка */
-        .sched-table th, .sched-table td { border: 1px solid #e2e8f0; padding: 4px; text-align: center; font-size: 0.75rem; min-width: 30px; height: 35px; cursor: pointer;}
-        .dark .sched-table th, .dark .sched-table td { border-color: #334155; }
-        .sched-table th:first-child, .sched-table td:first-child { position: sticky; left: 0; background: white; z-index: 10; text-align: left; min-width: 150px; font-weight: bold; cursor: default;}
-        .dark .sched-table th:first-child, .dark .sched-table td:first-child { background: #1e293b; color: white; }
-        
-        .val-1 { background-color: #b6d7a8; color: #1e3a1e; font-weight: bold;}
-        .val-3 { background-color: #6ee7b7; color: #064e3b; font-weight: bold;}
-        .val-L { background-color: #bfdbfe; color: #1e3a8a; font-weight: bold;}
-        .val-V { background-color: #fde047; color: #713f12; font-weight: bold;}
-
-        /* Приховати скроллбар для вкладок на мобільному */
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        body { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 
-<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 min-h-screen transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 min-h-screen transition-colors duration-200">
 
+    <!-- Тост привітання -->
     <div id="welcome-toast" class="fixed top-20 right-4 z-[200] transform transition-all duration-500 translate-x-full opacity-0 bg-emerald-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3">
-        <span class="text-2xl">👋</span><span class="font-medium">Анастасіє, радий вас знову бачити!</span>
+        <span class="text-xl">👋</span>
+        <span class="font-bold">Анастасіє, радий вас знову бачити!</span>
     </div>
 
-    <!-- ОНОВЛЕНО: Навігація адаптована для мобільних пристроїв -->
-    <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 pt-3 pb-2">
-            
-            <!-- Верхній рядок: Кнопки управління та заголовок -->
-            <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center gap-3">
-                    <a href="index.html" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium">← Назад</a>
-                    <h1 class="text-xl font-bold text-emerald-600 hidden sm:block">Адмін панель</h1>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700">🌙</button>
-                    <button id="logout-btn" class="px-3 py-1.5 rounded-lg bg-red-500 text-white text-sm font-medium">Вийти</button>
+    <!-- Навігація -->
+    <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                    Назад
+                </a>
+                <div>
+                    <h1 class="text-lg md:text-xl font-black text-emerald-700 dark:text-emerald-400 leading-tight">Адмін панель</h1>
                 </div>
             </div>
-
-            <!-- Нижній рядок: Вкладки (гортаються на телефоні) -->
-            <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
-                <button onclick="switchAdminTab('requests')" id="nav-requests" class="tab-btn active px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap border dark:border-slate-600 transition-colors">📋 Заявки</button>
-                <button onclick="switchAdminTab('employees')" id="nav-employees" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap border dark:border-slate-600 text-slate-600 dark:text-slate-300 transition-colors">👥 Працівники</button>
-                <button onclick="switchAdminTab('schedule')" id="nav-schedule" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap border dark:border-slate-600 text-slate-600 dark:text-slate-300 transition-colors">📅 Повний графік</button>
+            <div class="flex items-center gap-2">
+                <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                </button>
+                <button id="logout-btn" class="px-4 py-2 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-800 font-bold transition-colors text-sm border border-red-200 dark:border-red-800">
+                    Вийти
+                </button>
+            </div>
+        </div>
+        
+        <!-- МОБІЛЬНІ ВКЛАДКИ -->
+        <div class="max-w-7xl mx-auto px-4 pt-2 pb-3">
+            <div class="flex overflow-x-auto gap-2 scrollbar-hide" style="-webkit-overflow-scrolling: touch;">
+                <button id="tab-btn-requests" onclick="switchTab('requests')" class="shrink-0 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold shadow-md flex items-center gap-2 transition-all">
+                    📋 Заявки
+                </button>
+                <button id="tab-btn-employees" onclick="switchTab('employees')" class="shrink-0 px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold transition-all border border-slate-200 dark:border-slate-600 flex items-center gap-2">
+                    👥 Працівники
+                </button>
+                <button id="tab-btn-schedule" onclick="switchTab('schedule')" class="shrink-0 px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold transition-all border border-slate-200 dark:border-slate-600 flex items-center gap-2">
+                    📅 Повний графік
+                </button>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-4">
+    <main class="max-w-7xl mx-auto p-4 md:p-6 pb-20">
 
-        <!-- ================= ВКЛАДКА: ЗАЯВКИ ================= -->
-        <div id="tab-requests" class="admin-tab active">
-            <!-- Статистика -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                    <span class="text-sm font-medium text-slate-500">Всього</span>
-                    <span id="total-count" class="text-2xl font-bold">0</span>
+        <!-- ================= СЕКЦІЯ 1: ЗАЯВКИ ================= -->
+        <div id="section-requests">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <div class="bg-slate-800 text-white rounded-xl p-4 shadow-sm border border-slate-700 flex justify-between items-center">
+                    <span class="text-sm font-medium text-slate-300">Всього</span>
+                    <span id="total-count" class="text-2xl font-black">0</span>
                 </div>
-                <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 shadow-sm border border-amber-200 flex justify-between items-center">
-                    <span class="text-sm font-medium text-amber-700">Очікують</span>
-                    <span id="pending-count" class="text-2xl font-bold text-amber-600">0</span>
+                <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 shadow-sm border border-amber-200 dark:border-amber-800 flex justify-between items-center text-amber-700 dark:text-amber-400">
+                    <span class="text-sm font-bold">Очікують</span>
+                    <span id="pending-count" class="text-2xl font-black">0</span>
                 </div>
-                <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 shadow-sm border border-emerald-200 flex justify-between items-center">
-                    <span class="text-sm font-medium text-emerald-700">Погоджено</span>
-                    <span id="approved-count" class="text-2xl font-bold text-emerald-600">0</span>
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 shadow-sm border border-emerald-200 dark:border-emerald-800 flex justify-between items-center text-emerald-700 dark:text-emerald-400">
+                    <span class="text-sm font-bold">Погоджено</span>
+                    <span id="approved-count" class="text-2xl font-black">0</span>
                 </div>
-                <div class="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 shadow-sm border border-red-200 flex justify-between items-center">
-                    <span class="text-sm font-medium text-red-700">Відхилено</span>
-                    <span id="rejected-count" class="text-2xl font-bold text-red-600">0</span>
+                <div class="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 shadow-sm border border-red-200 dark:border-red-800 flex justify-between items-center text-red-700 dark:text-red-400">
+                    <span class="text-sm font-bold">Відхилено</span>
+                    <span id="rejected-count" class="text-2xl font-black">0</span>
                 </div>
             </div>
 
-            <!-- Фільтри і таблиця -->
-            <div class="bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700 shadow-sm p-4 mb-4 flex flex-col sm:flex-row gap-3">
-                <input type="text" id="search-input" placeholder="Пошук працівника..." class="flex-1 px-4 py-2 rounded-lg border dark:bg-slate-700 dark:border-slate-600 outline-none">
-                <button id="refresh-btn" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 transition-colors text-white font-bold w-full sm:w-auto">Оновити</button>
-            </div>
-            
-            <div id="loading" class="flex flex-col items-center justify-center py-10 gap-3">
-                <svg class="animate-spin h-8 w-8 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                <span class="text-slate-500 font-medium">Завантаження заявок...</span>
-            </div>
-            
-            <div id="table-wrapper" class="hidden bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-100 dark:bg-slate-700 uppercase font-medium">
-                            <tr><th class="p-3">Працівник</th><th class="p-3">Дата</th><th class="p-3">Тип</th><th class="p-3">Коментар</th><th class="p-3">Статус</th><th class="p-3 text-center">Дія</th></tr>
-                        </thead>
-                        <tbody id="requests-table" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= ВКЛАДКА: ПРАЦІВНИКИ ================= -->
-        <div id="tab-employees" class="admin-tab">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Профіль працівника -->
-                <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-5">
-                    <h2 class="text-lg font-bold mb-4 border-b pb-2 dark:border-slate-700">Інформація про працівника</h2>
-                    <select id="emp-select" class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:border-slate-600 outline-none mb-6">
-                        <option value="">Завантаження списку...</option>
+            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 p-4">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="text" id="search-input" placeholder="Пошук працівника..." class="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+                    <select id="status-filter" class="px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 font-medium font-bold">
+                        <option value="all">Усі статуси</option>
+                        <option value="Очікує">Очікують</option>
+                        <option value="Погоджено">Погоджені</option>
+                        <option value="Відхилено">Відхилені</option>
                     </select>
-
-                    <div id="emp-info-block" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border dark:border-slate-700 space-y-2 text-sm">
-                            <p class="text-slate-500">Телефон: <span id="emp-phone" class="font-bold text-slate-800 dark:text-white float-right"></span></p>
-                            <p class="text-slate-500">Логін: <span id="emp-login" class="font-bold text-emerald-600 float-right"></span></p>
-                            <p class="text-slate-500">Актуальний пароль: <span id="emp-pass" class="font-bold text-slate-800 dark:text-white float-right"></span></p>
-                        </div>
-                        <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800 space-y-2 text-sm">
-                            <p class="text-amber-700 dark:text-amber-400">Дата нар.: <span id="emp-dob" class="font-bold float-right"></span></p>
-                            <p class="text-amber-700 dark:text-amber-400">Вік: <span id="emp-age" class="font-bold float-right"></span></p>
-                            <p class="text-amber-700 dark:text-amber-400">До ДН залишилось: <span id="emp-bday" class="font-bold float-right"></span></p>
-                        </div>
-                        <div class="sm:col-span-2 mt-4 text-right">
-                            <button id="fire-btn" class="bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded-lg text-sm font-bold transition-colors">Звільнити працівника</button>
-                        </div>
-                    </div>
+                    <button onclick="loadRequests()" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-colors shadow-sm flex items-center justify-center gap-2">
+                        Оновити
+                    </button>
                 </div>
+            </div>
 
-                <!-- Додати нового -->
-                <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-5 h-fit">
-                    <h2 class="text-lg font-bold mb-4 border-b pb-2 text-emerald-600 dark:border-slate-700">Додати нового</h2>
-                    <form id="add-emp-form" class="space-y-4">
-                        <input type="text" id="new-name" placeholder="ПІБ (повністю)" required class="w-full p-3 rounded-lg border text-sm dark:bg-slate-700 dark:border-slate-600 outline-none">
-                        <input type="text" id="new-phone" placeholder="Телефон" required class="w-full p-3 rounded-lg border text-sm dark:bg-slate-700 dark:border-slate-600 outline-none">
-                        <div>
-                            <label class="text-xs text-slate-500 ml-1">Дата народження</label>
-                            <input type="date" id="new-dob" required class="w-full p-3 rounded-lg border text-sm dark:bg-slate-700 dark:border-slate-600 outline-none">
-                        </div>
-                        <button type="submit" id="add-btn" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition">Додати в базу</button>
-                    </form>
-                </div>
+            <div id="req-loading" class="flex justify-center py-12 hidden">
+                <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            </div>
+
+            <div class="overflow-x-auto bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <table class="w-full min-w-[900px] text-sm text-left">
+                    <thead class="bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs">
+                        <tr>
+                            <th class="px-5 py-4 rounded-tl-2xl">Працівник</th>
+                            <th class="px-5 py-4">Дата</th>
+                            <th class="px-5 py-4">Зміна</th>
+                            <th class="px-5 py-4">Коментар / Довідка</th>
+                            <th class="px-5 py-4">Статус</th>
+                            <th class="px-5 py-4 text-center rounded-tr-2xl">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requests-table" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody>
+                </table>
             </div>
         </div>
 
-        <!-- ================= ВКЛАДКА: ПОВНИЙ ГРАФІК ================= -->
-        <div id="tab-schedule" class="admin-tab">
-            <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-4 overflow-hidden flex flex-col">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="font-bold">Матриця графіка (Поточний місяць)</h2>
-                    <button onclick="loadFullSchedule()" class="text-sm bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 transition-colors px-4 py-2 rounded font-medium">Оновити матрицю</button>
+        <!-- ================= СЕКЦІЯ 2: ПРАЦІВНИКИ ================= -->
+        <div id="section-employees" class="hidden space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><span class="text-xl">➕</span> Додати нового працівника</h2>
+                <form id="add-emp-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input type="text" id="new-emp-name" placeholder="ПІБ (Повністю)" required class="px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none">
+                    <input type="text" id="new-emp-phone" placeholder="Телефон (099...)" required class="px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none">
+                    <input type="date" id="new-emp-dob" required class="px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none">
+                    <button type="submit" id="add-emp-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm">Створити профіль</button>
+                </form>
+            </div>
+
+            <div id="emp-loading" class="flex justify-center py-12 hidden">
+                <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            </div>
+
+            <div id="employees-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- ================= СЕКЦІЯ 3: ГРАФІК ================= -->
+        <div id="section-schedule" class="hidden space-y-6">
+            <h2 id="schedule-title" class="text-2xl font-black text-slate-800 dark:text-white hidden">Графік</h2>
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row gap-4 justify-between items-center">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <input type="text" id="sched-month-input" placeholder="Наприклад: Червень 2024" class="w-full sm:w-64 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-bold">
+                    <button onclick="loadSchedule()" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-colors shadow-sm whitespace-nowrap">
+                        Завантажити
+                    </button>
                 </div>
-                
-                <div class="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-lg max-h-[600px] overflow-y-auto relative">
-                    <table class="w-full sched-table bg-white dark:bg-slate-800">
-                        <thead class="bg-slate-50 dark:bg-slate-700 sticky top-0 z-20">
-                            <tr id="sched-header">
-                                <!-- Генерується JS -->
-                            </tr>
-                        </thead>
-                        <tbody id="sched-body">
-                            <!-- Генерується JS -->
-                        </tbody>
-                    </table>
+                <div class="text-xs font-medium flex gap-3 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <span><span class="inline-block w-3 h-3 bg-emerald-100 border border-emerald-300 rounded-sm mr-1"></span>Робоча (1,2)</span>
+                    <span><span class="inline-block w-3 h-3 bg-blue-100 border border-blue-300 rounded-sm mr-1"></span>Додаткова (З)</span>
+                    <span><span class="inline-block w-3 h-3 bg-red-100 border border-red-300 rounded-sm mr-1"></span>Лікарняний (Л)</span>
                 </div>
-                
-                <p class="text-xs text-slate-500 mt-3">* Натисніть на клітинку, щоб змінити статус (Поставити лікарняний, відпустку тощо).</p>
+            </div>
+
+            <div id="sched-loading" class="flex justify-center py-12 hidden">
+                <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-x-auto pb-4">
+                <table class="w-full min-w-[1200px] text-xs text-center border-collapse">
+                    <thead id="sched-head" class="bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-bold uppercase"></thead>
+                    <tbody id="sched-body" class="divide-y divide-slate-200 dark:divide-slate-700"></tbody>
+                </table>
             </div>
         </div>
+
     </main>
 
-    <!-- Модалка для редагування графіка -->
-    <div id="edit-cell-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-sm">
-            <h3 class="font-bold text-lg mb-1" id="edit-title">Зміна графіка</h3>
-            <p class="text-sm text-slate-500 mb-4" id="edit-desc">Іванчук А., 15 число</p>
-            
-            <div class="space-y-3">
-                <select id="edit-val" class="w-full p-3 rounded border dark:bg-slate-700 outline-none">
-                    <option value="1">Робоча зміна (1)</option>
-                    <option value="З">Додаткова зміна (З)</option>
-                    <option value="Л">Лікарняний (Л)</option>
-                    <option value="В">Відпустка (В)</option>
-                    <option value="CLEAR">Очистити клітинку (Видалити)</option>
-                </select>
-                <select id="edit-time" class="w-full p-3 rounded border dark:bg-slate-700 outline-none">
-                    <option value="День">День</option>
-                    <option value="Ніч">Ніч</option>
-                </select>
+    <!-- Модальне вікно інфо про працівника (Графік) -->
+    <div id="emp-info-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20">
+                <h3 id="emp-modal-name" class="text-xl font-bold text-slate-800 dark:text-white">...</h3>
+                <button type="button" onclick="document.getElementById('emp-info-modal').classList.add('hidden')" class="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-800 p-1 rounded-md transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
             </div>
-            
-            <div class="flex gap-2 mt-6">
-                <button onclick="document.getElementById('edit-cell-modal').classList.add('hidden')" class="w-1/2 py-2 bg-slate-200 dark:bg-slate-700 rounded font-bold">Скасувати</button>
-                <button id="save-cell-btn" class="w-1/2 py-2 bg-emerald-600 text-white rounded font-bold">Зберегти</button>
+            <div class="p-6 space-y-4 text-sm">
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400">Посада:</span> <span id="emp-modal-pos" class="font-bold text-slate-800 dark:text-white text-right"></span></div>
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400">Телефон:</span> <span id="emp-modal-phone" class="font-bold text-slate-800 dark:text-white text-right"></span></div>
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400">Логін:</span> <span id="emp-modal-login" class="font-bold text-slate-800 dark:text-white text-right"></span></div>
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400">Актуальний пароль:</span> <span id="emp-modal-pass" class="font-bold text-red-500 text-right"></span></div>
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400">Дата нар.:</span> <span id="emp-modal-dob" class="font-bold text-slate-800 dark:text-white text-right"></span></div>
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400">Вік:</span> <span id="emp-modal-age" class="font-bold text-slate-800 dark:text-white text-right"></span></div>
+                <div class="flex justify-between items-center"><span class="text-slate-500 dark:text-slate-400">До ДН залишилось:</span> <span id="emp-modal-days" class="font-bold text-emerald-600 dark:text-emerald-400 text-right"></span></div>
             </div>
         </div>
     </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRZAgqJ7x9EwBQt4I973-aqE9fdmiJvupGjfbMv1Rk6eoBM99zZ-KlqHPs4elutgXglQ/exec';
+// Глобальні змінні
+let allRequests = [];
+let currentScheduleMonth = "";
+let globalEmployees = [];
 
-if (sessionStorage.getItem('admin_auth') !== 'true') window.location.href = 'index.html';
+// ВАШ URL
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzWs3LZB5B4_wjtxDJ-3DYTBPgMGm6I_EHt3cTyfyHjO0ln3-RQR-xBfkANXD1gjN5oag/exec';
+
+if (sessionStorage.getItem('admin_auth') !== 'true') { 
+    try { window.location.href = 'index.html'; } catch(e) {
+        document.body.innerHTML = `
+            <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+                <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
+                    <h2 class="text-xl font-bold mb-2 text-slate-800 dark:text-white">Помилка доступу</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mb-6">Авторизуйтесь на головній сторінці.</p>
+                </div>
+            </div>`;
+    }
+}
+
+const adminName = sessionStorage.getItem('portal_user') || 'Керівник';
+
+// Привітання (1 раз)
+if (!sessionStorage.getItem('welcome_shown')) {
+    setTimeout(() => {
+        const toast = document.getElementById('welcome-toast');
+        if (toast) {
+            toast.classList.remove('translate-x-full', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-x-full', 'opacity-0'), 4000);
+        }
+        sessionStorage.setItem('welcome_shown', 'true');
+    }, 500);
+}
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+    sessionStorage.removeItem('admin_auth');
+    sessionStorage.removeItem('welcome_shown');
+    try { window.location.href = 'index.html'; } catch (e) {
+        document.body.innerHTML = `
+            <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+                <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
+                    <h2 class="text-xl font-bold mb-2 text-slate-800 dark:text-white">Вихід виконано</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mb-6">Оновіть сторінку або перейдіть на головну сторінку.</p>
+                </div>
+            </div>`;
+    }
+});
 
 document.getElementById('theme-toggle').addEventListener('click', () => {
     document.documentElement.classList.toggle('dark');
+    localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
 });
 
-document.getElementById('logout-btn').addEventListener('click', () => {
-    sessionStorage.removeItem('admin_auth'); window.location.href = 'index.html';
-});
-
-// ПРИВІТАННЯ
-window.addEventListener('DOMContentLoaded', () => {
-    if (!sessionStorage.getItem('admin_welcomed')) {
-        setTimeout(() => {
-            const toast = document.getElementById('welcome-toast');
-            toast.classList.remove('translate-x-full', 'opacity-0');
-            setTimeout(() => toast.classList.add('translate-x-full', 'opacity-0'), 4000);
-            sessionStorage.setItem('admin_welcomed', 'true');
-        }, 500);
+// Універсальний запит
+async function apiCall(payload) {
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const text = await res.text();
+        try { return JSON.parse(text); } catch(e) { return text; }
+    } catch(err) {
+        console.error("API Error:", err);
+        return null;
     }
-    loadRequests();
-});
+}
 
-function switchAdminTab(tabId) {
-    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => {
-        b.classList.remove('active', 'bg-emerald-600', 'text-white', 'border-emerald-600');
-        b.classList.add('text-slate-600', 'dark:text-slate-300');
+// Перемикання вкладок
+function switchTab(tabId) {
+    ['requests', 'employees', 'schedule'].forEach(t => {
+        document.getElementById('section-' + t).classList.add('hidden');
+        document.getElementById('tab-btn-' + t).className = "shrink-0 px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold transition-all border border-slate-200 dark:border-slate-600 flex items-center gap-2";
     });
     
-    document.getElementById('tab-' + tabId).classList.add('active');
-    const btn = document.getElementById('nav-' + tabId);
-    btn.classList.remove('text-slate-600', 'dark:text-slate-300');
-    btn.classList.add('active');
+    document.getElementById('section-' + tabId).classList.remove('hidden');
+    document.getElementById('tab-btn-' + tabId).className = "shrink-0 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold shadow-md flex items-center gap-2 transition-all";
 
-    if(tabId === 'employees' && document.getElementById('emp-select').options.length <= 1) loadEmployees();
-    if(tabId === 'schedule') loadFullSchedule();
-}
-
-// ================= 1. ЗАЯВКИ =================
-let allRequests = [];
-
-async function loadRequests() {
-    document.getElementById('table-wrapper').classList.add('hidden');
-    document.getElementById('loading').classList.remove('hidden');
-    try {
-        const res = await fetch(SCRIPT_URL, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ requestType: 'get_requests' }) 
-        });
-        const data = await res.json();
-        allRequests = Array.isArray(data) ? data : [];
-        renderRequests(allRequests);
-        
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('table-wrapper').classList.remove('hidden');
-    } catch(e) { 
-        console.error("Помилка:", e);
-        document.getElementById('loading').innerHTML = '<p class="text-red-500 font-bold text-center">Помилка завантаження. Перевірте з\'єднання.</p>';
+    if (tabId === 'requests') loadRequests();
+    if (tabId === 'employees') loadEmployees();
+    if (tabId === 'schedule') {
+        const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+        const now = new Date();
+        document.getElementById('sched-month-input').value = `${ukrMonths[now.getMonth()]} ${now.getFullYear()}`;
+        loadSchedule();
     }
 }
 
-function renderRequests(arr) {
-    const tbody = document.getElementById('requests-table');
+// --- СЕКЦІЯ ЗАЯВОК ---
+async function loadRequests() {
+    document.getElementById('req-loading').classList.remove('hidden');
+    document.getElementById('requests-table').innerHTML = '';
     
-    // БЕЗПЕЧНИЙ ПІДРАХУНОК: Додано перевірку (r.status || '')
-    document.getElementById('total-count').textContent = arr.length;
-    document.getElementById('pending-count').textContent = arr.filter(r => (r.status || '').includes('Очікує')).length;
-    document.getElementById('approved-count').textContent = arr.filter(r => (r.status || '').includes('Погоджено')).length;
-    document.getElementById('rejected-count').textContent = arr.filter(r => (r.status || '').includes('Відхилено')).length;
+    const data = await apiCall({ requestType: 'get_requests' });
+    if (Array.isArray(data)) {
+        allRequests = data;
+        renderRequests(allRequests);
+        updateStats();
+    } else {
+        document.getElementById('requests-table').innerHTML = `<tr><td colspan="6" class="text-center py-10 font-bold text-red-500">Не вдалося завантажити дані. Перевірте з'єднання.</td></tr>`;
+    }
+    document.getElementById('req-loading').classList.add('hidden');
+}
 
-    if (arr.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-500">Заявок немає</td></tr>';
+function updateStats() {
+    document.getElementById('total-count').textContent = allRequests.length;
+    document.getElementById('pending-count').textContent = allRequests.filter(r => String(r.status || '').includes('Очікує')).length;
+    document.getElementById('approved-count').textContent = allRequests.filter(r => String(r.status || '') === 'Погоджено' || String(r.status || '') === 'Схвалено').length;
+    document.getElementById('rejected-count').textContent = allRequests.filter(r => String(r.status || '') === 'Відхилено').length;
+}
+
+function renderRequests(list) {
+    const table = document.getElementById('requests-table');
+    if (!list.length) {
+        table.innerHTML = `<tr><td colspan="6" class="text-center py-10 font-bold text-slate-400">Заявок не знайдено</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = arr.map((r, i) => {
-        let cl = 'bg-amber-100 text-amber-700';
-        if(r.status === 'Погоджено') cl = 'bg-emerald-100 text-emerald-700';
-        if(r.status === 'Відхилено') cl = 'bg-red-100 text-red-700';
-        
-        let commentHtml = r.comment || '';
-        if(commentHtml.includes('[Фото')) {
-            commentHtml = commentHtml.replace(/\[Фото довідки: (https:\/\/[^\s\]]+)\]/, '<br><a href="$1" target="_blank" class="text-blue-500 underline text-xs font-medium">📷 Переглянути довідку</a>');
-        }
+    table.innerHTML = list.map((r) => {
+        const statusStr = String(r.status || '');
+        let badge = 'bg-amber-100 text-amber-700 border border-amber-200';
+        if (statusStr === 'Погоджено' || statusStr === 'Схвалено') badge = 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+        if (statusStr === 'Відхилено') badge = 'bg-red-100 text-red-700 border border-red-200';
 
-        return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-            <td class="p-3 font-medium">${r.user || '-'}</td>
-            <td class="p-3 whitespace-nowrap">${r.date || '-'}</td>
-            <td class="p-3 text-xs">${r.type || '-'}</td>
-            <td class="p-3 text-xs text-slate-500 dark:text-slate-400 max-w-[200px] break-words">${commentHtml}</td>
-            <td class="p-3"><span class="px-2 py-1 rounded-md text-xs font-bold ${cl}">${r.status || 'Очікує'}</span></td>
-            <td class="p-3">
-                <div class="flex gap-2 justify-center">
-                    <button onclick="updateStatus(${i}, 'Погоджено', this)" class="w-8 h-8 flex justify-center items-center rounded bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-sm">✓</button>
-                    <button onclick="updateStatus(${i}, 'Відхилено', this)" class="w-8 h-8 flex justify-center items-center rounded bg-red-500 hover:bg-red-600 text-white text-xs font-bold shadow-sm">✕</button>
-                    <button onclick="updateStatus(${i}, 'Очікує', this)" class="w-8 h-8 flex justify-center items-center rounded bg-slate-400 hover:bg-slate-500 text-white text-xs font-bold shadow-sm" title="Скинути">⟲</button>
-                </div>
-            </td>
-        </tr>`;
+        // НАДІЙНЕ ПЕРЕТВОРЕННЯ КОМЕНТАРЯ НА РЯДОК, НАВІТЬ ЯКЩО ТАМ ЦИФРА
+        let commentHtml = String(r.comment || '-').replace(/\n/g, '<br>');
+        commentHtml = commentHtml.replace(/(https:\/\/drive\.google\.com[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-500 underline font-bold">📄 Переглянути довідку</a>');
+
+        return `
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors group">
+                <td class="px-5 py-4 font-bold text-slate-800 dark:text-white">${r.user}</td>
+                <td class="px-5 py-4 font-medium">${r.date}</td>
+                <td class="px-5 py-4"><span class="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs font-bold">${r.type}</span></td>
+                <td class="px-5 py-4 text-xs text-slate-600 dark:text-slate-300 max-w-[250px] leading-relaxed">${commentHtml}</td>
+                <td class="px-5 py-4"><span class="px-3 py-1 rounded-lg text-xs font-bold ${badge}">${statusStr}</span></td>
+                <td class="px-5 py-4">
+                    <div class="flex gap-2 justify-center opacity-70 group-hover:opacity-100 transition-opacity">
+                        <button onclick="updateReqStatus('${r.id}', 'Погоджено', '${r.user}', '${r.type}', this)" class="w-9 h-9 rounded-xl bg-emerald-100 hover:bg-emerald-500 text-emerald-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">✓</button>
+                        <button onclick="updateReqStatus('${r.id}', 'Відхилено', '${r.user}', '${r.type}', this)" class="w-9 h-9 rounded-xl bg-red-100 hover:bg-red-500 text-red-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">✕</button>
+                        <button onclick="updateReqStatus('${r.id}', 'Очікує', '${r.user}', '${r.type}', this)" class="w-9 h-9 rounded-xl bg-slate-200 hover:bg-slate-500 text-slate-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">⟲</button>
+                    </div>
+                </td>
+            </tr>
+        `;
     }).join('');
 }
 
-async function updateStatus(i, status, btn) {
-    const req = allRequests[i];
-    if (!req) return;
+async function updateReqStatus(id, newStatus, user, type, btn) {
+    const originalHtml = btn.innerHTML;
+    const rowBtns = btn.parentElement.querySelectorAll('button');
+    rowBtns.forEach(b => b.disabled = true);
+    btn.innerHTML = `<svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>`;
 
-    const originalHTML = btn.innerHTML;
-    const rowButtons = btn.parentElement.querySelectorAll('button');
-    rowButtons.forEach(b => b.disabled = true);
-
-    btn.innerHTML = `<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>`;
+    const res = await apiCall({ requestType: 'update_request_status', id: id, status: newStatus, user: user, type: type });
     
-    try {
-        await fetch(SCRIPT_URL, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ requestType: 'update_request_status', id: req.id, status: status, date: req.date, type: req.type, user: req.user }) 
-        });
-        req.status = status; 
-        renderRequests(allRequests);
-    } catch(e) { 
-        alert("Помилка оновлення статусу.");
-        btn.innerHTML = originalHTML;
-        rowButtons.forEach(b => b.disabled = false);
-    }
-}
-
-document.getElementById('refresh-btn').addEventListener('click', loadRequests);
-
-// ================= 2. ПРАЦІВНИКИ (ДОДАТИ / ЗВІЛЬНИТИ) =================
-let allEmps = [];
-async function loadEmployees() {
-    const sel = document.getElementById('emp-select');
-    sel.innerHTML = '<option value="">Завантаження...</option>';
-    try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ requestType: 'get_employees_list' }) });
-        allEmps = await res.json();
-        sel.innerHTML = '<option value="">Оберіть працівника</option>' + allEmps.map(e => `<option value="${e.name}">${e.name}</option>`).join('');
-    } catch(e) { sel.innerHTML = '<option value="">Помилка</option>'; }
-}
-
-document.getElementById('emp-select').addEventListener('change', function() {
-    const emp = allEmps.find(e => e.name === this.value);
-    const block = document.getElementById('emp-info-block');
-    if(!emp) { block.classList.add('hidden'); return; }
-    
-    document.getElementById('emp-phone').textContent = emp.phone || '-';
-    document.getElementById('emp-login').textContent = emp.login || '-';
-    document.getElementById('emp-pass').textContent = emp.password || '-';
-    
-    document.getElementById('emp-dob').textContent = emp.dob || '-';
-    if(emp.dob) {
-        const p = emp.dob.split('.');
-        const bDate = new Date(p[2], p[1]-1, p[0]);
-        const today = new Date();
-        let age = today.getFullYear() - bDate.getFullYear();
-        if(today.getMonth() < bDate.getMonth() || (today.getMonth() === bDate.getMonth() && today.getDate() < bDate.getDate())) age--;
-        
-        let nextB = new Date(today.getFullYear(), p[1]-1, p[0]);
-        if(nextB < today) nextB.setFullYear(today.getFullYear()+1);
-        const days = Math.ceil((nextB - today)/(1000*60*60*24));
-        
-        document.getElementById('emp-age').textContent = age;
-        document.getElementById('emp-bday').textContent = days + " дн.";
+    if (res === 'OK') {
+        const req = allRequests.find(r => r.id === id);
+        if (req) req.status = newStatus;
+        applyReqFilters();
+        updateStats();
     } else {
-        document.getElementById('emp-age').textContent = '-';
-        document.getElementById('emp-bday').textContent = '-';
+        alert("Помилка оновлення");
+        btn.innerHTML = originalHtml;
+        rowBtns.forEach(b => b.disabled = false);
     }
-    block.classList.remove('hidden');
-});
+}
+
+document.getElementById('search-input').addEventListener('input', applyReqFilters);
+document.getElementById('status-filter').addEventListener('change', applyReqFilters);
+
+function applyReqFilters() {
+    const s = document.getElementById('search-input').value.toLowerCase();
+    const st = document.getElementById('status-filter').value;
+    const filtered = allRequests.filter(r => {
+        const matchS = String(r.user || '').toLowerCase().includes(s);
+        let reqSt = String(r.status || '').includes('Очікує') ? 'Очікує' : (r.status === 'Схвалено' ? 'Погоджено' : r.status);
+        const matchSt = st === 'all' || reqSt === st;
+        return matchS && matchSt;
+    });
+    renderRequests(filtered);
+}
+
+// --- СЕКЦІЯ ПРАЦІВНИКІВ ---
+function calculateAgeAndDays(dobStr) {
+    if (!dobStr) return { age: '-', days: '-' };
+    const [d, m, y] = dobStr.split('.');
+    const dob = new Date(`${y}-${m}-${d}`);
+    if (isNaN(dob)) return { age: '-', days: '-' };
+    
+    const now = new Date();
+    let age = now.getFullYear() - dob.getFullYear();
+    const bdayThisYear = new Date(now.getFullYear(), dob.getMonth(), dob.getDate());
+    
+    if (now > bdayThisYear) {
+        bdayThisYear.setFullYear(now.getFullYear() + 1);
+    } else if (now.getMonth() < dob.getMonth() || (now.getMonth() === dob.getMonth() && now.getDate() < dob.getDate())) {
+        age--;
+    }
+    
+    const diffDays = Math.ceil(Math.abs(bdayThisYear - now) / (1000 * 60 * 60 * 24));
+    return { age, days: diffDays === 365 ? 0 : diffDays };
+}
+
+async function loadEmployees() {
+    document.getElementById('emp-loading').classList.remove('hidden');
+    document.getElementById('employees-grid').innerHTML = '';
+    
+    const data = await apiCall({ requestType: 'get_employees_list' });
+    if (Array.isArray(data)) {
+        document.getElementById('employees-grid').innerHTML = data.map(e => {
+            const {age, days} = calculateAgeAndDays(e.dob);
+            const bdayBadge = days <= 14 ? `<span class="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider animate-pulse">🎁 ДН через ${days} дн!</span>` : '';
+            
+            return `
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm relative group overflow-hidden">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800 dark:text-white leading-tight">${e.name}</h3>
+                        <p class="text-emerald-600 font-medium text-sm mt-1">${e.phone}</p>
+                    </div>
+                    ${bdayBadge}
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-600">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Логін</p>
+                        <p class="font-bold text-sm text-slate-700 dark:text-slate-200 break-all">${e.login}</p>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-600">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Пароль</p>
+                        <p class="font-bold text-sm text-red-500 break-all">${e.password}</p>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-xs font-medium text-slate-500 pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <div class="flex gap-4">
+                        <span>🎂 ${e.dob || 'Немає'}</span>
+                        <span>Рoків: <b class="text-slate-700 dark:text-slate-300">${age}</b></span>
+                    </div>
+                </div>
+                <button onclick="fireEmployee('${e.name}')" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 flex justify-center items-center rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600" title="Звільнити">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            </div>`;
+        }).join('');
+    }
+    document.getElementById('emp-loading').classList.add('hidden');
+}
 
 document.getElementById('add-emp-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const btn = document.getElementById('add-btn');
-    btn.textContent = 'Додаємо...'; btn.disabled = true;
+    const btn = document.getElementById('add-emp-btn');
+    btn.disabled = true; btn.textContent = 'Збереження...';
     
-    const name = document.getElementById('new-name').value;
-    const phone = document.getElementById('new-phone').value;
-    const dVal = document.getElementById('new-dob').value;
-    const dob = dVal ? `${dVal.split('-')[2]}.${dVal.split('-')[1]}.${dVal.split('-')[0]}` : '';
-
-    try {
-        await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ requestType: 'add_employee', name: name, phone: phone, dob: dob, adminUser: "Адміністратор" }) });
-        alert(`Працівника ${name} успішно додано!\nПароль згенеровано автоматично.`);
-        document.getElementById('add-emp-form').reset();
-        loadEmployees();
-    } catch(err) { alert('Помилка'); }
-    btn.textContent = 'Додати в базу'; btn.disabled = false;
+    await apiCall({
+        requestType: 'add_employee',
+        name: document.getElementById('new-emp-name').value,
+        phone: document.getElementById('new-emp-phone').value,
+        dob: document.getElementById('new-emp-dob').value.split('-').reverse().join('.'),
+        adminUser: adminName
+    });
+    
+    document.getElementById('add-emp-form').reset();
+    btn.disabled = false; btn.textContent = 'Створити профіль';
+    loadEmployees(); 
 });
 
-document.getElementById('fire-btn').addEventListener('click', async () => {
-    const name = document.getElementById('emp-select').value;
-    if(!name) return;
-    if(!confirm(`Ви дійсно хочете ЗВІЛЬНИТИ працівника: ${name}? Його буде перенесено в архів.`)) return;
-    
-    const btn = document.getElementById('fire-btn');
-    btn.textContent = 'Звільнення...'; btn.disabled = true;
-    try {
-        await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ requestType: 'fire_employee', name: name, adminUser: "Адміністратор" }) });
-        alert('Працівника звільнено та перенесено в архів.');
-        document.getElementById('emp-info-block').classList.add('hidden');
-        loadEmployees();
-    } catch(e) { alert("Помилка"); }
-    btn.textContent = 'Звільнити працівника'; btn.disabled = false;
-});
-
-// ================= 3. ПОВНИЙ ГРАФІК (РЕДАГУВАННЯ) =================
-const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
-let currentEditCell = null;
-
-async function loadFullSchedule() {
-    const now = new Date();
-    const monthName = `${ukrMonths[now.getMonth()]} ${now.getFullYear()}`;
-    const head = document.getElementById('sched-header');
-    const body = document.getElementById('sched-body');
-    
-    head.innerHTML = '<th class="p-2">Працівник</th>';
-    for(let d=1; d<=31; d++) head.innerHTML += `<th class="p-2">${d}</th>`;
-    body.innerHTML = '<tr><td colspan="32" class="text-center py-10"><svg class="animate-spin h-6 w-6 text-emerald-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></td></tr>';
-    
-    try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ requestType: 'get_full_schedule', monthYear: monthName }) });
-        const data = await res.json();
-        if(data.error) { body.innerHTML = `<tr><td colspan="32" class="text-center text-red-500 py-5">${data.error}</td></tr>`; return; }
-        
-        body.innerHTML = '';
-        data.forEach(emp => {
-            let row = `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50"><td class="font-medium whitespace-nowrap text-xs px-2 py-1">${emp.name}</td>`;
-            emp.schedule.forEach(day => {
-                let showVal = day.dVal || day.nVal || '';
-                let ext = day.nVal && !day.dVal ? '<br><span class="text-[8px] opacity-75">(Н)</span>' : '';
-                
-                let bgCls = '';
-                if(showVal === '1' || showVal === '2') bgCls = 'val-1';
-                else if(showVal === 'З' || showVal === '3') bgCls = 'val-3';
-                else if(showVal === 'Л') bgCls = 'val-L';
-                else if(showVal === 'В') bgCls = 'val-V';
-                
-                row += `<td class="${bgCls} transition-colors" onclick="openEditModal('${emp.name}', ${day.day}, '${monthName}')">${showVal}${ext}</td>`;
-            });
-            row += '</tr>';
-            body.innerHTML += row;
-        });
-    } catch(e) { body.innerHTML = '<tr><td colspan="32" class="text-center text-red-500 py-5">Помилка завантаження. Перевірте консоль.</td></tr>'; }
+async function fireEmployee(name) {
+    if(!confirm(`Ви дійсно хочете ЗВІЛЬНИТИ працівника:\n${name}?`)) return;
+    await apiCall({ requestType: 'fire_employee', name: name, adminUser: adminName });
+    loadEmployees();
 }
 
-function openEditModal(empName, day, monthName) {
-    currentEditCell = { empName, day, monthName };
-    document.getElementById('edit-title').textContent = "Редагування";
-    document.getElementById('edit-desc').textContent = `${empName}, ${day} число`;
-    document.getElementById('edit-cell-modal').classList.remove('hidden');
+// --- СЕКЦІЯ ПОВНОГО ГРАФІКА ---
+
+function getPositionColor(pos) {
+    const p = String(pos).toLowerCase();
+    if (p.includes('головний інженер') || p.includes('механік') || p.includes('налагоджувальник')) return 'bg-yellow-400 text-yellow-900';
+    if (p.includes('варник')) return 'bg-pink-300 text-pink-900';
+    if (p.includes('контролер')) return 'bg-purple-400 text-purple-900';
+    if (p.includes('майстер')) return 'bg-green-300 text-green-900';
+    if (p.includes('оператор-налагоджувальник')) return 'bg-emerald-300 text-emerald-900';
+    if (p.includes('оператор')) return 'bg-slate-300 text-slate-800'; 
+    if (p.includes('вантажник')) return 'bg-amber-600 text-white';
+    if (p.includes('працівник')) return 'bg-fuchsia-300 text-fuchsia-900';
+    return 'bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-200';
 }
 
-document.getElementById('save-cell-btn').addEventListener('click', async () => {
-    if(!currentEditCell) return;
-    const btn = document.getElementById('save-cell-btn');
-    const val = document.getElementById('edit-val').value;
-    const time = document.getElementById('edit-time').value;
-    
-    btn.innerHTML = `<svg class="animate-spin h-5 w-5 mx-auto text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>`; 
-    btn.disabled = true;
-    try {
-        await fetch(SCRIPT_URL, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ 
-                requestType: 'edit_schedule_cell', 
-                empName: currentEditCell.empName, 
-                day: currentEditCell.day, 
-                monthYear: currentEditCell.monthName,
-                newValue: val,
-                shiftTime: time,
-                adminUser: "Адміністратор"
-            }) 
-        });
-        document.getElementById('edit-cell-modal').classList.add('hidden');
-        loadFullSchedule(); 
-    } catch(e) { alert('Помилка'); }
-    btn.textContent = 'Зберегти'; btn.disabled = false;
-});
-
-// Запускаємо перевірку нових заявок періодично
-setInterval(() => {
-    if (document.getElementById('tab-requests').classList.contains('active')) {
-        loadRequests();
+async function showEmpModal(name, position) {
+    if (globalEmployees.length === 0) {
+        const empData = await apiCall({ requestType: 'get_employees_list' });
+        if (Array.isArray(empData)) globalEmployees = empData;
     }
-}, 60000);
+    
+    const emp = globalEmployees.find(e => e.name === name) || {};
+    const {age, days} = calculateAgeAndDays(emp.dob);
+    
+    document.getElementById('emp-modal-name').textContent = name;
+    document.getElementById('emp-modal-pos').textContent = position || 'Не вказано';
+    document.getElementById('emp-modal-phone').textContent = emp.phone || '-';
+    document.getElementById('emp-modal-login').textContent = emp.login || '-';
+    document.getElementById('emp-modal-pass').textContent = emp.password || '-';
+    document.getElementById('emp-modal-dob').textContent = emp.dob || '-';
+    document.getElementById('emp-modal-age').textContent = age !== '-' ? age + ' років' : '-';
+    document.getElementById('emp-modal-days').textContent = days !== '-' ? days + ' днів' : '-';
+    
+    document.getElementById('emp-info-modal').classList.remove('hidden');
+}
+
+async function loadSchedule() {
+    const mYear = document.getElementById('sched-month-input').value.trim();
+    if(!mYear) return;
+    currentScheduleMonth = mYear;
+    
+    document.getElementById('sched-loading').classList.remove('hidden');
+    document.getElementById('sched-body').innerHTML = '';
+    
+    document.getElementById('schedule-title').textContent = `Графік ${mYear}`;
+    document.getElementById('schedule-title').classList.remove('hidden');
+
+    const data = await apiCall({ requestType: 'get_full_schedule', monthYear: mYear });
+    
+    if (globalEmployees.length === 0) {
+        const empData = await apiCall({ requestType: 'get_employees_list' });
+        if (Array.isArray(empData)) globalEmployees = empData;
+    }
+
+    if (data && !data.error) {
+        let headHtml = `<tr><th class="px-4 py-3 sticky left-0 bg-slate-100 dark:bg-slate-700/90 z-20 min-w-[200px] rounded-tl-xl text-left border-r border-slate-300 dark:border-slate-600">ПІБ Працівника</th>`;
+        for(let d=1; d<=31; d++) headHtml += `<th class="px-1 py-3 text-center border-l border-slate-200 dark:border-slate-600 min-w-[40px]">${d}</th>`;
+        headHtml += `</tr><tr><th class="sticky left-0 bg-slate-100 dark:bg-slate-700/90 z-20 border-t border-r border-slate-300 dark:border-slate-600"></th>`;
+        for(let d=1; d<=31; d++) headHtml += `<th class="p-0 border-l border-t border-slate-200 dark:border-slate-600"><div class="flex text-[9px] text-slate-400"><span class="w-1/2 text-center py-1">Д</span><span class="w-1/2 text-center py-1 border-l border-slate-200 dark:border-slate-600">Н</span></div></th>`;
+        headHtml += `</tr>`;
+        document.getElementById('sched-head').innerHTML = headHtml;
+
+        document.getElementById('sched-body').innerHTML = data.map((emp, index) => {
+            const isLastInGroup = (index === data.length - 1) || (data[index + 1] && emp.position !== data[index + 1].position);
+            let rowClasses = "hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors";
+            
+            // Групування сірими лініями (товста межа внизу)
+            if (isLastInGroup) {
+                rowClasses += " border-b-[3px] border-slate-400 dark:border-slate-500";
+            } else {
+                rowClasses += " border-b border-slate-200 dark:border-slate-700";
+            }
+
+            let rowHtml = `<tr class="${rowClasses}">
+                <td onclick="showEmpModal('${emp.name.replace(/'/g, "\\'")}', '${(emp.position || '').replace(/'/g, "\\'")}')" class="px-4 py-2 sticky left-0 bg-white dark:bg-slate-800 z-10 border-r border-slate-300 dark:border-slate-600 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                    <div class="font-bold text-slate-800 dark:text-white text-[13px]">${emp.name}</div>
+                    <div class="text-[10px] uppercase font-bold mt-1 px-1.5 py-0.5 rounded w-fit shadow-sm ${getPositionColor(emp.position)}">${emp.position || 'Без посади'}</div>
+                </td>`;
+            emp.schedule.forEach(day => {
+                const getCellColor = (val) => {
+                    if (val === '1' || val === '2') return 'bg-emerald-100 text-emerald-800 font-bold border-emerald-300';
+                    if (val === '3' || val === 'З') return 'bg-blue-100 text-blue-800 font-bold border-blue-300';
+                    if (val === 'Л') return 'bg-red-100 text-red-800 font-bold border-red-300';
+                    if (val === 'В') return 'bg-amber-100 text-amber-800 font-bold border-amber-300';
+                    return 'hover:bg-slate-100 dark:hover:bg-slate-600 text-transparent hover:text-slate-300 cursor-pointer';
+                };
+                rowHtml += `<td class="p-0 border-l border-slate-200 dark:border-slate-700"><div class="flex h-10 w-full"><div onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day}, 'День')" class="w-1/2 flex items-center justify-center border border-transparent transition-all cursor-pointer ${getCellColor(day.dVal)}">${day.dVal || '+'}</div><div onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day}, 'Ніч')" class="w-1/2 flex items-center justify-center border-l border-y-transparent border-r-transparent transition-all border-slate-200 dark:border-slate-700 cursor-pointer ${getCellColor(day.nVal)}">${day.nVal || '+'}</div></div></td>`;
+            });
+            return rowHtml + `</tr>`;
+        }).join('');
+    } else {
+        document.getElementById('sched-body').innerHTML = `<tr><td class="p-6 text-red-500 font-bold">Таблицю за місяць "${mYear}" не знайдено.</td></tr>`;
+    }
+    document.getElementById('sched-loading').classList.add('hidden');
+}
+
+async function editCell(empName, day, shiftTime) {
+    const newVal = prompt(`Редагування:\n${empName}\n${day} число, ${shiftTime} зміна.\nВведіть значення (1, 2, З, Л, В)\nАбо залиште порожнім щоб ВИДАЛИТИ зміну:`);
+    if (newVal === null) return;
+    const cleanVal = newVal.trim().toUpperCase() || 'CLEAR';
+    
+    document.getElementById('sched-loading').classList.remove('hidden');
+    document.getElementById('sched-body').innerHTML = '';
+    
+    await apiCall({ requestType: 'edit_schedule_cell', monthYear: currentScheduleMonth, empName: empName, day: day, shiftTime: shiftTime, newValue: cleanVal, adminUser: adminName });
+    loadSchedule();
+}
+
+switchTab('requests');
 
 </script>
 </body>
