@@ -26,6 +26,10 @@
         .val-3 { background-color: #6ee7b7; color: #064e3b; font-weight: bold;}
         .val-L { background-color: #bfdbfe; color: #1e3a8a; font-weight: bold;}
         .val-V { background-color: #fde047; color: #713f12; font-weight: bold;}
+
+        /* Приховати скроллбар для вкладок на мобільному */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 
@@ -35,20 +39,27 @@
         <span class="text-2xl">👋</span><span class="font-medium">Анастасіє, радий вас знову бачити!</span>
     </div>
 
+    <!-- ОНОВЛЕНО: Навігація адаптована для мобільних пристроїв -->
     <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <a href="index.html" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium">← Назад</a>
-                <h1 class="text-xl font-bold text-emerald-600">Адмін панель</h1>
+        <div class="max-w-7xl mx-auto px-4 pt-3 pb-2">
+            
+            <!-- Верхній рядок: Кнопки управління та заголовок -->
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                    <a href="index.html" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium">← Назад</a>
+                    <h1 class="text-xl font-bold text-emerald-600 hidden sm:block">Адмін панель</h1>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700">🌙</button>
+                    <button id="logout-btn" class="px-3 py-1.5 rounded-lg bg-red-500 text-white text-sm font-medium">Вийти</button>
+                </div>
             </div>
-            <div class="flex items-center gap-2 overflow-x-auto mx-4 flex-grow justify-center">
-                <button onclick="switchAdminTab('requests')" id="nav-requests" class="tab-btn active px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap border dark:border-slate-600">📋 Заявки</button>
-                <button onclick="switchAdminTab('employees')" id="nav-employees" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap border dark:border-slate-600 text-slate-600 dark:text-slate-300">👥 Працівники</button>
-                <button onclick="switchAdminTab('schedule')" id="nav-schedule" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap border dark:border-slate-600 text-slate-600 dark:text-slate-300">📅 Повний графік</button>
-            </div>
-            <div class="flex items-center gap-2">
-                <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700">🌙</button>
-                <button id="logout-btn" class="px-3 py-1.5 rounded-lg bg-red-500 text-white text-sm font-medium">Вийти</button>
+
+            <!-- Нижній рядок: Вкладки (гортаються на телефоні) -->
+            <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
+                <button onclick="switchAdminTab('requests')" id="nav-requests" class="tab-btn active px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap border dark:border-slate-600 transition-colors">📋 Заявки</button>
+                <button onclick="switchAdminTab('employees')" id="nav-employees" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap border dark:border-slate-600 text-slate-600 dark:text-slate-300 transition-colors">👥 Працівники</button>
+                <button onclick="switchAdminTab('schedule')" id="nav-schedule" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap border dark:border-slate-600 text-slate-600 dark:text-slate-300 transition-colors">📅 Повний графік</button>
             </div>
         </div>
     </nav>
@@ -78,12 +89,15 @@
             </div>
 
             <!-- Фільтри і таблиця -->
-            <div class="bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700 shadow-sm p-4 mb-4 flex gap-3">
-                <input type="text" id="search-input" placeholder="Пошук..." class="flex-1 px-4 py-2 rounded-lg border dark:bg-slate-700 dark:border-slate-600 outline-none">
-                <button id="refresh-btn" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold">Оновити</button>
+            <div class="bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700 shadow-sm p-4 mb-4 flex flex-col sm:flex-row gap-3">
+                <input type="text" id="search-input" placeholder="Пошук працівника..." class="flex-1 px-4 py-2 rounded-lg border dark:bg-slate-700 dark:border-slate-600 outline-none">
+                <button id="refresh-btn" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 transition-colors text-white font-bold w-full sm:w-auto">Оновити</button>
             </div>
             
-            <div id="loading" class="flex justify-center py-10"><svg class="animate-spin h-8 w-8 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+            <div id="loading" class="flex flex-col items-center justify-center py-10 gap-3">
+                <svg class="animate-spin h-8 w-8 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                <span class="text-slate-500 font-medium">Завантаження заявок...</span>
+            </div>
             
             <div id="table-wrapper" class="hidden bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 overflow-hidden">
                 <div class="overflow-x-auto">
@@ -145,7 +159,7 @@
             <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-4 overflow-hidden flex flex-col">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-bold">Матриця графіка (Поточний місяць)</h2>
-                    <button onclick="loadFullSchedule()" class="text-sm bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded">Оновити</button>
+                    <button onclick="loadFullSchedule()" class="text-sm bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 transition-colors px-4 py-2 rounded font-medium">Оновити матрицю</button>
                 </div>
                 
                 <div class="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-lg max-h-[600px] overflow-y-auto relative">
@@ -194,8 +208,7 @@
     </div>
 
 <script>
-// ВАШ URL СЮДИ
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwblPOQEuQ_p9Npkih6GGQ6aSAx-YixmSXD2DNWbp_eAJv88d0RI06d6Zq7-MB-D08RJg/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRZAgqJ7x9EwBQt4I973-aqE9fdmiJvupGjfbMv1Rk6eoBM99zZ-KlqHPs4elutgXglQ/exec';
 
 if (sessionStorage.getItem('admin_auth') !== 'true') window.location.href = 'index.html';
 
@@ -238,44 +251,64 @@ function switchAdminTab(tabId) {
 
 // ================= 1. ЗАЯВКИ =================
 let allRequests = [];
+
 async function loadRequests() {
+    document.getElementById('table-wrapper').classList.add('hidden');
+    document.getElementById('loading').classList.remove('hidden');
     try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ requestType: 'get_requests' }) });
-        allRequests = await res.json() || [];
+        const res = await fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ requestType: 'get_requests' }) 
+        });
+        const data = await res.json();
+        allRequests = Array.isArray(data) ? data : [];
         renderRequests(allRequests);
-        document.getElementById('table-wrapper').classList.remove('hidden');
+        
         document.getElementById('loading').classList.add('hidden');
-    } catch(e) {}
+        document.getElementById('table-wrapper').classList.remove('hidden');
+    } catch(e) { 
+        console.error("Помилка:", e);
+        document.getElementById('loading').innerHTML = '<p class="text-red-500 font-bold text-center">Помилка завантаження. Перевірте з\'єднання.</p>';
+    }
 }
 
 function renderRequests(arr) {
     const tbody = document.getElementById('requests-table');
+    
+    // БЕЗПЕЧНИЙ ПІДРАХУНОК: Додано перевірку (r.status || '')
     document.getElementById('total-count').textContent = arr.length;
-    document.getElementById('pending-count').textContent = arr.filter(r => r.status.includes('Очікує')).length;
-    document.getElementById('approved-count').textContent = arr.filter(r => r.status === 'Погоджено').length;
-    document.getElementById('rejected-count').textContent = arr.filter(r => r.status === 'Відхилено').length;
+    document.getElementById('pending-count').textContent = arr.filter(r => (r.status || '').includes('Очікує')).length;
+    document.getElementById('approved-count').textContent = arr.filter(r => (r.status || '').includes('Погоджено')).length;
+    document.getElementById('rejected-count').textContent = arr.filter(r => (r.status || '').includes('Відхилено')).length;
+
+    if (arr.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-500">Заявок немає</td></tr>';
+        return;
+    }
 
     tbody.innerHTML = arr.map((r, i) => {
         let cl = 'bg-amber-100 text-amber-700';
         if(r.status === 'Погоджено') cl = 'bg-emerald-100 text-emerald-700';
         if(r.status === 'Відхилено') cl = 'bg-red-100 text-red-700';
         
-        // Рендер коментаря з посиланням на фото, якщо є
-        let commentHtml = r.comment;
-        if(commentHtml && commentHtml.includes('[Фото')) {
-            commentHtml = commentHtml.replace(/\[Фото довідки: (https:\/\/[^\s\]]+)\]/, '<br><a href="$1" target="_blank" class="text-blue-500 underline text-xs">📷 Переглянути довідку</a>');
+        let commentHtml = r.comment || '';
+        if(commentHtml.includes('[Фото')) {
+            commentHtml = commentHtml.replace(/\[Фото довідки: (https:\/\/[^\s\]]+)\]/, '<br><a href="$1" target="_blank" class="text-blue-500 underline text-xs font-medium">📷 Переглянути довідку</a>');
         }
 
         return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-            <td class="p-3 font-medium">${r.user}</td>
-            <td class="p-3 whitespace-nowrap">${r.date}</td>
-            <td class="p-3 text-xs">${r.type}</td>
-            <td class="p-3 text-xs text-slate-500 max-w-[200px] truncate hover:whitespace-normal hover:bg-white z-10">${commentHtml}</td>
-            <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${cl}">${r.status}</span></td>
-            <td class="p-3 text-center">
-                <button onclick="updateStatus(${i}, 'Погоджено', this)" class="bg-emerald-500 text-white w-7 h-7 rounded text-xs">✓</button>
-                <button onclick="updateStatus(${i}, 'Відхилено', this)" class="bg-red-500 text-white w-7 h-7 rounded text-xs">✕</button>
-                <button onclick="updateStatus(${i}, 'Очікує', this)" class="bg-slate-400 text-white w-7 h-7 rounded text-xs">⟲</button>
+            <td class="p-3 font-medium">${r.user || '-'}</td>
+            <td class="p-3 whitespace-nowrap">${r.date || '-'}</td>
+            <td class="p-3 text-xs">${r.type || '-'}</td>
+            <td class="p-3 text-xs text-slate-500 dark:text-slate-400 max-w-[200px] break-words">${commentHtml}</td>
+            <td class="p-3"><span class="px-2 py-1 rounded-md text-xs font-bold ${cl}">${r.status || 'Очікує'}</span></td>
+            <td class="p-3">
+                <div class="flex gap-2 justify-center">
+                    <button onclick="updateStatus(${i}, 'Погоджено', this)" class="w-8 h-8 flex justify-center items-center rounded bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-sm">✓</button>
+                    <button onclick="updateStatus(${i}, 'Відхилено', this)" class="w-8 h-8 flex justify-center items-center rounded bg-red-500 hover:bg-red-600 text-white text-xs font-bold shadow-sm">✕</button>
+                    <button onclick="updateStatus(${i}, 'Очікує', this)" class="w-8 h-8 flex justify-center items-center rounded bg-slate-400 hover:bg-slate-500 text-white text-xs font-bold shadow-sm" title="Скинути">⟲</button>
+                </div>
             </td>
         </tr>`;
     }).join('');
@@ -283,11 +316,27 @@ function renderRequests(arr) {
 
 async function updateStatus(i, status, btn) {
     const req = allRequests[i];
-    btn.innerHTML = '...'; btn.disabled = true;
+    if (!req) return;
+
+    const originalHTML = btn.innerHTML;
+    const rowButtons = btn.parentElement.querySelectorAll('button');
+    rowButtons.forEach(b => b.disabled = true);
+
+    btn.innerHTML = `<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>`;
+    
     try {
-        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ requestType: 'update_request_status', id: req.id, status: status, date: req.date, type: req.type, user: req.user }) });
-        req.status = status; renderRequests(allRequests);
-    } catch(e) { alert("Помилка"); }
+        await fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ requestType: 'update_request_status', id: req.id, status: status, date: req.date, type: req.type, user: req.user }) 
+        });
+        req.status = status; 
+        renderRequests(allRequests);
+    } catch(e) { 
+        alert("Помилка оновлення статусу.");
+        btn.innerHTML = originalHTML;
+        rowButtons.forEach(b => b.disabled = false);
+    }
 }
 
 document.getElementById('refresh-btn').addEventListener('click', loadRequests);
@@ -298,7 +347,7 @@ async function loadEmployees() {
     const sel = document.getElementById('emp-select');
     sel.innerHTML = '<option value="">Завантаження...</option>';
     try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ requestType: 'get_employees_list' }) });
+        const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ requestType: 'get_employees_list' }) });
         allEmps = await res.json();
         sel.innerHTML = '<option value="">Оберіть працівника</option>' + allEmps.map(e => `<option value="${e.name}">${e.name}</option>`).join('');
     } catch(e) { sel.innerHTML = '<option value="">Помилка</option>'; }
@@ -345,7 +394,7 @@ document.getElementById('add-emp-form').addEventListener('submit', async (e) => 
     const dob = dVal ? `${dVal.split('-')[2]}.${dVal.split('-')[1]}.${dVal.split('-')[0]}` : '';
 
     try {
-        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ requestType: 'add_employee', name: name, phone: phone, dob: dob, adminUser: "Адміністратор" }) });
+        await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ requestType: 'add_employee', name: name, phone: phone, dob: dob, adminUser: "Адміністратор" }) });
         alert(`Працівника ${name} успішно додано!\nПароль згенеровано автоматично.`);
         document.getElementById('add-emp-form').reset();
         loadEmployees();
@@ -361,7 +410,7 @@ document.getElementById('fire-btn').addEventListener('click', async () => {
     const btn = document.getElementById('fire-btn');
     btn.textContent = 'Звільнення...'; btn.disabled = true;
     try {
-        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ requestType: 'fire_employee', name: name, adminUser: "Адміністратор" }) });
+        await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ requestType: 'fire_employee', name: name, adminUser: "Адміністратор" }) });
         alert('Працівника звільнено та перенесено в архів.');
         document.getElementById('emp-info-block').classList.add('hidden');
         loadEmployees();
@@ -379,22 +428,21 @@ async function loadFullSchedule() {
     const head = document.getElementById('sched-header');
     const body = document.getElementById('sched-body');
     
-    head.innerHTML = '<th>Працівник</th>';
-    for(let d=1; d<=31; d++) head.innerHTML += `<th>${d}</th>`;
-    body.innerHTML = '<tr><td colspan="32" class="text-center py-10">Завантаження матриці...</td></tr>';
+    head.innerHTML = '<th class="p-2">Працівник</th>';
+    for(let d=1; d<=31; d++) head.innerHTML += `<th class="p-2">${d}</th>`;
+    body.innerHTML = '<tr><td colspan="32" class="text-center py-10"><svg class="animate-spin h-6 w-6 text-emerald-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></td></tr>';
     
     try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ requestType: 'get_full_schedule', monthYear: monthName }) });
+        const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ requestType: 'get_full_schedule', monthYear: monthName }) });
         const data = await res.json();
         if(data.error) { body.innerHTML = `<tr><td colspan="32" class="text-center text-red-500 py-5">${data.error}</td></tr>`; return; }
         
         body.innerHTML = '';
         data.forEach(emp => {
-            let row = `<tr><td class="font-medium whitespace-nowrap text-xs">${emp.name}</td>`;
+            let row = `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50"><td class="font-medium whitespace-nowrap text-xs px-2 py-1">${emp.name}</td>`;
             emp.schedule.forEach(day => {
-                // Відображаємо пріоритет (День або Ніч)
                 let showVal = day.dVal || day.nVal || '';
-                let ext = day.nVal && !day.dVal ? '<br><span class="text-[8px]">(Н)</span>' : '';
+                let ext = day.nVal && !day.dVal ? '<br><span class="text-[8px] opacity-75">(Н)</span>' : '';
                 
                 let bgCls = '';
                 if(showVal === '1' || showVal === '2') bgCls = 'val-1';
@@ -402,12 +450,12 @@ async function loadFullSchedule() {
                 else if(showVal === 'Л') bgCls = 'val-L';
                 else if(showVal === 'В') bgCls = 'val-V';
                 
-                row += `<td class="${bgCls}" onclick="openEditModal('${emp.name}', ${day.day}, '${monthName}')">${showVal}${ext}</td>`;
+                row += `<td class="${bgCls} transition-colors" onclick="openEditModal('${emp.name}', ${day.day}, '${monthName}')">${showVal}${ext}</td>`;
             });
             row += '</tr>';
             body.innerHTML += row;
         });
-    } catch(e) { body.innerHTML = '<tr><td colspan="32" class="text-center text-red-500 py-5">Помилка завантаження</td></tr>'; }
+    } catch(e) { body.innerHTML = '<tr><td colspan="32" class="text-center text-red-500 py-5">Помилка завантаження. Перевірте консоль.</td></tr>'; }
 }
 
 function openEditModal(empName, day, monthName) {
@@ -423,10 +471,12 @@ document.getElementById('save-cell-btn').addEventListener('click', async () => {
     const val = document.getElementById('edit-val').value;
     const time = document.getElementById('edit-time').value;
     
-    btn.textContent = '...'; btn.disabled = true;
+    btn.innerHTML = `<svg class="animate-spin h-5 w-5 mx-auto text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>`; 
+    btn.disabled = true;
     try {
         await fetch(SCRIPT_URL, { 
             method: 'POST', 
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ 
                 requestType: 'edit_schedule_cell', 
                 empName: currentEditCell.empName, 
@@ -438,10 +488,17 @@ document.getElementById('save-cell-btn').addEventListener('click', async () => {
             }) 
         });
         document.getElementById('edit-cell-modal').classList.add('hidden');
-        loadFullSchedule(); // Перезавантажуємо матрицю
+        loadFullSchedule(); 
     } catch(e) { alert('Помилка'); }
     btn.textContent = 'Зберегти'; btn.disabled = false;
 });
+
+// Запускаємо перевірку нових заявок періодично
+setInterval(() => {
+    if (document.getElementById('tab-requests').classList.contains('active')) {
+        loadRequests();
+    }
+}, 60000);
 
 </script>
 </body>
