@@ -31,7 +31,7 @@
     </div>
 
     <!-- Навігація -->
-    <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50 shadow-sm">
+    <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-[100] shadow-sm">
         <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <a href="index.html" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
@@ -43,8 +43,8 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="forceRefreshAll()" class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-800 transition-colors" title="Примусово оновити всі дані">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                <button id="force-refresh-btn" class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-800 transition-colors" title="Примусово оновити дані">
+                    <svg class="w-5 h-5 transition-transform duration-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                 </button>
                 <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
@@ -55,7 +55,7 @@
             </div>
         </div>
         
-        <!-- МОБІЛЬНІ ВКЛАДКИ (Новий порядок) -->
+        <!-- МОБІЛЬНІ ВКЛАДКИ -->
         <div class="max-w-7xl mx-auto px-4 pt-2 pb-3">
             <div class="flex overflow-x-auto gap-2 scrollbar-hide" style="-webkit-overflow-scrolling: touch;">
                 <button id="tab-btn-schedule" onclick="switchTab('schedule')" class="shrink-0 px-5 py-2 rounded-xl bg-emerald-600 text-white font-bold shadow-md flex items-center gap-2 transition-all text-sm">
@@ -71,35 +71,28 @@
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-4 md:p-6 pb-20">
+    <main id="main-container" class="max-w-7xl mx-auto pb-20">
 
         <!-- ================= СЕКЦІЯ 1: ГРАФІК ================= -->
-        <div id="section-schedule" class="hidden space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <!-- Залишено тільки інпут, без окремого заголовку та кнопки -->
-                    <input type="text" id="sched-month-input" onchange="loadSchedule(true)" placeholder="Червень 2026" class="w-full sm:w-40 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-bold text-sm text-center sm:text-left focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner">
-                </div>
-                
-                <!-- Легенда -->
-                <div class="text-[10px] font-bold flex flex-wrap justify-center sm:justify-end gap-3 text-slate-600 dark:text-slate-300 uppercase tracking-wide">
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-emerald-100 border border-emerald-300 rounded-sm"></span>1, 2</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-blue-100 border border-blue-300 rounded-sm"></span>З</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-red-100 border border-red-300 rounded-sm"></span>Л</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-amber-100 border border-amber-300 rounded-sm"></span>В</span>
-                    <span class="flex items-center gap-1">1 (н) - Ніч</span>
-                    <span class="flex items-center gap-1">🎂 - ДН</span>
-                </div>
-            </div>
-
+        <div id="section-schedule" class="hidden">
+            
             <div id="sched-loading" class="flex justify-center py-12 hidden">
                 <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
             </div>
 
-            <!-- overflow-y: clip дозволяє `position: sticky` прилипати до самого вікна браузера! -->
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 pb-2" style="overflow-x: auto; overflow-y: clip;">
-                <table class="w-full min-w-[1000px] text-left border-collapse border-spacing-0">
-                    <thead id="sched-head" class="bg-slate-100 dark:bg-slate-700/90 text-slate-600 dark:text-slate-300 border-b border-slate-300 dark:border-slate-600"></thead>
+            <!-- Легенда -->
+            <div class="px-4 py-2.5 text-[10px] font-bold flex flex-wrap justify-center gap-3 text-slate-600 dark:text-slate-300 uppercase tracking-wide bg-slate-100/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-emerald-100 border border-emerald-300 rounded-sm"></span>1, 2</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-blue-100 border border-blue-300 rounded-sm"></span>З</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-red-100 border border-red-300 rounded-sm"></span>Л</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-amber-100 border border-amber-300 rounded-sm"></span>В</span>
+                <span class="flex items-center gap-1">1 (н) - Ніч</span>
+                <span class="flex items-center gap-1">🎂 - ДН</span>
+            </div>
+
+            <div class="w-full max-h-[calc(100vh-160px)] overflow-auto bg-white dark:bg-slate-800">
+                <table class="w-full min-w-[1000px] text-left border-collapse">
+                    <thead id="sched-head"></thead>
                     <tbody id="sched-body" class="bg-white dark:bg-slate-800"></tbody>
                 </table>
             </div>
@@ -131,7 +124,7 @@
                 <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
             </div>
 
-            <!-- Компактний вертикальний список карток для заявок -->
+            <!-- Компактний вертикальний список карток для мобільних пристроїв -->
             <div id="requests-list-container" class="flex flex-col gap-3"></div>
         </div>
 
@@ -154,17 +147,15 @@
 
     <!-- МОДАЛЬНІ ВІКНА -->
 
-    <!-- Модальне вікно запиту на оновлення -->
-    <div id="refresh-prompt-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden text-center p-6 border border-slate-200 dark:border-slate-700">
-            <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            </div>
-            <h3 class="text-xl font-bold mb-2 text-slate-800 dark:text-white">Оновлення даних</h3>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 text-sm">Минуло 10 хвилин. Бажаєте завантажити найсвіжіші дані з бази?</p>
+    <!-- Модальне вікно оновлення (КЕШУВАННЯ) -->
+    <div id="auto-refresh-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700 p-6 text-center">
+            <div class="text-4xl mb-3">🔄</div>
+            <h3 class="text-lg font-black text-slate-800 dark:text-white mb-2">Оновлення даних</h3>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mb-6">Минуло 10 хвилин. Бажаєте завантажити найсвіжіші дані з бази?</p>
             <div class="flex gap-3">
-                <button onclick="document.getElementById('refresh-prompt-modal').classList.add('hidden')" class="w-1/2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-bold py-3 rounded-xl transition-colors shadow-sm">Пізніше</button>
-                <button onclick="forceRefreshAll()" class="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm">Оновити</button>
+                <button onclick="dismissAutoRefresh()" class="w-1/2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold py-3 rounded-lg transition-colors text-sm">Ні, пізніше</button>
+                <button onclick="acceptAutoRefresh()" class="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition-colors shadow-sm text-sm">Так, оновити</button>
             </div>
         </div>
     </div>
@@ -221,7 +212,7 @@
         </div>
     </div>
 
-    <!-- 3. КРАСИВЕ МОДАЛЬНЕ ВІКНО РЕДАГУВАННЯ ЗМІНИ -->
+    <!-- 3. Модальне вікно РЕДАГУВАННЯ ЗМІНИ -->
     <div id="edit-cell-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700">
             <div class="p-5 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20 relative">
@@ -230,17 +221,15 @@
                 </button>
                 <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Редагування зміни</h3>
                 <p id="edit-modal-name" class="text-sm font-bold text-emerald-700 dark:text-emerald-400 leading-tight">...</p>
+                <p id="edit-modal-pos-text" class="text-[10px] uppercase font-bold text-slate-500 mt-1"></p>
             </div>
 
             <div class="p-6">
                 <form id="edit-cell-form" class="space-y-5" onsubmit="saveCellEdit(event)">
-                    <!-- Рядок з датою -->
                     <div class="flex justify-between items-center text-slate-800 dark:text-white">
                         <span class="font-bold">Дата:</span> 
                         <span id="edit-modal-date" class="font-black text-lg">...</span>
                     </div>
-                    
-                    <!-- Вибір значення -->
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Значення зміни</label>
                         <select id="edit-cell-val" class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 dark:text-white cursor-pointer shadow-sm">
@@ -252,16 +241,12 @@
                             <option value="В">В (Відпустка)</option>
                         </select>
                     </div>
-                    
-                    <!-- Чекбокс "Нічна зміна" -->
                     <label class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
                         <input type="checkbox" id="edit-cell-night" class="w-5 h-5 appearance-none border-2 border-slate-300 rounded checked:bg-emerald-600 checked:border-emerald-600 cursor-pointer transition-colors">
                         <span class="font-bold text-slate-700 dark:text-slate-200">Це нічна зміна (н)</span>
                     </label>
-
-                    <!-- Кнопки Очистити / Зберегти -->
                     <div class="flex gap-3 pt-2">
-                        <button type="button" onclick="clearCellEdit()" class="w-1/3 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800 text-red-600 dark:text-red-400 font-black py-3 rounded-lg transition-colors text-sm shadow-sm border border-red-200 dark:border-red-800">Очистити</button>
+                        <button type="button" onclick="clearCellEdit()" class="w-1/3 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800 text-red-600 dark:text-red-400 font-black py-3 rounded-lg transition-colors text-sm">Очистити</button>
                         <button type="submit" class="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-lg transition-colors shadow-sm text-sm">Зберегти</button>
                     </div>
                 </form>
@@ -270,20 +255,28 @@
     </div>
 
 <script>
-// ================= ГЛОБАЛЬНІ ЗМІННІ =================
+// ================= ГЛОБАЛЬНІ ЗМІННІ ТА КЕШ =================
+window.dataCache = {
+    schedule: null,
+    requests: null,
+    employees: null,
+    lastUpdate: Date.now()
+};
+
 window.allRequests = [];
 window.currentScheduleMonth = "";
 window.globalEmployees = [];
 window.editEmpName = "";
 window.editDay = "";
-window.cacheStatus = {
-    requests: false,
-    employees: false,
-    schedule: false
-};
 
 // ВАШ URL
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyq5fRj91eafnACIjTlDBC6R8Z1tP7r4XUAI1nSE5W23Y2cvamrEBOGrLBxT5h9a1z6IA/exec';
+
+function getCurrentMonthUkr() {
+    const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+    const now = new Date();
+    return `${ukrMonths[now.getMonth()]} ${now.getFullYear()}`;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('admin_auth') !== 'true') { 
@@ -316,27 +309,37 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    switchTab('schedule');
+    // Ручне оновлення даних
+    document.getElementById('force-refresh-btn').addEventListener('click', function() {
+        const svg = this.querySelector('svg');
+        svg.classList.add('rotate-180');
+        setTimeout(() => svg.classList.remove('rotate-180'), 500);
+        
+        // Очищаємо кеш
+        window.dataCache = { schedule: null, requests: null, employees: null, lastUpdate: Date.now() };
+        
+        // Перезавантажуємо активну вкладку
+        const activeTabBtn = document.querySelector('button[id^="tab-btn-"].bg-emerald-600');
+        if (activeTabBtn) {
+            const tabId = activeTabBtn.id.replace('tab-btn-', '');
+            if (tabId === 'schedule') loadSchedule(true);
+            if (tabId === 'requests') loadRequests(true);
+            if (tabId === 'employees') loadEmployees(true);
+        }
+    });
 
-    // Таймер на 10 хвилин для пропозиції оновлення
+    // Таймер авто-оновлення (10 хв)
     setInterval(() => {
-        document.getElementById('refresh-prompt-modal').classList.remove('hidden');
-    }, 600000);
+        if (sessionStorage.getItem('admin_auth') === 'true' && (Date.now() - window.dataCache.lastUpdate > 10 * 60 * 1000)) {
+            document.getElementById('auto-refresh-modal').classList.remove('hidden');
+        }
+    }, 60000);
+
+    window.currentScheduleMonth = getCurrentMonthUkr();
+    switchTab('schedule');
 });
 
-window.forceRefreshAll = function() {
-    document.getElementById('refresh-prompt-modal').classList.add('hidden');
-    window.cacheStatus = { requests: false, employees: false, schedule: false };
-    
-    const activeTabBtn = document.querySelector('.bg-emerald-600[id^="tab-btn-"]');
-    if (activeTabBtn) {
-        const tabId = activeTabBtn.id.replace('tab-btn-', '');
-        if (tabId === 'requests') loadRequests(true);
-        if (tabId === 'employees') loadEmployees(true);
-        if (tabId === 'schedule') loadSchedule(true);
-    }
-};
-
+// Універсальний запит
 window.apiCall = async function(payload) {
     try {
         const res = await fetch(SCRIPT_URL, {
@@ -355,26 +358,39 @@ window.apiCall = async function(payload) {
 window.switchTab = function(tabId) {
     ['schedule', 'requests', 'employees'].forEach(t => {
         document.getElementById('section-' + t).classList.add('hidden');
-        document.getElementById('tab-btn-' + t).className = "shrink-0 px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold transition-all border border-slate-200 dark:border-slate-600 flex items-center gap-2 text-sm";
+        document.getElementById('tab-btn-' + t).className = "shrink-0 px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold transition-all border border-slate-200 dark:border-slate-600 flex items-center gap-2 text-sm";
     });
     
     document.getElementById('section-' + tabId).classList.remove('hidden');
-    document.getElementById('tab-btn-' + tabId).className = "shrink-0 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold shadow-md flex items-center gap-2 transition-all text-sm";
+    document.getElementById('tab-btn-' + tabId).className = "shrink-0 px-5 py-2 rounded-xl bg-emerald-600 text-white font-bold shadow-md flex items-center gap-2 transition-all text-sm";
 
+    const mainEl = document.getElementById('main-container');
+    
     if (tabId === 'schedule') {
-        const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
-        const now = new Date();
-        const input = document.getElementById('sched-month-input');
-        if(!input.value) input.value = `${ukrMonths[now.getMonth()]} ${now.getFullYear()}`;
+        mainEl.className = "max-w-7xl mx-auto pb-20"; // Без відступів для графіка, щоб таблиця прилипала
         loadSchedule();
+    } else {
+        mainEl.className = "max-w-7xl mx-auto p-4 md:p-6 pb-20"; // Відступи для інших сторінок
     }
+    
     if (tabId === 'requests') loadRequests();
     if (tabId === 'employees') loadEmployees();
 };
 
+window.dismissAutoRefresh = function() {
+    document.getElementById('auto-refresh-modal').classList.add('hidden');
+    window.dataCache.lastUpdate = Date.now(); // Скидаємо таймер
+};
+
+window.acceptAutoRefresh = function() {
+    document.getElementById('auto-refresh-modal').classList.add('hidden');
+    document.getElementById('force-refresh-btn').click();
+};
+
 // ================= СЕКЦІЯ ЗАЯВОК =================
 window.loadRequests = async function(force = false) {
-    if (!force && window.cacheStatus.requests) {
+    if (!force && window.dataCache.requests) {
+        window.allRequests = window.dataCache.requests;
         renderRequests(window.allRequests);
         updateStats();
         return;
@@ -385,8 +401,9 @@ window.loadRequests = async function(force = false) {
     
     const data = await apiCall({ requestType: 'get_requests' });
     if (Array.isArray(data)) {
+        window.dataCache.requests = data;
+        window.dataCache.lastUpdate = Date.now();
         window.allRequests = data;
-        window.cacheStatus.requests = true;
         renderRequests(window.allRequests);
         updateStats();
     } else {
@@ -459,9 +476,9 @@ window.updateReqStatus = async function(id, newStatus, user, type, btn) {
     if (res === 'OK') {
         const req = window.allRequests.find(r => r.id === id);
         if (req) req.status = newStatus;
+        window.dataCache.requests = window.allRequests; // Оновлюємо кеш
         renderRequests(window.allRequests);
         updateStats();
-        window.cacheStatus.schedule = false; // Графік треба буде оновити
     } else {
         alert("Помилка оновлення");
         btn.innerHTML = originalHtml;
@@ -491,8 +508,9 @@ function calculateAgeAndDays(dobStr) {
 }
 
 window.loadEmployees = async function(force = false) {
-    if (!force && window.cacheStatus.employees) {
-        renderEmployees();
+    if (!force && window.dataCache.employees) {
+        window.globalEmployees = window.dataCache.employees;
+        renderEmployees(window.globalEmployees);
         return;
     }
 
@@ -501,15 +519,16 @@ window.loadEmployees = async function(force = false) {
     
     const data = await apiCall({ requestType: 'get_employees_list' });
     if (Array.isArray(data)) {
+        window.dataCache.employees = data;
+        window.dataCache.lastUpdate = Date.now();
         window.globalEmployees = data;
-        window.cacheStatus.employees = true;
-        renderEmployees();
+        renderEmployees(data);
     }
     document.getElementById('emp-loading').classList.add('hidden');
 };
 
-function renderEmployees() {
-    document.getElementById('employees-grid').innerHTML = window.globalEmployees.map(e => {
+function renderEmployees(data) {
+    document.getElementById('employees-grid').innerHTML = data.map(e => {
         const {age, days} = calculateAgeAndDays(e.dob);
         const bdayBadge = days <= 14 ? `<span class="bg-amber-100 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider animate-pulse">🎁 ДН через ${days} дн!</span>` : '';
         
@@ -538,9 +557,6 @@ function renderEmployees() {
                     <span>Рoків: <b class="text-slate-700 dark:text-slate-300">${age}</b></span>
                 </div>
             </div>
-            <button onclick="fireEmployee('${e.name.replace(/'/g, "\\'")}')" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 flex justify-center items-center rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600" title="Звільнити">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            </button>
         </div>`;
     }).join('');
 }
@@ -548,7 +564,7 @@ function renderEmployees() {
 document.getElementById('add-emp-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('add-emp-btn');
-    btn.disabled = true; btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Збереження...`;
+    btn.disabled = true; btn.textContent = 'Збереження...';
     
     await apiCall({
         requestType: 'add_employee',
@@ -560,22 +576,15 @@ document.getElementById('add-emp-form').addEventListener('submit', async (e) => 
     
     document.getElementById('add-emp-form').reset();
     document.getElementById('add-emp-modal').classList.add('hidden');
-    btn.disabled = false; btn.innerHTML = 'Створити профіль';
-    window.cacheStatus.employees = false;
+    btn.disabled = false; btn.textContent = 'Створити профіль';
+    
+    window.dataCache.employees = null; // Скидаємо кеш
     loadEmployees(true); 
 });
-
-window.fireEmployee = async function(name) {
-    if(!confirm(`Ви дійсно хочете ЗВІЛЬНИТИ працівника:\n${name}?`)) return;
-    await apiCall({ requestType: 'fire_employee', name: name, adminUser: sessionStorage.getItem('portal_user') || 'Керівник' });
-    window.cacheStatus.employees = false;
-    loadEmployees(true);
-};
 
 // ================= СЕКЦІЯ ПОВНОГО ГРАФІКА =================
 function getPositionColor(pos) {
     const p = String(pos).toLowerCase();
-    // Кольори повертаються тільки для клітинки, і не перезаписують dark mode класи тексту (щоб не ламати темну тему)
     if (p.includes('головний інженер') || p.includes('механік') || p.includes('налагоджувальник')) return 'bg-[#fcd34d] text-yellow-900';
     if (p.includes('варник')) return 'bg-[#fbcfe8] text-pink-900';
     if (p.includes('контролер')) return 'bg-[#e879f9] text-purple-900';
@@ -584,7 +593,7 @@ function getPositionColor(pos) {
     if (p.includes('оператор')) return 'bg-[#bae6fd] text-indigo-900'; 
     if (p.includes('вантажник')) return 'bg-[#d97706] text-white';
     if (p.includes('працівник')) return 'bg-[#f472b6] text-white';
-    return 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white';
+    return 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white';
 }
 
 function formatShortName(fullName) {
@@ -596,8 +605,15 @@ function formatShortName(fullName) {
 
 window.showEmpModal = async function(name, position) {
     if (window.globalEmployees.length === 0) {
-        const empData = await apiCall({ requestType: 'get_employees_list' });
-        if (Array.isArray(empData)) window.globalEmployees = empData;
+        if(window.dataCache.employees) {
+            window.globalEmployees = window.dataCache.employees;
+        } else {
+            const empData = await apiCall({ requestType: 'get_employees_list' });
+            if (Array.isArray(empData)) {
+                window.globalEmployees = empData;
+                window.dataCache.employees = empData;
+            }
+        }
     }
     
     const emp = window.globalEmployees.find(e => e.name === name) || {};
@@ -620,144 +636,145 @@ window.showEmpModal = async function(name, position) {
 };
 
 window.loadSchedule = async function(force = false) {
-    const mYear = document.getElementById('sched-month-input').value.trim();
+    const mYear = window.currentScheduleMonth;
     if(!mYear) return;
-
-    if (!force && window.cacheStatus.schedule && window.currentScheduleMonth === mYear) {
-        return; 
+    
+    if (!force && window.dataCache.schedule) {
+        renderSchedule(window.dataCache.schedule, mYear);
+        return;
     }
 
-    window.currentScheduleMonth = mYear;
-    
     document.getElementById('sched-loading').classList.remove('hidden');
     document.getElementById('sched-body').innerHTML = '';
-
+    
     const data = await apiCall({ requestType: 'get_full_schedule', monthYear: mYear });
     
     if (window.globalEmployees.length === 0) {
-        const empData = await apiCall({ requestType: 'get_employees_list' });
-        if (Array.isArray(empData)) {
-            window.globalEmployees = empData;
-            window.cacheStatus.employees = true;
+        if(window.dataCache.employees) {
+            window.globalEmployees = window.dataCache.employees;
+        } else {
+            const empData = await apiCall({ requestType: 'get_employees_list' });
+            if (Array.isArray(empData)) {
+                window.globalEmployees = empData;
+                window.dataCache.employees = empData;
+            }
         }
     }
 
     if (data && !data.error) {
-        window.cacheStatus.schedule = true;
-
-        const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
-        const monthParts = mYear.split(' ');
-        const monthIndex = ukrMonths.indexOf(monthParts[0]);
-        const yearStr = monthParts[1] ? parseInt(monthParts[1]) : new Date().getFullYear();
-        let daysInMonth = 31;
-        if (monthIndex !== -1) {
-            daysInMonth = new Date(yearStr, monthIndex + 1, 0).getDate();
-        }
-
-        // ШАПКА ТАБЛИЦІ (Із Sticky Header relative to the page nav: 117px)
-        let headHtml = `<tr>
-            <th class="px-2 py-1 sticky left-0 z-[40] bg-slate-100 dark:bg-slate-700/90 min-w-[120px] max-w-[150px] text-left border-r border-slate-300 dark:border-slate-600 text-[10px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]" style="top: 117px;">
-                ПІБ Працівника
-            </th>`;
-        
-        for(let d=1; d<=daysInMonth; d++) {
-            let dayName = '';
-            let colorClass = 'text-slate-500 dark:text-slate-400';
-            if (monthIndex !== -1) {
-                const dayOfWeek = new Date(yearStr, monthIndex, d).getDay();
-                dayName = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek];
-                if (dayOfWeek === 0 || dayOfWeek === 6) colorClass = 'text-red-500 dark:text-red-400';
-            }
-            headHtml += `<th class="px-0 py-1 text-center sticky z-30 bg-slate-100 dark:bg-slate-700/90 border-l border-slate-300 dark:border-slate-600 min-w-[28px] w-[32px] font-medium leading-tight shadow-sm" style="top: 117px;">
-                <div class="text-[11px] font-black text-slate-800 dark:text-white">${d}</div>
-                <div class="text-[9px] ${colorClass}">${dayName}</div>
-            </th>`;
-        }
-        headHtml += `<th class="px-1 py-1 text-center sticky z-30 bg-slate-100 dark:bg-slate-700/90 border-l border-slate-300 dark:border-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight shadow-sm" style="top: 117px;">Сума<br>змін</th></tr>`;
-        document.getElementById('sched-head').innerHTML = headHtml;
-
-        // ТІЛО ТАБЛИЦІ
-        document.getElementById('sched-body').innerHTML = data.map((emp, index) => {
-            const isLastInGroup = (index === data.length - 1) || (data[index + 1] && emp.position !== data[index + 1].position);
-            
-            // ТОВСТА СІРА ЛІНІЯ (Групування)
-            let borderClass = isLastInGroup ? "border-b-[4px] border-b-slate-400 dark:border-b-slate-600" : "border-b border-b-slate-200 dark:border-b-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/30";
-
-            const empInfo = window.globalEmployees.find(e => e.name === emp.name) || {};
-            let bdayDay = -1;
-            if (empInfo.dob && monthIndex !== -1) {
-                const dobParts = empInfo.dob.split('.');
-                if (dobParts.length === 3 && parseInt(dobParts[1], 10) === (monthIndex + 1)) {
-                    bdayDay = parseInt(dobParts[0], 10);
-                }
-            }
-
-            let shortName = formatShortName(emp.name);
-            const posColor = getPositionColor(emp.position);
-
-            // Клітинка з ПІБ в 1 рядок, кольорова
-            let rowHtml = `<tr class="transition-colors h-6 ${borderClass}">
-                <td onclick="showEmpModal('${emp.name.replace(/'/g, "\\'")}', '${(emp.position || '').replace(/'/g, "\\'")}')" class="px-2 py-0.5 sticky left-0 z-10 border-r-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] cursor-pointer hover:opacity-90 transition-opacity ${posColor}">
-                    <div class="font-bold text-[11px] whitespace-nowrap overflow-hidden text-ellipsis leading-tight tracking-tight text-left" title="${emp.name}">${shortName}</div>
-                </td>`;
-            
-            let shiftCount = 0;
-
-            // Клітинки днів
-            emp.schedule.forEach(day => {
-                if(day.day > daysInMonth) return;
-
-                let combinedVal = day.dVal;
-                if (day.nVal) {
-                    let nClean = day.nVal.trim();
-                    if (combinedVal) combinedVal += " / " + nClean + " (н)";
-                    else combinedVal = nClean + " (н)";
-                }
-
-                // Підрахунок змін
-                let checkStr = String(combinedVal).toLowerCase();
-                if(checkStr.includes('1') || checkStr.includes('2') || checkStr.includes('3') || checkStr.includes('з')) {
-                    shiftCount += (checkStr.match(/1|2|3|з/g) || []).length;
-                }
-
-                let isBday = (day.day === bdayDay);
-                let finalDisplay = combinedVal;
-                if (isBday) finalDisplay = finalDisplay ? finalDisplay + " 🎂" : "🎂";
-
-                const getCellColor = (val) => {
-                    const v = String(val).toLowerCase();
-                    if (v.includes('1') || v.includes('2')) return 'bg-emerald-100 text-emerald-800 font-bold border-emerald-300';
-                    if (v.includes('3') || v.includes('з')) return 'bg-blue-100 text-blue-800 font-bold border-blue-300';
-                    if (v.includes('л')) return 'bg-red-100 text-red-800 font-bold border-red-300';
-                    if (v.includes('в')) return 'bg-amber-100 text-amber-800 font-bold border-amber-300';
-                    if (isBday && !val) return 'bg-pink-50 text-pink-600 border-pink-200';
-                    return 'text-transparent hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-300 cursor-pointer';
-                };
-
-                rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day})" class="p-0 border-l border-slate-300 dark:border-slate-600 transition-colors cursor-pointer ${getCellColor(combinedVal)}">
-                    <div class="flex items-center justify-center h-6 w-full px-0.5 text-[10px] font-bold leading-none tracking-tighter">
-                        ${finalDisplay || ''}
-                    </div>
-                </td>`;
-            });
-
-            // Стовпчик Сума
-            rowHtml += `<td class="text-center font-black text-[11px] border-l border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${shiftCount > 0 ? shiftCount : ''}</td>`;
-            
-            return rowHtml + `</tr>`;
-        }).join('');
+        window.dataCache.schedule = data;
+        window.dataCache.lastUpdate = Date.now();
+        renderSchedule(data, mYear);
     } else {
-        document.getElementById('sched-body').innerHTML = `<tr><td class="p-6 text-red-500 font-bold text-center">Графік за "${mYear}" не знайдено.</td></tr>`;
+        document.getElementById('sched-head').innerHTML = '';
+        document.getElementById('sched-body').innerHTML = `<tr><td class="p-6 text-red-500 font-bold text-center">Графік за поточний місяць не знайдено.</td></tr>`;
+        document.getElementById('sched-loading').classList.add('hidden');
     }
-    document.getElementById('sched-loading').classList.add('hidden');
 };
 
+function renderSchedule(data, mYear) {
+    const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+    const monthParts = mYear.split(' ');
+    const monthIndex = ukrMonths.indexOf(monthParts[0]);
+    const yearStr = monthParts[1] ? parseInt(monthParts[1]) : new Date().getFullYear();
+    let daysInMonth = 31;
+    if (monthIndex !== -1) {
+        daysInMonth = new Date(yearStr, monthIndex + 1, 0).getDate();
+    }
+
+    // ШАПКА ТАБЛИЦІ (прилипає до верху)
+    let headHtml = `<tr><th class="px-2 py-1 sticky top-0 left-0 bg-slate-100 dark:bg-slate-700 z-[30] min-w-[120px] max-w-[150px] text-left border-r border-b border-slate-300 dark:border-slate-600 text-[10px] shadow-[0_2px_0_0_rgba(0,0,0,0.05)]">ПІБ Працівника</th>`;
+    
+    for(let d=1; d<=daysInMonth; d++) {
+        let dayName = '';
+        let colorClass = 'text-slate-500 dark:text-slate-400';
+        if (monthIndex !== -1) {
+            const dayOfWeek = new Date(yearStr, monthIndex, d).getDay();
+            dayName = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek];
+            if (dayOfWeek === 0 || dayOfWeek === 6) colorClass = 'text-red-500 dark:text-red-400';
+        }
+        headHtml += `<th class="px-0 py-1 sticky top-0 bg-slate-100 dark:bg-slate-700 z-[20] text-center border-l border-b border-slate-300 dark:border-slate-600 min-w-[28px] w-[32px] font-medium leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]">
+            <div class="text-[11px] font-black text-slate-800 dark:text-white">${d}</div>
+            <div class="text-[9px] ${colorClass}">${dayName}</div>
+        </th>`;
+    }
+    headHtml += `<th class="px-1 py-1 sticky top-0 bg-slate-100 dark:bg-slate-700 z-[20] text-center border-l border-b border-slate-300 dark:border-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]">Сума<br>змін</th></tr>`;
+    document.getElementById('sched-head').innerHTML = headHtml;
+
+    // ТІЛО ТАБЛИЦІ
+    document.getElementById('sched-body').innerHTML = data.map((emp, index) => {
+        const isLastInGroup = (index === data.length - 1) || (data[index + 1] && emp.position !== data[index + 1].position);
+        
+        let borderClass = isLastInGroup ? "border-b-[4px] border-b-slate-400 dark:border-b-slate-600" : "border-b border-b-slate-200 dark:border-b-slate-700";
+
+        const empInfo = window.globalEmployees.find(e => e.name === emp.name) || {};
+        let bdayDay = -1;
+        if (empInfo.dob && monthIndex !== -1) {
+            const dobParts = empInfo.dob.split('.');
+            if (dobParts.length === 3 && parseInt(dobParts[1], 10) === (monthIndex + 1)) {
+                bdayDay = parseInt(dobParts[0], 10);
+            }
+        }
+
+        let shortName = formatShortName(emp.name);
+        const posColor = getPositionColor(emp.position);
+
+        let rowHtml = `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors ${borderClass}">
+            <td onclick="showEmpModal('${emp.name.replace(/'/g, "\\'")}', '${(emp.position || '').replace(/'/g, "\\'")}')" class="px-2 py-0.5 sticky left-0 z-10 border-r-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] cursor-pointer hover:opacity-90 transition-opacity ${posColor}">
+                <div class="font-bold text-[11px] whitespace-nowrap overflow-hidden text-ellipsis leading-tight tracking-tight text-left" title="${emp.name}">${shortName}</div>
+            </td>`;
+        
+        let shiftCount = 0;
+
+        emp.schedule.forEach(day => {
+            if(day.day > daysInMonth) return;
+
+            let combinedVal = day.dVal;
+            if (day.nVal) {
+                let nClean = day.nVal.trim();
+                if (combinedVal) combinedVal += " / " + nClean + " (н)";
+                else combinedVal = nClean + " (н)";
+            }
+
+            let checkStr = String(combinedVal).toLowerCase();
+            if(checkStr.includes('1') || checkStr.includes('2') || checkStr.includes('3') || checkStr.includes('з')) {
+                shiftCount += (checkStr.match(/1|2|3|з/g) || []).length;
+            }
+
+            let isBday = (day.day === bdayDay);
+            let finalDisplay = combinedVal;
+            if (isBday) finalDisplay = finalDisplay ? finalDisplay + " 🎂" : "🎂";
+
+            const getCellColor = (val) => {
+                const v = String(val).toLowerCase();
+                if (v.includes('1') || v.includes('2')) return 'bg-emerald-100 text-emerald-800 font-bold border-emerald-300';
+                if (v.includes('3') || v.includes('з')) return 'bg-blue-100 text-blue-800 font-bold border-blue-300';
+                if (v.includes('л')) return 'bg-red-100 text-red-800 font-bold border-red-300';
+                if (v.includes('в')) return 'bg-amber-100 text-amber-800 font-bold border-amber-300';
+                if (isBday && !val) return 'bg-pink-50 text-pink-600 border-pink-200';
+                return 'text-transparent hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-300 cursor-pointer';
+            };
+
+            rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day}, '${(emp.position || '').replace(/'/g, "\\'")}')" class="p-0 border-l border-slate-300 dark:border-slate-600 transition-colors cursor-pointer ${getCellColor(combinedVal)}">
+                <div class="flex items-center justify-center h-6 w-full px-0.5 text-[10px] font-bold leading-none tracking-tighter">
+                    ${finalDisplay || ''}
+                </div>
+            </td>`;
+        });
+
+        rowHtml += `<td class="text-center font-black text-[11px] border-l border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${shiftCount > 0 ? shiftCount : ''}</td>`;
+        
+        return rowHtml + `</tr>`;
+    }).join('');
+    
+    document.getElementById('sched-loading').classList.add('hidden');
+}
+
 // ================= МОДАЛКА РЕДАГУВАННЯ ЗМІНИ =================
-window.editCell = function(empName, day) {
+window.editCell = function(empName, day, pos) {
     window.editEmpName = empName;
     window.editDay = day;
     
-    // Форматування дати для модалки: "9.06.26"
     const monthParts = window.currentScheduleMonth.split(' ');
     const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
     const monthIdx = ukrMonths.indexOf(monthParts[0]);
@@ -765,7 +782,8 @@ window.editCell = function(empName, day) {
     const year2Digit = yearStr.toString().slice(-2);
     const month2Digit = String(monthIdx !== -1 ? monthIdx + 1 : 1).padStart(2, '0');
     
-    document.getElementById('edit-modal-name').textContent = formatShortName(empName);
+    document.getElementById('edit-modal-name').textContent = empName;
+    document.getElementById('edit-modal-pos-text').textContent = pos || '';
     document.getElementById('edit-modal-date').textContent = `${day}.${month2Digit}.${year2Digit}`;
     
     document.getElementById('edit-cell-val').value = '';
@@ -790,20 +808,27 @@ window.saveCellEdit = async function(e) {
 
     const adminUser = sessionStorage.getItem('portal_user') || 'Керівник';
     document.getElementById('edit-cell-modal').classList.add('hidden');
-    document.getElementById('sched-loading').classList.remove('hidden');
-    document.getElementById('sched-body').innerHTML = '';
+    
+    window.dataCache.schedule = null; // Скидаємо кеш графіка після редагування
+    loadSchedule(true);
     
     await apiCall({ requestType: 'edit_schedule_cell', monthYear: window.currentScheduleMonth, empName: window.editEmpName, day: window.editDay, shiftTime: shiftTime, newValue: cleanVal, adminUser: adminUser });
+    
+    // Перезавантажуємо ще раз, щоб точно мати актуальні дані з БД (хоч і повільніше, але надійніше)
+    window.dataCache.schedule = null;
     loadSchedule(true);
 };
 
 window.clearCellEdit = async function() {
     const adminUser = sessionStorage.getItem('portal_user') || 'Керівник';
     document.getElementById('edit-cell-modal').classList.add('hidden');
-    document.getElementById('sched-loading').classList.remove('hidden');
-    document.getElementById('sched-body').innerHTML = '';
+    
+    window.dataCache.schedule = null;
+    loadSchedule(true);
     
     await apiCall({ requestType: 'edit_schedule_cell', monthYear: window.currentScheduleMonth, empName: window.editEmpName, day: window.editDay, shiftTime: 'Обидві', newValue: 'CLEAR', adminUser: adminUser });
+    
+    window.dataCache.schedule = null;
     loadSchedule(true);
 };
 
