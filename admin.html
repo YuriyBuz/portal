@@ -22,7 +22,7 @@
     </style>
 </head>
 
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 min-h-screen transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 min-h-screen min-w-fit transition-colors duration-200">
 
     <!-- Тост привітання -->
     <div id="welcome-toast" class="fixed top-20 right-4 z-[200] transform transition-all duration-500 translate-x-full opacity-0 bg-emerald-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3">
@@ -31,7 +31,7 @@
     </div>
 
     <!-- Навігація -->
-    <nav id="main-nav" class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-[100] shadow-sm">
+    <nav id="main-nav" class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 left-0 w-full z-[100] shadow-sm">
         <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <a href="index.html" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
@@ -55,7 +55,7 @@
             </div>
         </div>
         
-        <!-- МОБІЛЬНІ ВКЛАДКИ (Новий порядок) -->
+        <!-- МОБІЛЬНІ ВКЛАДКИ -->
         <div class="max-w-7xl mx-auto px-4 pt-2 pb-3">
             <div class="flex overflow-x-auto gap-2 scrollbar-hide" style="-webkit-overflow-scrolling: touch;">
                 <button id="tab-btn-schedule" onclick="switchTab('schedule')" class="shrink-0 px-5 py-2 rounded-xl bg-emerald-600 text-white font-bold shadow-md flex items-center gap-2 transition-all text-sm">
@@ -77,8 +77,9 @@
         <div id="section-schedule" class="hidden space-y-4">
             <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
                 <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <h2 id="schedule-title" class="text-lg font-black text-slate-800 dark:text-white whitespace-nowrap">Графік</h2>
-                    <input type="text" id="sched-month-input" onchange="loadSchedule()" placeholder="Червень 2026" class="w-full sm:w-40 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-bold text-sm text-center sm:text-left focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-white">
+                    <h2 id="schedule-title" class="text-lg font-black text-slate-800 dark:text-white whitespace-nowrap hidden sm:block">Графік</h2>
+                    <select id="sched-month-input" onchange="changeMonth()" class="w-full sm:w-64 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-bold text-sm focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-white cursor-pointer shadow-sm">
+                    </select>
                 </div>
                 
                 <!-- Легенда -->
@@ -96,9 +97,9 @@
                 <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
             </div>
 
-            <!-- ОБГОРТКА: Без overflow-x-auto, щоб sticky працював відносно вікна. Губка-колонка вирішує проблему розтягування -->
-            <div class="w-full bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 pb-2 overflow-hidden">
-                <table class="w-full min-w-[1000px] text-left border-separate" style="border-spacing: 0;">
+            <!-- Таблиця (без скролл-контейнера, щоб вертикальний sticky працював з вікном) -->
+            <div class="w-full bg-white dark:bg-slate-800 pb-10">
+                <table class="w-full table-fixed text-left border-separate" style="border-spacing: 0;">
                     <thead id="sched-head" class="bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300"></thead>
                     <tbody id="sched-body" class="bg-white dark:bg-slate-800"></tbody>
                 </table>
@@ -326,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     });
 
+    // Додано безпечну перевірку для кнопки оновлення
     const forceRefreshBtn = document.getElementById('force-refresh-btn');
     if (forceRefreshBtn) {
         forceRefreshBtn.addEventListener('click', function() {
@@ -720,8 +722,9 @@ function renderSchedule(data, mYear) {
         daysInMonth = new Date(yearStr, monthIndex + 1, 0).getDate();
     }
 
-    // ВИПРАВЛЕНО: Фіксована ширина (w-[150px] min-w-[150px] max-w-[150px])
-    let headHtml = `<tr><th class="px-2 py-1 sticky left-0 z-[40] bg-slate-100 dark:bg-slate-700 w-[150px] min-w-[150px] max-w-[150px] text-left border-b border-r border-slate-300 dark:border-slate-600 text-[10px] shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">ПІБ Працівника</th>`;
+    // Встановлено жорсткі розміри і z-index 50 (найвищий) для лівого верхнього кута, щоб ніщо не просвічувалось
+    let headHtml = `<tr>
+        <th class="px-2 py-1 sticky left-0 z-[50] bg-slate-200 dark:bg-slate-700 w-[150px] min-w-[150px] max-w-[150px] text-left border-b border-r border-slate-300 dark:border-slate-600 text-[10px] shadow-sm" style="top: var(--nav-height, 60px);">ПІБ Працівника</th>`;
     
     for(let d=1; d<=daysInMonth; d++) {
         let dayName = '';
@@ -731,18 +734,18 @@ function renderSchedule(data, mYear) {
             dayName = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek];
             if (dayOfWeek === 0 || dayOfWeek === 6) colorClass = 'text-red-500 dark:text-red-400';
         }
-        // ВИПРАВЛЕНО: Фіксована ширина для днів
-        headHtml += `<th class="px-0 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-b border-r border-slate-300 dark:border-slate-600 w-[32px] min-w-[32px] max-w-[32px] font-medium leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">
+        // Встановлено жорсткі розміри для стовпчиків дат в шапці (z-index 40)
+        headHtml += `<th class="px-0 py-1 sticky z-[40] bg-slate-100 dark:bg-slate-800 text-center border-b border-r border-slate-300 dark:border-slate-600 w-[32px] min-w-[32px] max-w-[32px] font-medium leading-tight shadow-sm" style="top: var(--nav-height, 60px);">
             <div class="text-[11px] font-black text-slate-800 dark:text-white">${d}</div>
             <div class="text-[9px] ${colorClass}">${dayName}</div>
         </th>`;
     }
     
-    // ВИПРАВЛЕНО: Фіксована ширина (w-[40px] min-w-[40px] max-w-[40px])
-    headHtml += `<th class="px-1 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-b border-r border-slate-300 dark:border-slate-600 w-[40px] min-w-[40px] max-w-[40px] text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">Сума<br>змін</th>`;
+    // Встановлено жорсткі розміри для стовпчика суми
+    headHtml += `<th class="px-1 py-1 sticky z-[40] bg-slate-100 dark:bg-slate-800 text-center border-b border-r border-slate-300 dark:border-slate-600 w-[40px] min-w-[40px] max-w-[40px] text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight shadow-sm" style="top: var(--nav-height, 60px);">Сума<br>змін</th>`;
     
-    // ДОДАНО: Невидима "губка-колонка", яка вбирає всю ширину. Рамки прибрані, щоб лінії груп не тягнулись по екрану.
-    headHtml += `<th class="w-full bg-slate-100 dark:bg-slate-700 border-b border-slate-300 dark:border-slate-600 sticky z-[20]" style="top: var(--nav-height, 108px);"></th></tr>`;
+    // Порожня колонка-заповнювач
+    headHtml += `<th class="w-full bg-slate-100 dark:bg-slate-800 border-b border-slate-300 dark:border-slate-600 sticky z-[30]" style="top: var(--nav-height, 60px);"></th></tr>`;
     
     document.getElementById('sched-head').innerHTML = headHtml;
 
@@ -750,7 +753,7 @@ function renderSchedule(data, mYear) {
     document.getElementById('sched-body').innerHTML = data.map((emp, index) => {
         const isLastInGroup = (index === data.length - 1) || (data[index + 1] && emp.position !== data[index + 1].position);
         
-        let borderClass = isLastInGroup ? "border-b-[4px] border-b-slate-400 dark:border-b-slate-600" : "border-b border-b-slate-200 dark:border-b-slate-700";
+        let borderClass = isLastInGroup ? "border-b-2 border-slate-400 dark:border-slate-500" : "border-b border-slate-200 dark:border-slate-700";
 
         const empInfo = window.globalEmployees.find(e => e.name === emp.name) || {};
         let bdayDay = -1;
@@ -764,8 +767,9 @@ function renderSchedule(data, mYear) {
         let shortName = formatShortName(emp.name);
         const posColor = getPositionColor(emp.position);
 
-        let rowHtml = `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-            <td onclick="showEmpModal('${emp.name.replace(/'/g, "\\'")}', '${(emp.position || '').replace(/'/g, "\\'")}')" class="px-2 py-0.5 sticky left-0 z-[20] w-[150px] min-w-[150px] max-w-[150px] border-r-2 ${borderClass} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] cursor-pointer hover:opacity-90 transition-opacity ${posColor}">
+        // Встановлено z-index 30 для лівої панелі (поверх звичайних комірок, які мають z-index 0)
+        let rowHtml = `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
+            <td onclick="showEmpModal('${emp.name.replace(/'/g, "\\'")}', '${(emp.position || '').replace(/'/g, "\\'")}')" class="px-2 py-0.5 sticky left-0 z-[30] w-[150px] min-w-[150px] max-w-[150px] border-r-2 ${borderClass} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] cursor-pointer group-hover:brightness-95 transition-all ${posColor}">
                 <div class="font-bold text-[11px] whitespace-nowrap overflow-hidden text-ellipsis leading-tight tracking-tight text-left" title="${emp.name}">${shortName}</div>
             </td>`;
         
@@ -800,17 +804,18 @@ function renderSchedule(data, mYear) {
                 return 'text-transparent hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-300 cursor-pointer';
             };
 
-            rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day}, '${(emp.position || '').replace(/'/g, "\\'")}')" class="p-0 w-[32px] min-w-[32px] max-w-[32px] border-r ${borderClass} relative z-10 transition-colors cursor-pointer ${getCellColor(combinedVal)}">
+            // Звичайні комірки мають z-0, щоб не перекривати липкі елементи
+            rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day}, '${(emp.position || '').replace(/'/g, "\\'")}')" class="p-0 w-[32px] min-w-[32px] max-w-[32px] border-r ${borderClass} relative z-0 transition-colors cursor-pointer ${getCellColor(combinedVal)}">
                 <div class="flex items-center justify-center h-6 w-full px-0.5 text-[10px] font-bold leading-none tracking-tighter">
                     ${finalDisplay || ''}
                 </div>
             </td>`;
         });
 
-        rowHtml += `<td class="text-center font-black text-[11px] w-[40px] min-w-[40px] max-w-[40px] ${borderClass} border-r border-slate-300 dark:border-slate-600 relative z-10 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${shiftCount > 0 ? shiftCount : ''}</td>`;
+        rowHtml += `<td class="text-center font-black text-[11px] w-[40px] min-w-[40px] max-w-[40px] ${borderClass} border-r border-slate-300 dark:border-slate-600 relative z-0 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${shiftCount > 0 ? shiftCount : ''}</td>`;
         
-        // ДОДАНО: "Губка-колонка" без рамок і взаємодії, ідеально зливається з фоном контейнера
-        rowHtml += `<td class="w-full border-none bg-white dark:bg-slate-800 pointer-events-none"></td>`;
+        // Порожня колонка-заповнювач без інтерактивності
+        rowHtml += `<td class="w-full ${borderClass} border-slate-200 dark:border-slate-700 bg-transparent pointer-events-none"></td>`;
         
         return rowHtml + `</tr>`;
     }).join('');
