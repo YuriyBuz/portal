@@ -31,7 +31,7 @@
     </div>
 
     <!-- Навігація -->
-    <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-[100] shadow-sm">
+    <nav id="main-nav" class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-[100] shadow-sm">
         <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <a href="index.html" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
@@ -76,6 +76,13 @@
         <!-- ================= СЕКЦІЯ 1: ГРАФІК ================= -->
         <div id="section-schedule" class="hidden">
             
+            <!-- Вибір місяця -->
+            <div class="px-4 py-3 flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                <h2 id="schedule-title" class="text-lg font-black text-slate-800 dark:text-white whitespace-nowrap hidden sm:block">Графік</h2>
+                <select id="sched-month-input" onchange="changeMonth()" class="w-full sm:w-64 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-bold text-sm focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-white cursor-pointer shadow-sm">
+                </select>
+            </div>
+
             <div id="sched-loading" class="flex justify-center py-12 hidden">
                 <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
             </div>
@@ -90,7 +97,8 @@
                 <span class="flex items-center gap-1">🎂 - ДН</span>
             </div>
 
-            <div class="w-full max-h-[calc(100vh-160px)] overflow-auto bg-white dark:bg-slate-800">
+            <!-- Контейнер тільки з горизонтальним скролом -->
+            <div class="w-full overflow-x-auto bg-white dark:bg-slate-800 pb-10">
                 <table class="w-full min-w-[1000px] text-left border-collapse">
                     <thead id="sched-head"></thead>
                     <tbody id="sched-body" class="bg-white dark:bg-slate-800"></tbody>
@@ -257,7 +265,7 @@
 <script>
 // ================= ГЛОБАЛЬНІ ЗМІННІ ТА КЕШ =================
 window.dataCache = {
-    schedule: null,
+    schedules: {}, // Змінено для збереження кешу кожного місяця окремо
     requests: null,
     employees: null,
     lastUpdate: Date.now()
@@ -272,11 +280,22 @@ window.editDay = "";
 // ВАШ URL
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyq5fRj91eafnACIjTlDBC6R8Z1tP7r4XUAI1nSE5W23Y2cvamrEBOGrLBxT5h9a1z6IA/exec';
 
-function getCurrentMonthUkr() {
+// Ініціалізація випадаючого списку дат
+window.populateMonthSelect = function() {
+    const select = document.getElementById('sched-month-input');
     const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
     const now = new Date();
-    return `${ukrMonths[now.getMonth()]} ${now.getFullYear()}`;
-}
+    
+    let optionsHtml = '';
+    // Додаємо минулий місяць, поточний та наступні 4 місяці
+    for(let i = -1; i <= 4; i++) {
+        let d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        let text = `${ukrMonths[d.getMonth()]} ${d.getFullYear()}`;
+        optionsHtml += `<option value="${text}">${text}</option>`;
+    }
+    select.innerHTML = optionsHtml;
+    select.value = `${ukrMonths[now.getMonth()]} ${now.getFullYear()}`;
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('admin_auth') !== 'true') { 
@@ -316,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => svg.classList.remove('rotate-180'), 500);
         
         // Очищаємо кеш
-        window.dataCache = { schedule: null, requests: null, employees: null, lastUpdate: Date.now() };
+        window.dataCache = { schedules: {}, requests: null, employees: null, lastUpdate: Date.now() };
         
         // Перезавантажуємо активну вкладку
         const activeTabBtn = document.querySelector('button[id^="tab-btn-"].bg-emerald-600');
@@ -335,7 +354,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 60000);
 
-    window.currentScheduleMonth = getCurrentMonthUkr();
+    // Динамічний підрахунок висоти хедера для sticky елементів
+    function updateNavHeight() {
+        const nav = document.getElementById('main-nav');
+        if(nav) document.documentElement.style.setProperty('--nav-height', nav.offsetHeight + 'px');
+    }
+    updateNavHeight();
+    window.addEventListener('resize', updateNavHeight);
+
+    populateMonthSelect();
+    window.currentScheduleMonth = document.getElementById('sched-month-input').value;
     switchTab('schedule');
 });
 
@@ -375,6 +403,12 @@ window.switchTab = function(tabId) {
     
     if (tabId === 'requests') loadRequests();
     if (tabId === 'employees') loadEmployees();
+    
+    // Оновлюємо висоту навбару при зміні вкладок (бо вона може стрибнути)
+    setTimeout(() => {
+        const nav = document.getElementById('main-nav');
+        if(nav) document.documentElement.style.setProperty('--nav-height', nav.offsetHeight + 'px');
+    }, 100);
 };
 
 window.dismissAutoRefresh = function() {
@@ -385,6 +419,11 @@ window.dismissAutoRefresh = function() {
 window.acceptAutoRefresh = function() {
     document.getElementById('auto-refresh-modal').classList.add('hidden');
     document.getElementById('force-refresh-btn').click();
+};
+
+window.changeMonth = function() {
+    window.currentScheduleMonth = document.getElementById('sched-month-input').value;
+    loadSchedule();
 };
 
 // ================= СЕКЦІЯ ЗАЯВОК =================
@@ -639,8 +678,9 @@ window.loadSchedule = async function(force = false) {
     const mYear = window.currentScheduleMonth;
     if(!mYear) return;
     
-    if (!force && window.dataCache.schedule) {
-        renderSchedule(window.dataCache.schedule, mYear);
+    // Перевіряємо кеш саме для обраного місяця
+    if (!force && window.dataCache.schedules && window.dataCache.schedules[mYear]) {
+        renderSchedule(window.dataCache.schedules[mYear], mYear);
         return;
     }
 
@@ -662,7 +702,8 @@ window.loadSchedule = async function(force = false) {
     }
 
     if (data && !data.error) {
-        window.dataCache.schedule = data;
+        if(!window.dataCache.schedules) window.dataCache.schedules = {};
+        window.dataCache.schedules[mYear] = data; // Зберігаємо в кеш саме цей місяць
         window.dataCache.lastUpdate = Date.now();
         renderSchedule(data, mYear);
     } else {
@@ -682,8 +723,8 @@ function renderSchedule(data, mYear) {
         daysInMonth = new Date(yearStr, monthIndex + 1, 0).getDate();
     }
 
-    // ШАПКА ТАБЛИЦІ (прилипає до верху)
-    let headHtml = `<tr><th class="px-2 py-1 sticky top-0 left-0 bg-slate-100 dark:bg-slate-700 z-[30] min-w-[120px] max-w-[150px] text-left border-r border-b border-slate-300 dark:border-slate-600 text-[10px] shadow-[0_2px_0_0_rgba(0,0,0,0.05)]">ПІБ Працівника</th>`;
+    // ШАПКА ТАБЛИЦІ (прилипає до верху відразу під навігацією використовуючи змінну --nav-height)
+    let headHtml = `<tr><th class="px-2 py-1 sticky left-0 z-[40] bg-slate-100 dark:bg-slate-700 min-w-[120px] max-w-[150px] text-left border-r border-b border-slate-300 dark:border-slate-600 text-[10px] shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">ПІБ Працівника</th>`;
     
     for(let d=1; d<=daysInMonth; d++) {
         let dayName = '';
@@ -693,12 +734,12 @@ function renderSchedule(data, mYear) {
             dayName = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek];
             if (dayOfWeek === 0 || dayOfWeek === 6) colorClass = 'text-red-500 dark:text-red-400';
         }
-        headHtml += `<th class="px-0 py-1 sticky top-0 bg-slate-100 dark:bg-slate-700 z-[20] text-center border-l border-b border-slate-300 dark:border-slate-600 min-w-[28px] w-[32px] font-medium leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]">
+        headHtml += `<th class="px-0 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-l border-b border-slate-300 dark:border-slate-600 min-w-[28px] w-[32px] font-medium leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">
             <div class="text-[11px] font-black text-slate-800 dark:text-white">${d}</div>
             <div class="text-[9px] ${colorClass}">${dayName}</div>
         </th>`;
     }
-    headHtml += `<th class="px-1 py-1 sticky top-0 bg-slate-100 dark:bg-slate-700 z-[20] text-center border-l border-b border-slate-300 dark:border-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]">Сума<br>змін</th></tr>`;
+    headHtml += `<th class="px-1 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-l border-b border-slate-300 dark:border-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">Сума<br>змін</th></tr>`;
     document.getElementById('sched-head').innerHTML = headHtml;
 
     // ТІЛО ТАБЛИЦІ
@@ -809,13 +850,13 @@ window.saveCellEdit = async function(e) {
     const adminUser = sessionStorage.getItem('portal_user') || 'Керівник';
     document.getElementById('edit-cell-modal').classList.add('hidden');
     
-    window.dataCache.schedule = null; // Скидаємо кеш графіка після редагування
+    if(window.dataCache.schedules) window.dataCache.schedules[window.currentScheduleMonth] = null; // Скидаємо кеш графіка після редагування
     loadSchedule(true);
     
     await apiCall({ requestType: 'edit_schedule_cell', monthYear: window.currentScheduleMonth, empName: window.editEmpName, day: window.editDay, shiftTime: shiftTime, newValue: cleanVal, adminUser: adminUser });
     
     // Перезавантажуємо ще раз, щоб точно мати актуальні дані з БД (хоч і повільніше, але надійніше)
-    window.dataCache.schedule = null;
+    if(window.dataCache.schedules) window.dataCache.schedules[window.currentScheduleMonth] = null;
     loadSchedule(true);
 };
 
@@ -823,12 +864,12 @@ window.clearCellEdit = async function() {
     const adminUser = sessionStorage.getItem('portal_user') || 'Керівник';
     document.getElementById('edit-cell-modal').classList.add('hidden');
     
-    window.dataCache.schedule = null;
+    if(window.dataCache.schedules) window.dataCache.schedules[window.currentScheduleMonth] = null;
     loadSchedule(true);
     
     await apiCall({ requestType: 'edit_schedule_cell', monthYear: window.currentScheduleMonth, empName: window.editEmpName, day: window.editDay, shiftTime: 'Обидві', newValue: 'CLEAR', adminUser: adminUser });
     
-    window.dataCache.schedule = null;
+    if(window.dataCache.schedules) window.dataCache.schedules[window.currentScheduleMonth] = null;
     loadSchedule(true);
 };
 
