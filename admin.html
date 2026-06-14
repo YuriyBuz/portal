@@ -98,8 +98,9 @@
             </div>
 
             <!-- Контейнер БЕЗ власного скролу, щоб sticky працювало відносно вікна -->
+            <!-- ВИПРАВЛЕНО: border-separate та border-spacing-0 для вирішення багу зі sticky в Chrome -->
             <div class="w-full bg-white dark:bg-slate-800 pb-10">
-                <table class="w-full min-w-[1000px] text-left border-collapse">
+                <table class="w-full min-w-[1000px] text-left border-separate" style="border-spacing: 0;">
                     <thead id="sched-head"></thead>
                     <tbody id="sched-body" class="bg-white dark:bg-slate-800"></tbody>
                 </table>
@@ -265,7 +266,7 @@
 <script>
 // ================= ГЛОБАЛЬНІ ЗМІННІ ТА КЕШ =================
 window.dataCache = {
-    schedules: {}, // Змінено для збереження кешу кожного місяця окремо
+    schedules: {},
     requests: null,
     employees: null,
     lastUpdate: Date.now()
@@ -724,8 +725,8 @@ function renderSchedule(data, mYear) {
         daysInMonth = new Date(yearStr, monthIndex + 1, 0).getDate();
     }
 
-    // ШАПКА ТАБЛИЦІ (прилипає до верху відразу під навігацією використовуючи змінну --nav-height)
-    let headHtml = `<tr><th class="px-2 py-1 sticky left-0 z-[40] bg-slate-100 dark:bg-slate-700 min-w-[120px] max-w-[150px] text-left border-r border-b border-slate-300 dark:border-slate-600 text-[10px] shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">ПІБ Працівника</th>`;
+    // ВИПРАВЛЕНО: Рамки (borders) перенесені безпосередньо на клітинки (th), оскільки таблиця тепер має border-separate
+    let headHtml = `<tr><th class="px-2 py-1 sticky left-0 z-[40] bg-slate-100 dark:bg-slate-700 min-w-[120px] max-w-[150px] text-left border-b border-r border-slate-300 dark:border-slate-600 text-[10px] shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">ПІБ Працівника</th>`;
     
     for(let d=1; d<=daysInMonth; d++) {
         let dayName = '';
@@ -735,18 +736,19 @@ function renderSchedule(data, mYear) {
             dayName = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek];
             if (dayOfWeek === 0 || dayOfWeek === 6) colorClass = 'text-red-500 dark:text-red-400';
         }
-        headHtml += `<th class="px-0 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-l border-b border-slate-300 dark:border-slate-600 min-w-[28px] w-[32px] font-medium leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">
+        headHtml += `<th class="px-0 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-b border-r border-slate-300 dark:border-slate-600 min-w-[28px] w-[32px] font-medium leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">
             <div class="text-[11px] font-black text-slate-800 dark:text-white">${d}</div>
             <div class="text-[9px] ${colorClass}">${dayName}</div>
         </th>`;
     }
-    headHtml += `<th class="px-1 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-l border-b border-slate-300 dark:border-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">Сума<br>змін</th></tr>`;
+    headHtml += `<th class="px-1 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-b border-slate-300 dark:border-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">Сума<br>змін</th></tr>`;
     document.getElementById('sched-head').innerHTML = headHtml;
 
     // ТІЛО ТАБЛИЦІ
     document.getElementById('sched-body').innerHTML = data.map((emp, index) => {
         const isLastInGroup = (index === data.length - 1) || (data[index + 1] && emp.position !== data[index + 1].position);
         
+        // ВИПРАВЛЕНО: Рамки для розділення груп застосовуються на рівні комірок <td>
         let borderClass = isLastInGroup ? "border-b-[4px] border-b-slate-400 dark:border-b-slate-600" : "border-b border-b-slate-200 dark:border-b-slate-700";
 
         const empInfo = window.globalEmployees.find(e => e.name === emp.name) || {};
@@ -761,8 +763,8 @@ function renderSchedule(data, mYear) {
         let shortName = formatShortName(emp.name);
         const posColor = getPositionColor(emp.position);
 
-        let rowHtml = `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors ${borderClass}">
-            <td onclick="showEmpModal('${emp.name.replace(/'/g, "\\'")}', '${(emp.position || '').replace(/'/g, "\\'")}')" class="px-2 py-0.5 sticky left-0 z-10 border-r-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] cursor-pointer hover:opacity-90 transition-opacity ${posColor}">
+        let rowHtml = `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+            <td onclick="showEmpModal('${emp.name.replace(/'/g, "\\'")}', '${(emp.position || '').replace(/'/g, "\\'")}')" class="px-2 py-0.5 sticky left-0 z-10 border-r-2 ${borderClass} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] cursor-pointer hover:opacity-90 transition-opacity ${posColor}">
                 <div class="font-bold text-[11px] whitespace-nowrap overflow-hidden text-ellipsis leading-tight tracking-tight text-left" title="${emp.name}">${shortName}</div>
             </td>`;
         
@@ -797,14 +799,14 @@ function renderSchedule(data, mYear) {
                 return 'text-transparent hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-300 cursor-pointer';
             };
 
-            rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day}, '${(emp.position || '').replace(/'/g, "\\'")}')" class="p-0 border-l border-slate-300 dark:border-slate-600 transition-colors cursor-pointer ${getCellColor(combinedVal)}">
+            rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day}, '${(emp.position || '').replace(/'/g, "\\'")}')" class="p-0 border-r ${borderClass} transition-colors cursor-pointer ${getCellColor(combinedVal)}">
                 <div class="flex items-center justify-center h-6 w-full px-0.5 text-[10px] font-bold leading-none tracking-tighter">
                     ${finalDisplay || ''}
                 </div>
             </td>`;
         });
 
-        rowHtml += `<td class="text-center font-black text-[11px] border-l border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${shiftCount > 0 ? shiftCount : ''}</td>`;
+        rowHtml += `<td class="text-center font-black text-[11px] ${borderClass} bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${shiftCount > 0 ? shiftCount : ''}</td>`;
         
         return rowHtml + `</tr>`;
     }).join('');
