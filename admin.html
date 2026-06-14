@@ -55,7 +55,7 @@
             </div>
         </div>
         
-        <!-- МОБІЛЬНІ ВКЛАДКИ -->
+        <!-- МОБІЛЬНІ ВКЛАДКИ (Новий порядок) -->
         <div class="max-w-7xl mx-auto px-4 pt-2 pb-3">
             <div class="flex overflow-x-auto gap-2 scrollbar-hide" style="-webkit-overflow-scrolling: touch;">
                 <button id="tab-btn-schedule" onclick="switchTab('schedule')" class="shrink-0 px-5 py-2 rounded-xl bg-emerald-600 text-white font-bold shadow-md flex items-center gap-2 transition-all text-sm">
@@ -71,39 +71,35 @@
         </div>
     </nav>
 
-    <main id="main-container" class="max-w-7xl mx-auto pb-20">
+    <main id="main-container" class="max-w-7xl mx-auto p-4 md:p-6 pb-20">
 
         <!-- ================= СЕКЦІЯ 1: ГРАФІК ================= -->
-        <div id="section-schedule" class="hidden">
-            
-            <!-- Вибір місяця -->
-            <div class="px-4 py-3 flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-                <h2 id="schedule-title" class="text-lg font-black text-slate-800 dark:text-white whitespace-nowrap hidden sm:block">Графік</h2>
-                <select id="sched-month-input" onchange="changeMonth()" class="w-full sm:w-64 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-bold text-sm focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-white cursor-pointer shadow-sm">
-                </select>
+        <div id="section-schedule" class="hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <h2 id="schedule-title" class="text-lg font-black text-slate-800 dark:text-white whitespace-nowrap">Графік</h2>
+                    <input type="text" id="sched-month-input" onchange="loadSchedule()" placeholder="Червень 2026" class="w-full sm:w-40 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-bold text-sm text-center sm:text-left focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-white">
+                </div>
+                
+                <!-- Легенда -->
+                <div class="text-[10px] font-bold flex flex-wrap justify-center sm:justify-end gap-3 text-slate-600 dark:text-slate-300 uppercase tracking-wide">
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-emerald-100 border border-emerald-300 rounded-sm"></span>1, 2</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-blue-100 border border-blue-300 rounded-sm"></span>З</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-red-100 border border-red-300 rounded-sm"></span>Л</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-amber-100 border border-amber-300 rounded-sm"></span>В</span>
+                    <span class="flex items-center gap-1">1 (н) - Ніч</span>
+                    <span class="flex items-center gap-1">🎂 - ДН</span>
+                </div>
             </div>
 
             <div id="sched-loading" class="flex justify-center py-12 hidden">
                 <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
             </div>
 
-            <!-- Легенда -->
-            <div class="px-4 py-2.5 text-[10px] font-bold flex flex-wrap justify-center gap-3 text-slate-600 dark:text-slate-300 uppercase tracking-wide bg-slate-100/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-emerald-100 border border-emerald-300 rounded-sm"></span>1, 2</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-blue-100 border border-blue-300 rounded-sm"></span>З</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-red-100 border border-red-300 rounded-sm"></span>Л</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-amber-100 border border-amber-300 rounded-sm"></span>В</span>
-                <span class="flex items-center gap-1">1 (н) - Ніч</span>
-                <span class="flex items-center gap-1">🎂 - ДН</span>
-            </div>
-
-            <!-- Контейнер З ГОРИЗОНТАЛЬНИМ скролом. 
-                 Таблиця всередині має w-max, тому вона не розтягується на великих екранах, 
-                 а акуратно притискається до лівого краю. -->
-            <div class="w-full overflow-x-auto bg-white dark:bg-slate-800 pb-10">
-                <!-- ВИПРАВЛЕНО: w-max замість w-full -->
-                <table class="w-max min-w-[1000px] text-left border-separate" style="border-spacing: 0;">
-                    <thead id="sched-head"></thead>
+            <!-- ОБГОРТКА: Без overflow-x-auto, щоб sticky працював відносно вікна. Губка-колонка вирішує проблему розтягування -->
+            <div class="w-full bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 pb-2 overflow-hidden">
+                <table class="w-full min-w-[1000px] text-left border-separate" style="border-spacing: 0;">
+                    <thead id="sched-head" class="bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300"></thead>
                     <tbody id="sched-body" class="bg-white dark:bg-slate-800"></tbody>
                 </table>
             </div>
@@ -290,7 +286,6 @@ window.populateMonthSelect = function() {
     const now = new Date();
     
     let optionsHtml = '';
-    // Додаємо минулий місяць, поточний та наступні 2 місяці
     for(let i = -1; i <= 2; i++) {
         let d = new Date(now.getFullYear(), now.getMonth() + i, 1);
         let text = `${ukrMonths[d.getMonth()]} ${d.getFullYear()}`;
@@ -331,16 +326,13 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    // Ручне оновлення даних
     document.getElementById('force-refresh-btn').addEventListener('click', function() {
         const svg = this.querySelector('svg');
         svg.classList.add('rotate-180');
         setTimeout(() => svg.classList.remove('rotate-180'), 500);
         
-        // Очищаємо кеш
         window.dataCache = { schedules: {}, requests: null, employees: null, lastUpdate: Date.now() };
         
-        // Перезавантажуємо активну вкладку
         const activeTabBtn = document.querySelector('button[id^="tab-btn-"].bg-emerald-600');
         if (activeTabBtn) {
             const tabId = activeTabBtn.id.replace('tab-btn-', '');
@@ -350,14 +342,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Таймер авто-оновлення (10 хв)
     setInterval(() => {
         if (sessionStorage.getItem('admin_auth') === 'true' && (Date.now() - window.dataCache.lastUpdate > 10 * 60 * 1000)) {
             document.getElementById('auto-refresh-modal').classList.remove('hidden');
         }
     }, 60000);
 
-    // Динамічний підрахунок висоти хедера для sticky елементів
     function updateNavHeight() {
         const nav = document.getElementById('main-nav');
         if(nav) document.documentElement.style.setProperty('--nav-height', nav.offsetHeight + 'px');
@@ -398,8 +388,7 @@ window.switchTab = function(tabId) {
     const mainEl = document.getElementById('main-container');
     
     if (tabId === 'schedule') {
-        // Забираємо max-w-7xl для графіка, щоб він розтягувався на весь екран
-        mainEl.className = "w-full pb-20"; 
+        mainEl.className = "w-full pb-20"; // Графік розтягується на весь екран
         loadSchedule();
     } else {
         mainEl.className = "max-w-7xl mx-auto p-4 md:p-6 pb-20"; // Відступи для інших сторінок
@@ -408,7 +397,6 @@ window.switchTab = function(tabId) {
     if (tabId === 'requests') loadRequests();
     if (tabId === 'employees') loadEmployees();
     
-    // Оновлюємо висоту навбару при зміні вкладок (бо вона може стрибнути)
     setTimeout(() => {
         const nav = document.getElementById('main-nav');
         if(nav) document.documentElement.style.setProperty('--nav-height', nav.offsetHeight + 'px');
@@ -417,7 +405,7 @@ window.switchTab = function(tabId) {
 
 window.dismissAutoRefresh = function() {
     document.getElementById('auto-refresh-modal').classList.add('hidden');
-    window.dataCache.lastUpdate = Date.now(); // Скидаємо таймер
+    window.dataCache.lastUpdate = Date.now();
 };
 
 window.acceptAutoRefresh = function() {
@@ -519,7 +507,7 @@ window.updateReqStatus = async function(id, newStatus, user, type, btn) {
     if (res === 'OK') {
         const req = window.allRequests.find(r => r.id === id);
         if (req) req.status = newStatus;
-        window.dataCache.requests = window.allRequests; // Оновлюємо кеш
+        window.dataCache.requests = window.allRequests;
         renderRequests(window.allRequests);
         updateStats();
     } else {
@@ -621,7 +609,7 @@ document.getElementById('add-emp-form').addEventListener('submit', async (e) => 
     document.getElementById('add-emp-modal').classList.add('hidden');
     btn.disabled = false; btn.textContent = 'Створити профіль';
     
-    window.dataCache.employees = null; // Скидаємо кеш
+    window.dataCache.employees = null;
     loadEmployees(true); 
 });
 
@@ -682,7 +670,6 @@ window.loadSchedule = async function(force = false) {
     const mYear = window.currentScheduleMonth;
     if(!mYear) return;
     
-    // Перевіряємо кеш саме для обраного місяця
     if (!force && window.dataCache.schedules && window.dataCache.schedules[mYear]) {
         renderSchedule(window.dataCache.schedules[mYear], mYear);
         return;
@@ -707,7 +694,7 @@ window.loadSchedule = async function(force = false) {
 
     if (data && !data.error) {
         if(!window.dataCache.schedules) window.dataCache.schedules = {};
-        window.dataCache.schedules[mYear] = data; // Зберігаємо в кеш саме цей місяць
+        window.dataCache.schedules[mYear] = data; 
         window.dataCache.lastUpdate = Date.now();
         renderSchedule(data, mYear);
     } else {
@@ -727,7 +714,7 @@ function renderSchedule(data, mYear) {
         daysInMonth = new Date(yearStr, monthIndex + 1, 0).getDate();
     }
 
-    // ВИПРАВЛЕНО: z-[40] для перетину лівої колонки і верхньої шапки, щоб воно було поверх усього при будь-якому скролі
+    // ВИПРАВЛЕНО: Фіксована ширина (w-[150px] min-w-[150px] max-w-[150px])
     let headHtml = `<tr><th class="px-2 py-1 sticky left-0 z-[40] bg-slate-100 dark:bg-slate-700 w-[150px] min-w-[150px] max-w-[150px] text-left border-b border-r border-slate-300 dark:border-slate-600 text-[10px] shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">ПІБ Працівника</th>`;
     
     for(let d=1; d<=daysInMonth; d++) {
@@ -738,15 +725,18 @@ function renderSchedule(data, mYear) {
             dayName = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek];
             if (dayOfWeek === 0 || dayOfWeek === 6) colorClass = 'text-red-500 dark:text-red-400';
         }
-        // ВИПРАВЛЕНО: z-[30] для днів у шапці, щоб вони були під кутовою коміркою (ПІБ)
-        headHtml += `<th class="px-0 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-b border-r border-slate-300 dark:border-slate-600 min-w-[28px] w-[32px] font-medium leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">
+        // ВИПРАВЛЕНО: Фіксована ширина для днів
+        headHtml += `<th class="px-0 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-b border-r border-slate-300 dark:border-slate-600 w-[32px] min-w-[32px] max-w-[32px] font-medium leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">
             <div class="text-[11px] font-black text-slate-800 dark:text-white">${d}</div>
             <div class="text-[9px] ${colorClass}">${dayName}</div>
         </th>`;
     }
     
-    // ВИПРАВЛЕНО: z-[30] для "Сума змін" у шапці
-    headHtml += `<th class="px-1 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-b border-slate-300 dark:border-slate-600 w-[40px] min-w-[40px] max-w-[40px] text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">Сума<br>змін</th></tr>`;
+    // ВИПРАВЛЕНО: Фіксована ширина (w-[40px] min-w-[40px] max-w-[40px])
+    headHtml += `<th class="px-1 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-b border-r border-slate-300 dark:border-slate-600 w-[40px] min-w-[40px] max-w-[40px] text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">Сума<br>змін</th>`;
+    
+    // ДОДАНО: Невидима "губка-колонка", яка вбирає всю ширину. Рамки прибрані, щоб лінії груп не тягнулись по екрану.
+    headHtml += `<th class="w-full bg-slate-100 dark:bg-slate-700 border-b border-slate-300 dark:border-slate-600 sticky z-[20]" style="top: var(--nav-height, 108px);"></th></tr>`;
     
     document.getElementById('sched-head').innerHTML = headHtml;
 
@@ -768,9 +758,8 @@ function renderSchedule(data, mYear) {
         let shortName = formatShortName(emp.name);
         const posColor = getPositionColor(emp.position);
 
-        // ВИПРАВЛЕНО: z-[20] для лівої колонки ПІБ, щоб вона була поверх інших комірок при горизонтальному скролі
         let rowHtml = `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-            <td onclick="showEmpModal('${emp.name.replace(/'/g, "\\'")}', '${(emp.position || '').replace(/'/g, "\\'")}')" class="px-2 py-0.5 sticky left-0 z-[20] border-r-2 ${borderClass} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] cursor-pointer hover:opacity-90 transition-opacity ${posColor}">
+            <td onclick="showEmpModal('${emp.name.replace(/'/g, "\\'")}', '${(emp.position || '').replace(/'/g, "\\'")}')" class="px-2 py-0.5 sticky left-0 z-[20] w-[150px] min-w-[150px] max-w-[150px] border-r-2 ${borderClass} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] cursor-pointer hover:opacity-90 transition-opacity ${posColor}">
                 <div class="font-bold text-[11px] whitespace-nowrap overflow-hidden text-ellipsis leading-tight tracking-tight text-left" title="${emp.name}">${shortName}</div>
             </td>`;
         
@@ -805,14 +794,17 @@ function renderSchedule(data, mYear) {
                 return 'text-transparent hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-300 cursor-pointer';
             };
 
-            rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day}, '${(emp.position || '').replace(/'/g, "\\'")}')" class="p-0 border-r ${borderClass} relative z-10 transition-colors cursor-pointer ${getCellColor(combinedVal)}">
+            rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day}, '${(emp.position || '').replace(/'/g, "\\'")}')" class="p-0 w-[32px] min-w-[32px] max-w-[32px] border-r ${borderClass} relative z-10 transition-colors cursor-pointer ${getCellColor(combinedVal)}">
                 <div class="flex items-center justify-center h-6 w-full px-0.5 text-[10px] font-bold leading-none tracking-tighter">
                     ${finalDisplay || ''}
                 </div>
             </td>`;
         });
 
-        rowHtml += `<td class="text-center font-black text-[11px] ${borderClass} relative z-10 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${shiftCount > 0 ? shiftCount : ''}</td>`;
+        rowHtml += `<td class="text-center font-black text-[11px] w-[40px] min-w-[40px] max-w-[40px] ${borderClass} border-r border-slate-300 dark:border-slate-600 relative z-10 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${shiftCount > 0 ? shiftCount : ''}</td>`;
+        
+        // ДОДАНО: "Губка-колонка" без рамок і взаємодії, ідеально зливається з фоном контейнера
+        rowHtml += `<td class="w-full border-none bg-white dark:bg-slate-800 pointer-events-none"></td>`;
         
         return rowHtml + `</tr>`;
     }).join('');
@@ -859,12 +851,11 @@ window.saveCellEdit = async function(e) {
     const adminUser = sessionStorage.getItem('portal_user') || 'Керівник';
     document.getElementById('edit-cell-modal').classList.add('hidden');
     
-    if(window.dataCache.schedules) window.dataCache.schedules[window.currentScheduleMonth] = null; // Скидаємо кеш графіка після редагування
+    if(window.dataCache.schedules) window.dataCache.schedules[window.currentScheduleMonth] = null; 
     loadSchedule(true);
     
     await apiCall({ requestType: 'edit_schedule_cell', monthYear: window.currentScheduleMonth, empName: window.editEmpName, day: window.editDay, shiftTime: shiftTime, newValue: cleanVal, adminUser: adminUser });
     
-    // Перезавантажуємо ще раз, щоб точно мати актуальні дані з БД (хоч і повільніше, але надійніше)
     if(window.dataCache.schedules) window.dataCache.schedules[window.currentScheduleMonth] = null;
     loadSchedule(true);
 };
