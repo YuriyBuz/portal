@@ -2,15 +2,8 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Портал працівника</title>
-    
-    <link rel="manifest" id="manifest-link">
-    <meta name="theme-color" content="#059669">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Портал працівника">
-    <link rel="apple-touch-icon" href="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Адмін панель | Foodline</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' };
@@ -19,401 +12,727 @@
         }
     </script>
     <style>
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         body { -webkit-tap-highlight-color: transparent; }
-        .link-card {
-            position: relative; border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            transition: all 0.2s ease-in-out;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 2rem; text-decoration: none;
-            height: 100%; min-height: 220px; border-width: 1px;
+        /* Кастомний чекбокс для модалки */
+        input[type="checkbox"]:checked {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
         }
-        .link-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
-        .link-card > svg { width: 3.5rem; height: 3.5rem; margin-bottom: 1.25rem; transition: color 0.2s; }
-        .link-card h2 { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; transition: color 0.2s; }
-        .link-card p { font-size: 0.95rem; transition: color 0.2s; }
-
-        .schedule-card:hover { border-color: #3b82f6 !important; }
-        .schedule-card:hover h2, .schedule-card:hover p, .schedule-card:hover > svg { color: #3b82f6 !important; }
-        
-        .extra-shift-card:hover { border-color: #10b981 !important; }
-        .extra-shift-card:hover h2, .extra-shift-card:hover p, .extra-shift-card:hover > svg { color: #10b981 !important; }
-
-        .test-card:hover { border-color: #8b5cf6 !important; }
-        .test-card:hover h2, .test-card:hover p, .test-card:hover > svg { color: #8b5cf6 !important; }
-        
-        .video-card:hover { border-color: #ef4444 !important; }
-        .video-card:hover h2, .video-card:hover p, .video-card:hover > svg { color: #ef4444 !important; }
     </style>
 </head>
-<body class="font-sans text-slate-800 bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
 
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed', err));
-            });
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 min-h-screen transition-colors duration-200">
+
+    <!-- Тост привітання -->
+    <div id="welcome-toast" class="fixed top-20 right-4 z-[200] transform transition-all duration-500 translate-x-full opacity-0 bg-emerald-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3">
+        <span class="text-xl">👋</span>
+        <span class="font-bold">Анастасіє, радий вас знову бачити!</span>
+    </div>
+
+    <!-- Навігація -->
+    <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                    Назад
+                </a>
+                <div>
+                    <h1 class="text-lg md:text-xl font-black text-emerald-700 dark:text-emerald-400 leading-tight">Адмін панель</h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                </button>
+                <button id="logout-btn" class="px-4 py-2 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-800 font-bold transition-colors text-sm border border-red-200 dark:border-red-800">
+                    Вийти
+                </button>
+            </div>
+        </div>
+        
+        <!-- МОБІЛЬНІ ВКЛАДКИ (Новий порядок) -->
+        <div class="max-w-7xl mx-auto px-4 pt-2 pb-3">
+            <div class="flex overflow-x-auto gap-2 scrollbar-hide" style="-webkit-overflow-scrolling: touch;">
+                <button id="tab-btn-schedule" onclick="switchTab('schedule')" class="shrink-0 px-5 py-2 rounded-xl bg-emerald-600 text-white font-bold shadow-md flex items-center gap-2 transition-all text-sm">
+                    📅 Повний графік
+                </button>
+                <button id="tab-btn-requests" onclick="switchTab('requests')" class="shrink-0 px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold transition-all border border-slate-200 dark:border-slate-600 flex items-center gap-2 text-sm">
+                    📋 Заявки
+                </button>
+                <button id="tab-btn-employees" onclick="switchTab('employees')" class="shrink-0 px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold transition-all border border-slate-200 dark:border-slate-600 flex items-center gap-2 text-sm">
+                    👥 Працівники
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-6 pb-20">
+
+        <!-- ================= СЕКЦІЯ 1: ГРАФІК ================= -->
+        <div id="section-schedule" class="hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <h2 id="schedule-title" class="text-lg font-black text-slate-800 dark:text-white whitespace-nowrap">Графік</h2>
+                    <input type="text" id="sched-month-input" onchange="loadSchedule()" placeholder="Червень 2026" class="w-full sm:w-40 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-bold text-sm text-center sm:text-left focus:ring-2 focus:ring-emerald-500">
+                </div>
+                
+                <!-- Легенда -->
+                <div class="text-[10px] font-bold flex flex-wrap justify-center sm:justify-end gap-3 text-slate-600 dark:text-slate-300 uppercase tracking-wide">
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-emerald-100 border border-emerald-300 rounded-sm"></span>1, 2</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-blue-100 border border-blue-300 rounded-sm"></span>З</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-red-100 border border-red-300 rounded-sm"></span>Л</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-amber-100 border border-amber-300 rounded-sm"></span>В</span>
+                    <span class="flex items-center gap-1">1 (н) - Ніч</span>
+                    <span class="flex items-center gap-1">🎂 - ДН</span>
+                </div>
+            </div>
+
+            <div id="sched-loading" class="flex justify-center py-12 hidden">
+                <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-x-auto">
+                <table class="w-full min-w-[1000px] text-left border-collapse">
+                    <thead id="sched-head" class="bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 border-b border-slate-300 dark:border-slate-600"></thead>
+                    <tbody id="sched-body" class="bg-white dark:bg-slate-800"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================= СЕКЦІЯ 2: ЗАЯВКИ ================= -->
+        <div id="section-requests" class="hidden space-y-4">
+            <!-- Супер-компактна статистика -->
+            <div class="grid grid-cols-4 gap-2">
+                <div class="bg-slate-800 text-white rounded-xl py-2 px-1 shadow-sm flex flex-col items-center justify-center border border-slate-700">
+                    <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Всього</span>
+                    <span id="total-count" class="text-xl font-black leading-none mt-1">0</span>
+                </div>
+                <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl py-2 px-1 shadow-sm flex flex-col items-center justify-center border border-amber-200 dark:border-amber-800">
+                    <span class="text-[9px] uppercase font-bold text-amber-700 dark:text-amber-500 tracking-wider">Очікують</span>
+                    <span id="pending-count" class="text-xl font-black text-amber-600 dark:text-amber-400 leading-none mt-1">0</span>
+                </div>
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl py-2 px-1 shadow-sm flex flex-col items-center justify-center border border-emerald-200 dark:border-emerald-800">
+                    <span class="text-[9px] uppercase font-bold text-emerald-700 dark:text-emerald-500 tracking-wider">Погоджено</span>
+                    <span id="approved-count" class="text-xl font-black text-emerald-600 dark:text-emerald-400 leading-none mt-1">0</span>
+                </div>
+                <div class="bg-red-50 dark:bg-red-900/20 rounded-xl py-2 px-1 shadow-sm flex flex-col items-center justify-center border border-red-200 dark:border-red-800">
+                    <span class="text-[9px] uppercase font-bold text-red-700 dark:text-red-500 tracking-wider">Відхилено</span>
+                    <span id="rejected-count" class="text-xl font-black text-red-600 dark:text-red-400 leading-none mt-1">0</span>
+                </div>
+            </div>
+
+            <div id="req-loading" class="flex justify-center py-12 hidden">
+                <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            </div>
+
+            <!-- Компактний вертикальний список карток для мобільних пристроїв -->
+            <div id="requests-list-container" class="flex flex-col gap-3"></div>
+        </div>
+
+        <!-- ================= СЕКЦІЯ 3: ПРАЦІВНИКИ ================= -->
+        <div id="section-employees" class="hidden space-y-4">
+            <div class="flex justify-end">
+                <button onclick="document.getElementById('add-emp-modal').classList.remove('hidden')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors shadow-sm flex items-center gap-2 text-sm">
+                    <span class="text-base">➕</span> Додати нового працівника
+                </button>
+            </div>
+
+            <div id="emp-loading" class="flex justify-center py-12 hidden">
+                <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            </div>
+
+            <div id="employees-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+
+    </main>
+
+    <!-- МОДАЛЬНІ ВІКНА -->
+
+    <!-- 1. Модальне вікно інфо про працівника -->
+    <div id="emp-info-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20">
+                <h3 id="emp-modal-name" class="text-lg font-black text-slate-800 dark:text-white leading-tight">...</h3>
+                <button type="button" onclick="document.getElementById('emp-info-modal').classList.add('hidden')" class="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-800 p-1.5 rounded-md transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="p-5 space-y-3 text-sm">
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400 font-medium">Посада:</span> <span id="emp-modal-pos" class="font-bold text-slate-800 dark:text-white text-right px-2 py-0.5 rounded text-[10px] uppercase tracking-wide"></span></div>
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400 font-medium">Телефон:</span> <span id="emp-modal-phone" class="font-bold text-slate-800 dark:text-white text-right"></span></div>
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400 font-medium">Логін:</span> <span id="emp-modal-login" class="font-bold text-slate-800 dark:text-white text-right"></span></div>
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400 font-medium">Актуальний пароль:</span> <span id="emp-modal-pass" class="font-bold text-red-500 text-right"></span></div>
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400 font-medium">Дата нар.:</span> <span id="emp-modal-dob" class="font-bold text-slate-800 dark:text-white text-right"></span></div>
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400 font-medium">Вік:</span> <span id="emp-modal-age" class="font-bold text-slate-800 dark:text-white text-right"></span></div>
+                <div class="flex justify-between items-center"><span class="text-slate-500 dark:text-slate-400 font-medium">До ДН залишилось:</span> <span id="emp-modal-days" class="font-bold text-emerald-600 dark:text-emerald-400 text-right"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Модальне вікно Додавання працівника -->
+    <div id="add-emp-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20">
+                <h3 class="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2"><span class="text-xl">➕</span> Новий працівник</h3>
+                <button type="button" onclick="document.getElementById('add-emp-modal').classList.add('hidden')" class="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-800 p-1.5 rounded-md transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="add-emp-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold mb-1 text-slate-500 uppercase tracking-wide">ПІБ (Повністю)</label>
+                        <input type="text" id="new-emp-name" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1 text-slate-500 uppercase tracking-wide">Телефон (099...)</label>
+                        <input type="text" id="new-emp-phone" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1 text-slate-500 uppercase tracking-wide">Дата народження</label>
+                        <input type="date" id="new-emp-dob" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white text-sm">
+                    </div>
+                    <button type="submit" id="add-emp-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 mt-2 rounded-lg transition-colors shadow-sm text-sm">
+                        Створити профіль
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. КРАСИВЕ МОДАЛЬНЕ ВІКНО РЕДАГУВАННЯ ЗМІНИ (Як на скріншоті) -->
+    <div id="edit-cell-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700">
+            
+            <!-- Шапка з ПІБ та Посадою -->
+            <div class="p-5 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20 relative">
+                <button type="button" onclick="document.getElementById('edit-cell-modal').classList.add('hidden')" class="absolute top-4 right-4 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-800 p-1.5 rounded-md transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Редагування зміни</h3>
+                <p id="edit-modal-name" class="text-sm font-bold text-emerald-700 dark:text-emerald-400 leading-tight">...</p>
+                <p id="edit-modal-pos-text" class="text-[10px] uppercase font-bold text-slate-500 mt-1"></p>
+            </div>
+
+            <div class="p-6">
+                <form id="edit-cell-form" class="space-y-5" onsubmit="saveCellEdit(event)">
+                    
+                    <!-- Рядок з датою -->
+                    <div class="flex justify-between items-center text-slate-800 dark:text-white">
+                        <span class="font-bold">Дата:</span> 
+                        <span id="edit-modal-date" class="font-black text-lg">...</span>
+                    </div>
+                    
+                    <!-- Вибір значення -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Значення зміни</label>
+                        <select id="edit-cell-val" class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 dark:text-white cursor-pointer shadow-sm">
+                            <option value="">-- Видалити зміну (Очистити) --</option>
+                            <option value="1">1 (Робоча)</option>
+                            <option value="2">2 (Робоча)</option>
+                            <option value="З">З (Додаткова)</option>
+                            <option value="Л">Л (Лікарняний)</option>
+                            <option value="В">В (Відпустка)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Чекбокс "Нічна зміна" -->
+                    <label class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
+                        <input type="checkbox" id="edit-cell-night" class="w-5 h-5 appearance-none border-2 border-slate-300 rounded checked:bg-emerald-600 checked:border-emerald-600 cursor-pointer transition-colors">
+                        <span class="font-bold text-slate-700 dark:text-slate-200">Це нічна зміна (н)</span>
+                    </label>
+
+                    <!-- Кнопки Очистити / Зберегти -->
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" onclick="clearCellEdit()" class="w-1/3 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800 text-red-600 dark:text-red-400 font-black py-3 rounded-lg transition-colors text-sm">Очистити</button>
+                        <button type="submit" class="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-lg transition-colors shadow-sm text-sm">Зберегти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script>
+// ================= ГЛОБАЛЬНІ ЗМІННІ =================
+window.allRequests = [];
+window.currentScheduleMonth = "";
+window.globalEmployees = [];
+window.editEmpName = "";
+window.editDay = "";
+
+// ВАШ URL
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyq5fRj91eafnACIjTlDBC6R8Z1tP7r4XUAI1nSE5W23Y2cvamrEBOGrLBxT5h9a1z6IA/exec';
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (sessionStorage.getItem('admin_auth') !== 'true') { 
+        try { window.location.replace('index.html'); } catch(e) {
+            document.body.innerHTML = `<div class="min-h-screen flex items-center justify-center bg-slate-50"><div class="bg-white p-8 rounded-2xl shadow-xl text-center"><h2 class="text-xl font-bold mb-2">Помилка доступу</h2><a href="index.html" class="text-emerald-600 font-bold underline">На головну</a></div></div>`;
+        }
+    }
+
+    if (!sessionStorage.getItem('welcome_shown')) {
+        setTimeout(() => {
+            const toast = document.getElementById('welcome-toast');
+            if (toast) {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.classList.add('translate-x-full', 'opacity-0'), 4000);
+            }
+            sessionStorage.setItem('welcome_shown', 'true');
+        }, 500);
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        sessionStorage.removeItem('admin_auth');
+        sessionStorage.removeItem('welcome_shown');
+        try { window.location.replace('index.html'); } catch (e) {
+            document.body.innerHTML = `<div class="text-center mt-20 font-bold">Вихід виконано. <a href="index.html" class="text-blue-500">Оновити сторінку</a></div>`;
+        }
+    });
+
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    switchTab('schedule');
+});
+
+// Універсальний запит
+window.apiCall = async function(payload) {
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const text = await res.text();
+        try { return JSON.parse(text); } catch(e) { return text; }
+    } catch(err) {
+        console.error("API Error:", err);
+        return null;
+    }
+};
+
+window.switchTab = function(tabId) {
+    ['schedule', 'requests', 'employees'].forEach(t => {
+        document.getElementById('section-' + t).classList.add('hidden');
+        document.getElementById('tab-btn-' + t).className = "shrink-0 px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold transition-all border border-slate-200 dark:border-slate-600 flex items-center gap-2 text-sm";
+    });
+    
+    document.getElementById('section-' + tabId).classList.remove('hidden');
+    document.getElementById('tab-btn-' + tabId).className = "shrink-0 px-5 py-2 rounded-xl bg-emerald-600 text-white font-bold shadow-md flex items-center gap-2 transition-all text-sm";
+
+    if (tabId === 'schedule') {
+        const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+        const now = new Date();
+        const input = document.getElementById('sched-month-input');
+        if(!input.value) input.value = `${ukrMonths[now.getMonth()]} ${now.getFullYear()}`;
+        loadSchedule();
+    }
+    if (tabId === 'requests') loadRequests();
+    if (tabId === 'employees') loadEmployees();
+};
+
+// ================= СЕКЦІЯ ЗАЯВОК =================
+window.loadRequests = async function() {
+    document.getElementById('req-loading').classList.remove('hidden');
+    document.getElementById('requests-list-container').innerHTML = '';
+    
+    const data = await apiCall({ requestType: 'get_requests' });
+    if (Array.isArray(data)) {
+        window.allRequests = data;
+        renderRequests(window.allRequests);
+        updateStats();
+    } else {
+        document.getElementById('requests-list-container').innerHTML = `<div class="text-center py-10 font-bold text-red-500">Помилка завантаження. Перевірте з'єднання.</div>`;
+    }
+    document.getElementById('req-loading').classList.add('hidden');
+};
+
+function updateStats() {
+    document.getElementById('total-count').textContent = window.allRequests.length;
+    document.getElementById('pending-count').textContent = window.allRequests.filter(r => String(r.status || '').includes('Очікує')).length;
+    document.getElementById('approved-count').textContent = window.allRequests.filter(r => String(r.status || '') === 'Погоджено' || String(r.status || '') === 'Схвалено').length;
+    document.getElementById('rejected-count').textContent = window.allRequests.filter(r => String(r.status || '') === 'Відхилено').length;
+}
+
+function renderRequests(list) {
+    const container = document.getElementById('requests-list-container');
+    if (!list.length) {
+        container.innerHTML = `<div class="text-center py-10 font-bold text-slate-400 bg-white dark:bg-slate-800 rounded-xl">Заявок не знайдено</div>`;
+        return;
+    }
+
+    container.innerHTML = list.map((r) => {
+        const statusStr = String(r.status || '');
+        let badge = 'bg-amber-100 text-amber-700 border border-amber-200';
+        if (statusStr === 'Погоджено' || statusStr === 'Схвалено') badge = 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+        if (statusStr === 'Відхилено') badge = 'bg-red-100 text-red-700 border border-red-200';
+
+        let commentHtml = String(r.comment || '-').replace(/\n/g, '<br>');
+        commentHtml = commentHtml.replace(/(https:\/\/drive\.google\.com[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-500 underline font-bold inline-flex items-center gap-1 mt-1">📄 Довідка</a>');
+
+        // Компактна вертикальна картка для мобільних та десктопів
+        return `
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center hover:border-emerald-300 dark:hover:border-emerald-600 transition-colors group">
+                <div class="flex-1 w-full">
+                    <div class="flex justify-between items-start">
+                        <span class="font-bold text-slate-800 dark:text-white text-base">${r.user}</span>
+                        <span class="md:hidden px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider ${badge}">${statusStr}</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 mt-1 items-center">
+                        <span class="font-bold text-slate-700 dark:text-slate-300">📅 ${r.date}</span>
+                        <span>•</span>
+                        <span class="bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded text-[10px] uppercase font-bold">${r.type}</span>
+                    </div>
+                    <div class="mt-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded-lg border border-slate-100 dark:border-slate-600">
+                        ${commentHtml}
+                    </div>
+                </div>
+                
+                <div class="flex flex-row md:flex-col justify-between items-center md:items-end w-full md:w-auto gap-3 pt-3 md:pt-0 border-t border-slate-100 dark:border-slate-700 md:border-0 mt-1 md:mt-0">
+                    <span class="hidden md:inline-block px-3 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider text-center w-full ${badge}">${statusStr}</span>
+                    
+                    <div class="flex gap-2 w-full justify-end">
+                        <button onclick="updateReqStatus('${r.id}', 'Погоджено', '${r.user.replace(/'/g, "\\'")}', '${r.type.replace(/'/g, "\\'")}', this)" class="flex-1 md:flex-none w-10 h-10 rounded-lg bg-emerald-100 hover:bg-emerald-500 text-emerald-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">✓</button>
+                        <button onclick="updateReqStatus('${r.id}', 'Відхилено', '${r.user.replace(/'/g, "\\'")}', '${r.type.replace(/'/g, "\\'")}', this)" class="flex-1 md:flex-none w-10 h-10 rounded-lg bg-red-100 hover:bg-red-500 text-red-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">✕</button>
+                        <button onclick="updateReqStatus('${r.id}', 'Очікує', '${r.user.replace(/'/g, "\\'")}', '${r.type.replace(/'/g, "\\'")}', this)" class="flex-1 md:flex-none w-10 h-10 rounded-lg bg-slate-200 hover:bg-slate-500 text-slate-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">⟲</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+window.updateReqStatus = async function(id, newStatus, user, type, btn) {
+    const originalHtml = btn.innerHTML;
+    const rowBtns = btn.parentElement.querySelectorAll('button');
+    rowBtns.forEach(b => b.disabled = true);
+    btn.innerHTML = `<svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>`;
+
+    const res = await apiCall({ requestType: 'update_request_status', id: id, status: newStatus, user: user, type: type });
+    if (res === 'OK') {
+        const req = window.allRequests.find(r => r.id === id);
+        if (req) req.status = newStatus;
+        renderRequests(window.allRequests);
+        updateStats();
+    } else {
+        alert("Помилка оновлення");
+        btn.innerHTML = originalHtml;
+        rowBtns.forEach(b => b.disabled = false);
+    }
+};
+
+// ================= СЕКЦІЯ ПРАЦІВНИКІВ =================
+function calculateAgeAndDays(dobStr) {
+    if (!dobStr) return { age: '-', days: '-' };
+    const [d, m, y] = dobStr.split('.');
+    const dob = new Date(`${y}-${m}-${d}`);
+    if (isNaN(dob)) return { age: '-', days: '-' };
+    
+    const now = new Date();
+    let age = now.getFullYear() - dob.getFullYear();
+    const bdayThisYear = new Date(now.getFullYear(), dob.getMonth(), dob.getDate());
+    
+    if (now > bdayThisYear) {
+        bdayThisYear.setFullYear(now.getFullYear() + 1);
+    } else if (now.getMonth() < dob.getMonth() || (now.getMonth() === dob.getMonth() && now.getDate() < dob.getDate())) {
+        age--;
+    }
+    
+    const diffDays = Math.ceil(Math.abs(bdayThisYear - now) / (1000 * 60 * 60 * 24));
+    return { age, days: diffDays === 365 ? 0 : diffDays };
+}
+
+window.loadEmployees = async function() {
+    document.getElementById('emp-loading').classList.remove('hidden');
+    document.getElementById('employees-grid').innerHTML = '';
+    
+    const data = await apiCall({ requestType: 'get_employees_list' });
+    if (Array.isArray(data)) {
+        window.globalEmployees = data;
+        document.getElementById('employees-grid').innerHTML = data.map(e => {
+            const {age, days} = calculateAgeAndDays(e.dob);
+            const bdayBadge = days <= 14 ? `<span class="bg-amber-100 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider animate-pulse">🎁 ДН через ${days} дн!</span>` : '';
+            
+            return `
+            <div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm relative group overflow-hidden">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="font-bold text-base text-slate-800 dark:text-white leading-tight">${e.name}</h3>
+                        <p class="text-emerald-600 font-medium text-xs mt-0.5">${e.phone}</p>
+                    </div>
+                    ${bdayBadge}
+                </div>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="bg-slate-50 dark:bg-slate-700/50 p-2 rounded-lg border border-slate-100 dark:border-slate-600">
+                        <p class="text-[9px] text-slate-400 font-bold uppercase mb-0.5">Логін</p>
+                        <p class="font-bold text-xs text-slate-700 dark:text-slate-200 break-all">${e.login}</p>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-700/50 p-2 rounded-lg border border-slate-100 dark:border-slate-600">
+                        <p class="text-[9px] text-slate-400 font-bold uppercase mb-0.5">Пароль</p>
+                        <p class="font-bold text-xs text-red-500 break-all">${e.password}</p>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-[11px] font-medium text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-700">
+                    <div class="flex gap-3">
+                        <span>🎂 ${e.dob || '-'}</span>
+                        <span>Рoків: <b class="text-slate-700 dark:text-slate-300">${age}</b></span>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+    document.getElementById('emp-loading').classList.add('hidden');
+};
+
+document.getElementById('add-emp-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('add-emp-btn');
+    btn.disabled = true; btn.textContent = 'Збереження...';
+    
+    await apiCall({
+        requestType: 'add_employee',
+        name: document.getElementById('new-emp-name').value,
+        phone: document.getElementById('new-emp-phone').value,
+        dob: document.getElementById('new-emp-dob').value.split('-').reverse().join('.'),
+        adminUser: sessionStorage.getItem('portal_user') || 'Керівник'
+    });
+    
+    document.getElementById('add-emp-form').reset();
+    document.getElementById('add-emp-modal').classList.add('hidden');
+    btn.disabled = false; btn.textContent = 'Створити профіль';
+    loadEmployees(); 
+});
+
+// ================= СЕКЦІЯ ПОВНОГО ГРАФІКА =================
+function getPositionColor(pos) {
+    const p = String(pos).toLowerCase();
+    if (p.includes('головний інженер') || p.includes('механік') || p.includes('налагоджувальник')) return 'bg-[#fcd34d] text-yellow-900';
+    if (p.includes('варник')) return 'bg-[#fbcfe8] text-pink-900';
+    if (p.includes('контролер')) return 'bg-[#e879f9] text-purple-900';
+    if (p.includes('майстер')) return 'bg-[#86efac] text-green-900';
+    if (p.includes('оператор-налагоджувальник')) return 'bg-[#c4b5fd] text-fuchsia-900'; 
+    if (p.includes('оператор')) return 'bg-[#bae6fd] text-indigo-900'; 
+    if (p.includes('вантажник')) return 'bg-[#d97706] text-white';
+    if (p.includes('працівник')) return 'bg-[#f472b6] text-white';
+    return 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white';
+}
+
+function formatShortName(fullName) {
+    if (!fullName) return '';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length >= 2) return `${parts[0]} ${parts[1]}`;
+    return fullName;
+}
+
+window.showEmpModal = async function(name, position) {
+    if (window.globalEmployees.length === 0) {
+        const empData = await apiCall({ requestType: 'get_employees_list' });
+        if (Array.isArray(empData)) window.globalEmployees = empData;
+    }
+    
+    const emp = window.globalEmployees.find(e => e.name === name) || {};
+    const {age, days} = calculateAgeAndDays(emp.dob);
+    
+    document.getElementById('emp-modal-name').textContent = name;
+    
+    const posElem = document.getElementById('emp-modal-pos');
+    posElem.textContent = position || 'Не вказано';
+    posElem.className = `font-bold text-right px-2 py-0.5 rounded text-[10px] uppercase tracking-wide border border-slate-200 dark:border-slate-600 ${getPositionColor(position)}`;
+
+    document.getElementById('emp-modal-phone').textContent = emp.phone || '-';
+    document.getElementById('emp-modal-login').textContent = emp.login || '-';
+    document.getElementById('emp-modal-pass').textContent = emp.password || '-';
+    document.getElementById('emp-modal-dob').textContent = emp.dob || '-';
+    document.getElementById('emp-modal-age').textContent = age !== '-' ? age + ' років' : '-';
+    document.getElementById('emp-modal-days').textContent = days !== '-' ? days + ' днів' : '-';
+    
+    document.getElementById('emp-info-modal').classList.remove('hidden');
+};
+
+window.loadSchedule = async function() {
+    const mYear = document.getElementById('sched-month-input').value.trim();
+    if(!mYear) return;
+    window.currentScheduleMonth = mYear;
+    
+    document.getElementById('sched-loading').classList.remove('hidden');
+    document.getElementById('sched-body').innerHTML = '';
+    
+    document.getElementById('schedule-title').textContent = `Графік ${mYear}`;
+    document.getElementById('schedule-title').classList.remove('hidden');
+
+    const data = await apiCall({ requestType: 'get_full_schedule', monthYear: mYear });
+    
+    if (window.globalEmployees.length === 0) {
+        const empData = await apiCall({ requestType: 'get_employees_list' });
+        if (Array.isArray(empData)) window.globalEmployees = empData;
+    }
+
+    if (data && !data.error) {
+        const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+        const monthParts = mYear.split(' ');
+        const monthIndex = ukrMonths.indexOf(monthParts[0]);
+        const yearStr = monthParts[1] ? parseInt(monthParts[1]) : new Date().getFullYear();
+        let daysInMonth = 31;
+        if (monthIndex !== -1) {
+            daysInMonth = new Date(yearStr, monthIndex + 1, 0).getDate();
         }
 
-        const manifest = {
-            "name": "Портал працівника Foodline",
-            "short_name": "Портал",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#f8fafc",
-            "theme_color": "#059669",
-            "icons": [{"src": "https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp", "sizes": "192x192", "type": "image/webp"}]
-        };
-        document.getElementById('manifest-link').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
-    </script>
-
-    <div id="login-container" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100 dark:border-slate-700">
-            <div class="text-center mb-8">
-                <a href="#" id="admin-logo-login" title="Вхід для керівника" class="cursor-pointer inline-block transition-transform hover:scale-105 active:scale-95">
-                    <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-32 h-auto mx-auto mb-4 rounded-lg bg-white p-2 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
-                </a>
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Вхід на портал</h2>
-                <p class="text-slate-500 dark:text-slate-400 text-sm mt-2">Будь ласка, авторизуйтесь для доступу</p>
-            </div>
-
-            <form id="login-form" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Телефон, ПІБ або Логін</label>
-                    <input type="text" id="login-phone" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="Наприклад: 0662415546">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Пароль</label>
-                    <input type="password" id="login-password" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="Введіть ваш пароль">
-                </div>
-                <div id="login-error" class="hidden text-red-500 text-sm text-center bg-red-50 dark:bg-red-900/30 p-3 rounded-lg border border-red-100 dark:border-red-800">
-                    Невірний логін або пароль.
-                </div>
-                <button type="submit" id="login-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md">
-                    <span>Увійти</span>
-                    <svg id="login-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Модальне вікно: Вхід керівника -->
-    <div id="admin-pass-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700">
-            <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                <h3 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">🛡️ Вхід керівника</h3>
-                <button type="button" onclick="document.getElementById('admin-pass-modal').classList.add('hidden')" class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-            </div>
-            <div class="p-6">
-                <form id="admin-pass-form" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-2 text-slate-600 dark:text-slate-300">Введіть пароль доступу</label>
-                        <input type="password" id="admin-pass-input" required class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white text-center text-lg tracking-widest">
-                    </div>
-                    <button type="submit" class="w-full bg-slate-800 dark:bg-emerald-600 hover:bg-slate-900 dark:hover:bg-emerald-700 text-white font-bold py-3.5 mt-4 rounded-xl transition-colors shadow-sm">
-                        Увійти в адмін-панель
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div id="app-container" class="hidden container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+        // ШАПКА ТАБЛИЦІ (Дні та Дні тижня)
+        let headHtml = `<tr><th class="px-2 py-1 sticky left-0 bg-slate-100 dark:bg-slate-700/90 z-20 min-w-[120px] max-w-[150px] text-left border-r border-slate-300 dark:border-slate-600 text-[10px]">ПІБ Працівника</th>`;
         
-        <header class="relative mb-10">
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-                <div id="current-date" class="text-slate-500 dark:text-slate-400 text-sm sm:text-base font-medium"></div>
-                <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                    <button id="theme-toggle" class="p-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-amber-400 transition-colors">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                    </button>
-                    <span id="user-greeting" class="text-emerald-700 dark:text-emerald-400 font-medium text-sm sm:text-base bg-emerald-50 dark:bg-emerald-900/30 px-4 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800 truncate max-w-[200px] sm:max-w-xs"></span>
-                    
-                    <!-- Кнопка налаштувань -->
-                    <button id="settings-btn" class="p-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors" title="Налаштування профілю">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    </button>
+        for(let d=1; d<=daysInMonth; d++) {
+            let dayName = '';
+            let colorClass = 'text-slate-500 dark:text-slate-400';
+            if (monthIndex !== -1) {
+                const dayOfWeek = new Date(yearStr, monthIndex, d).getDay();
+                dayName = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek];
+                if (dayOfWeek === 0 || dayOfWeek === 6) colorClass = 'text-red-500 dark:text-red-400';
+            }
+            headHtml += `<th class="px-0 py-1 text-center border-l border-slate-300 dark:border-slate-600 min-w-[28px] w-[32px] font-medium leading-tight">
+                <div class="text-[11px] font-black text-slate-800 dark:text-white">${d}</div>
+                <div class="text-[9px] ${colorClass}">${dayName}</div>
+            </th>`;
+        }
+        headHtml += `<th class="px-1 py-1 text-center border-l border-slate-300 dark:border-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight">Сума<br>змін</th></tr>`;
+        document.getElementById('sched-head').innerHTML = headHtml;
 
-                    <button id="logout-btn" class="text-sm bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white py-1.5 px-4 rounded-lg transition-colors font-medium shadow-sm">Вийти</button>
-                </div>
-            </div>
+        // ТІЛО ТАБЛИЦІ
+        document.getElementById('sched-body').innerHTML = data.map((emp, index) => {
+            const isLastInGroup = (index === data.length - 1) || (data[index + 1] && emp.position !== data[index + 1].position);
+            
+            // ТОВСТА СІРА ЛІНІЯ (Групування)
+            let borderClass = isLastInGroup ? "border-b-[4px] border-b-slate-400 dark:border-b-slate-600" : "border-b border-b-slate-200 dark:border-b-slate-700";
 
-            <div class="text-center">
-                <a href="#" id="admin-logo-app" title="Вхід для керівника" class="cursor-pointer inline-block transition-transform hover:scale-105 active:scale-95">
-                    <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-40 h-auto mx-auto mb-6 rounded-lg bg-white p-3 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
-                </a>
-                <h1 class="text-3xl sm:text-5xl font-bold text-slate-800 dark:text-white mb-2">Портал працівника</h1>
-                <p class="text-slate-500 dark:text-slate-400 text-xl">Навчання, графіки та корисна інформація</p>
-            </div>
-        </header>
+            // Перевірка дня народження
+            const empInfo = window.globalEmployees.find(e => e.name === emp.name) || {};
+            let bdayDay = -1;
+            if (empInfo.dob && monthIndex !== -1) {
+                const dobParts = empInfo.dob.split('.');
+                if (dobParts.length === 3 && parseInt(dobParts[1], 10) === (monthIndex + 1)) {
+                    bdayDay = parseInt(dobParts[0], 10);
+                }
+            }
 
-        <main>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                
-                <a href="schedule.html" class="link-card schedule-card bg-white dark:bg-slate-800 text-slate-800 dark:text-white border-slate-200 dark:border-slate-700 group">
-                    <svg class="text-blue-500 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 15h1.5v1.5h-1.5V15zM15 15h1.5v1.5H15V15zM7.5 15h1.5v1.5H7.5V15zM11.25 11.25h1.5v1.5h-1.5v-1.5zM15 11.25h1.5v1.5H15v-1.5zM7.5 11.25h1.5v1.5H7.5v-1.5z" /></svg>
-                    <h2>Графік виходу</h2>
-                    <p class="text-slate-500 dark:text-slate-400">Ваш робочий розклад</p>
-                </a>
+            let shortName = formatShortName(emp.name);
+            const posColor = getPositionColor(emp.position);
 
-                <a href="extra_shift.html" class="link-card extra-shift-card bg-white dark:bg-slate-800 text-slate-800 dark:text-white border-slate-200 dark:border-slate-700 group">
-                    <svg class="text-emerald-500 dark:text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <h2>Заявка на зміну</h2>
-                    <p class="text-slate-500 dark:text-slate-400">Додаткові робочі години</p>
-                </a>
+            // Клітинка з ПІБ в 1 рядок, кольорова
+            let rowHtml = `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors ${borderClass}">
+                <td onclick="showEmpModal('${emp.name.replace(/'/g, "\\'")}', '${(emp.position || '').replace(/'/g, "\\'")}')" class="px-2 py-0.5 sticky left-0 z-10 border-r-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] cursor-pointer hover:opacity-90 transition-opacity ${posColor}">
+                    <div class="font-bold text-[11px] whitespace-nowrap overflow-hidden text-ellipsis leading-tight tracking-tight text-left" title="${emp.name}">${shortName}</div>
+                </td>`;
+            
+            let shiftCount = 0;
 
-                <a href="tests_manager.html" class="link-card test-card bg-white dark:bg-slate-800 text-slate-800 dark:text-white border-slate-200 dark:border-slate-700 group">
-                    <svg class="text-purple-500 dark:text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" /></svg>
-                    <h2>Тести</h2>
-                    <p class="text-slate-500 dark:text-slate-400">Перевірка знань та атестація</p>
-                </a>
+            // Клітинки днів (одна клітинка на день)
+            emp.schedule.forEach(day => {
+                if(day.day > daysInMonth) return;
 
-                <a href="videos.html" class="link-card video-card bg-white dark:bg-slate-800 text-slate-800 dark:text-white border-slate-200 dark:border-slate-700 group">
-                    <svg class="text-red-500 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z" /></svg>
-                    <h2>Навчальні відео</h2>
-                    <p class="text-slate-500 dark:text-slate-400">Інструкції та відеоматеріали</p>
-                </a>
+                let combinedVal = day.dVal;
+                if (day.nVal) {
+                    let nClean = day.nVal.trim();
+                    if (combinedVal) combinedVal += " / " + nClean + " (н)";
+                    else combinedVal = nClean + " (н)";
+                }
 
-            </div>
-        </main>
-    </div>
+                // Підрахунок змін
+                let checkStr = String(combinedVal).toLowerCase();
+                if(checkStr.includes('1') || checkStr.includes('2') || checkStr.includes('3') || checkStr.includes('з')) {
+                    shiftCount += (checkStr.match(/1|2|3|з/g) || []).length;
+                }
+
+                let isBday = (day.day === bdayDay);
+                let finalDisplay = combinedVal;
+                if (isBday) finalDisplay = finalDisplay ? finalDisplay + " 🎂" : "🎂";
+
+                const getCellColor = (val) => {
+                    const v = String(val).toLowerCase();
+                    if (v.includes('1') || v.includes('2')) return 'bg-emerald-100 text-emerald-800 font-bold border-emerald-300';
+                    if (v.includes('3') || v.includes('з')) return 'bg-blue-100 text-blue-800 font-bold border-blue-300';
+                    if (v.includes('л')) return 'bg-red-100 text-red-800 font-bold border-red-300';
+                    if (v.includes('в')) return 'bg-amber-100 text-amber-800 font-bold border-amber-300';
+                    if (isBday && !val) return 'bg-pink-50 text-pink-600 border-pink-200';
+                    return 'text-transparent hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-300 cursor-pointer';
+                };
+
+                rowHtml += `<td onclick="editCell('${emp.name.replace(/'/g, "\\'")}', ${day.day}, '${(emp.position || '').replace(/'/g, "\\'")}')" class="p-0 border-l border-slate-300 dark:border-slate-600 transition-colors cursor-pointer ${getCellColor(combinedVal)}">
+                    <div class="flex items-center justify-center h-6 w-full px-0.5 text-[10px] font-bold leading-none tracking-tighter">
+                        ${finalDisplay || ''}
+                    </div>
+                </td>`;
+            });
+
+            // Стовпчик Сума
+            rowHtml += `<td class="text-center font-black text-[11px] border-l border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${shiftCount > 0 ? shiftCount : ''}</td>`;
+            
+            return rowHtml + `</tr>`;
+        }).join('');
+    } else {
+        document.getElementById('sched-body').innerHTML = `<tr><td class="p-6 text-red-500 font-bold text-center">Графік за "${mYear}" не знайдено.</td></tr>`;
+    }
+    document.getElementById('sched-loading').classList.add('hidden');
+};
+
+// ================= МОДАЛКА РЕДАГУВАННЯ ЗМІНИ =================
+window.editCell = function(empName, day, pos) {
+    window.editEmpName = empName;
+    window.editDay = day;
     
-    <!-- Модальне вікно налаштувань профілю -->
-    <div id="settings-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm transition-all duration-300">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700">
-            <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                <h3 class="text-xl font-bold text-slate-800 dark:text-white">Налаштування</h3>
-                <button type="button" id="close-settings-btn" class="text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-            </div>
-            <div class="p-6">
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Встановіть новий логін та пароль для входу на портал.</p>
-                <form id="settings-form" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Новий Логін / Телефон</label>
-                        <input type="text" id="new-login" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Новий Пароль</label>
-                        <input type="text" id="new-password" required class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
-                    </div>
-                    <div id="settings-success" class="hidden text-emerald-600 text-sm text-center bg-emerald-50 dark:bg-emerald-900/30 p-2 rounded-lg border border-emerald-100 dark:border-emerald-800">
-                        Дані успішно збережено!
-                    </div>
-                    <button type="submit" id="save-settings-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2 transition-colors">
-                        <span>Зберегти</span>
-                        <svg id="settings-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
+    // Форматування дати для модалки: "9.06.26"
+    const monthParts = window.currentScheduleMonth.split(' ');
+    const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+    const monthIdx = ukrMonths.indexOf(monthParts[0]);
+    const yearStr = monthParts[1] ? monthParts[1] : new Date().getFullYear().toString();
+    const year2Digit = yearStr.toString().slice(-2);
+    const month2Digit = String(monthIdx !== -1 ? monthIdx + 1 : 1).padStart(2, '0');
+    
+    document.getElementById('edit-modal-name').textContent = empName;
+    document.getElementById('edit-modal-pos-text').textContent = pos || '';
+    document.getElementById('edit-modal-date').textContent = `${day}.${month2Digit}.${year2Digit}`;
+    
+    document.getElementById('edit-cell-val').value = '';
+    document.getElementById('edit-cell-night').checked = false;
+    document.getElementById('edit-cell-modal').classList.remove('hidden');
+};
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const dateElement = document.getElementById('current-date');
-            const now = new Date();
-            const formattedDate = new Intl.DateTimeFormat('uk-UA', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(now);
-            if (dateElement) dateElement.textContent = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+window.saveCellEdit = async function(e) {
+    e.preventDefault();
+    let val = document.getElementById('edit-cell-val').value;
+    let isNight = document.getElementById('edit-cell-night').checked;
+    
+    let cleanVal = val.trim();
+    let shiftTime = 'День';
+    
+    if (cleanVal === '') {
+        cleanVal = 'CLEAR';
+        shiftTime = 'Обидві';
+    } else if (isNight) {
+        shiftTime = 'Ніч';
+    }
 
-            // Темна тема
-            const themeBtn = document.getElementById('theme-toggle');
-            themeBtn.addEventListener('click', () => {
-                document.documentElement.classList.toggle('dark');
-                localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-            });
+    const adminUser = sessionStorage.getItem('portal_user') || 'Керівник';
+    document.getElementById('edit-cell-modal').classList.add('hidden');
+    document.getElementById('sched-loading').classList.remove('hidden');
+    document.getElementById('sched-body').innerHTML = '';
+    
+    await apiCall({ requestType: 'edit_schedule_cell', monthYear: window.currentScheduleMonth, empName: window.editEmpName, day: window.editDay, shiftTime: shiftTime, newValue: cleanVal, adminUser: adminUser });
+    loadSchedule();
+};
 
-            // Авторизація
-            const loginContainer = document.getElementById('login-container'), appContainer = document.getElementById('app-container');
-            const loginForm = document.getElementById('login-form'), loginError = document.getElementById('login-error');
-            const loginBtn = document.getElementById('login-btn'), loginSpinner = document.getElementById('login-spinner');
-            const SHEET_URL = `https://docs.google.com/spreadsheets/d/1t3vF0VtiPyPja24v8P7b8OxwdPd4NjftsVmSkAcbt7o/gviz/tq?tqx=out:json`;
+window.clearCellEdit = async function() {
+    const adminUser = sessionStorage.getItem('portal_user') || 'Керівник';
+    document.getElementById('edit-cell-modal').classList.add('hidden');
+    document.getElementById('sched-loading').classList.remove('hidden');
+    document.getElementById('sched-body').innerHTML = '';
+    
+    await apiCall({ requestType: 'edit_schedule_cell', monthYear: window.currentScheduleMonth, empName: window.editEmpName, day: window.editDay, shiftTime: 'Обидві', newValue: 'CLEAR', adminUser: adminUser });
+    loadSchedule();
+};
 
-            const savedUser = sessionStorage.getItem('portal_user');
-            if (savedUser) showApp(savedUser);
-            else { loginContainer.classList.remove('hidden'); appContainer.classList.add('hidden'); }
-
-            function showApp(userName) {
-                loginContainer.classList.add('hidden'); appContainer.classList.remove('hidden');
-                document.getElementById('user-greeting').textContent = `👤 ${userName}`;
-            }
-
-            // Система Логування та скрипт бекенду
-            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbywO7cPttdYu0fo8HqBkse0YSScwz-xy1sWlv9ooRq2VEsg8TlnUplWNOQ-hu0_fq2m6w/exec';
-
-            function logUserAction(actionDetails) {
-                const userName = sessionStorage.getItem('portal_user');
-                if (!userName || LOG_SCRIPT_URL.includes('ВАШ_URL')) return;
-
-                const formData = new FormData();
-                formData.append('user', userName);
-                formData.append('action', actionDetails);
-
-                fetch(LOG_SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'no-cors',
-                    keepalive: true
-                }).catch(err => console.error('Помилка логування:', err));
-            }
-
-            // Відстеження кліків по кнопках меню
-            document.querySelectorAll('.link-card').forEach(card => {
-                card.addEventListener('click', function() {
-                    const buttonName = this.querySelector('h2').innerText;
-                    logUserAction(`Натиснуто: ${buttonName}`);
-                });
-            });
-
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const u = document.getElementById('login-phone').value.trim(), p = document.getElementById('login-password').value.trim();
-                loginError.classList.add('hidden'); loginBtn.disabled = true; loginSpinner.classList.remove('hidden');
-
-                if (u === '8899' && p === '9988') {
-                    sessionStorage.setItem('portal_user', 'Тестовий Користувач');
-                    showApp('Тестовий Користувач');
-                    logUserAction('Вхід в систему');
-                    loginBtn.disabled = false; loginSpinner.classList.add('hidden');
-                    return;
-                }
-
-                try {
-                    const r = await fetch(SHEET_URL), txt = await r.text();
-                    const data = JSON.parse(txt.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\);/)[1]);
-                    let auth = false, fName = '';
-                    const normU = u.replace(/\D/g, '').slice(-10);
-
-                    for (let row of data.table.rows) {
-                        if (!row || !row.c) continue;
-                        
-                        const sName = row.c[1]?.v || '';
-                        
-                        // Отримуємо старі дані (колонки C та G)
-                        const oldPhone = (row.c[2]?.v || '').toString();
-                        const oldPass = (row.c[6]?.v || '').toString();
-                        
-                        // Отримуємо НОВІ дані з J та K (індекси 9 та 10), якщо вони є
-                        const newPhone = (row.c[9] && row.c[9].v) ? row.c[9].v.toString() : '';
-                        const newPass = (row.c[10] && row.c[10].v) ? row.c[10].v.toString() : '';
-
-                        // Використовуємо нові, якщо є. Інакше - старі
-                        const sPhone = newPhone !== '' ? newPhone : oldPhone;
-                        const sPass = newPass !== '' ? newPass : oldPass;
-
-                        const sPhoneNorm = sPhone.replace(/\D/g, '').slice(-10);
-
-                        // Перевірка авторизації
-                        const isPhoneMatch = (normU.length >= 9 && normU === sPhoneNorm);
-                        const isNameMatch = (sName.toLowerCase() === u.toLowerCase());
-                        const isLoginMatch = (sPhone.toLowerCase() === u.toLowerCase()); // Додано для кастомних текстових логінів
-
-                        if ((isPhoneMatch || isNameMatch || isLoginMatch) && sPass === p) {
-                            auth = true; fName = sName; break;
-                        }
-                    }
-                    if (auth) { 
-                        sessionStorage.setItem('portal_user', fName); 
-                        showApp(fName); 
-                        logUserAction('Вхід в систему');
-                    }
-                    else { loginError.classList.remove('hidden'); }
-                } catch(err) { loginError.textContent="Помилка з'єднання."; loginError.classList.remove('hidden'); } 
-                finally { loginBtn.disabled = false; loginSpinner.classList.add('hidden'); }
-            });
-
-            document.getElementById('logout-btn').addEventListener('click', () => {
-                logUserAction('Вихід з системи');
-                sessionStorage.removeItem('portal_user'); 
-                
-                document.getElementById('app-container').classList.add('hidden');
-                document.getElementById('login-container').classList.remove('hidden');
-                document.getElementById('login-phone').value = '';
-                document.getElementById('login-password').value = '';
-            });
-
-            // Налаштування профілю (Зміна логіну та паролю)
-            const settingsModal = document.getElementById('settings-modal');
-            const closeSettingsBtn = document.getElementById('close-settings-btn');
-            const settingsBtn = document.getElementById('settings-btn');
-            const settingsForm = document.getElementById('settings-form');
-            const saveSettingsBtn = document.getElementById('save-settings-btn');
-            const settingsSpinner = document.getElementById('settings-spinner');
-            const settingsSuccess = document.getElementById('settings-success');
-
-            settingsBtn.addEventListener('click', () => {
-                settingsModal.classList.remove('hidden');
-                settingsSuccess.classList.add('hidden');
-                document.getElementById('new-login').value = '';
-                document.getElementById('new-password').value = '';
-            });
-
-            closeSettingsBtn.addEventListener('click', () => {
-                settingsModal.classList.add('hidden');
-            });
-
-            settingsForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const newLogin = document.getElementById('new-login').value.trim();
-                const newPassword = document.getElementById('new-password').value.trim();
-                const currentUser = sessionStorage.getItem('portal_user');
-
-                saveSettingsBtn.disabled = true;
-                settingsSpinner.classList.remove('hidden');
-                settingsSuccess.classList.add('hidden');
-
-                try {
-                    await fetch(LOG_SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            requestType: 'update_credentials',
-                            user: currentUser,
-                            newPhone: newLogin,
-                            newPassword: newPassword
-                        }),
-                        mode: 'no-cors'
-                    });
-                    
-                    logUserAction('Змінив логін та пароль');
-                    settingsSuccess.classList.remove('hidden');
-                    setTimeout(() => settingsModal.classList.add('hidden'), 2000);
-                } catch (err) {
-                    alert('Помилка при збереженні. Спробуйте пізніше.');
-                } finally {
-                    saveSettingsBtn.disabled = false;
-                    settingsSpinner.classList.add('hidden');
-                }
-            });
-
-            // Нове модальне вікно для входу керівника
-            const handleAdminClick = (e) => {
-                e.preventDefault();
-                document.getElementById('admin-pass-input').value = '';
-                document.getElementById('admin-pass-modal').classList.remove('hidden');
-            };
-
-            document.getElementById('admin-logo-login')?.addEventListener('click', handleAdminClick);
-            document.getElementById('admin-logo-app')?.addEventListener('click', handleAdminClick);
-
-            document.getElementById('admin-pass-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const pass = document.getElementById('admin-pass-input').value;
-                if (pass === '8899') {
-                    sessionStorage.setItem('admin_auth', 'true');
-                    try { 
-                        window.location.replace('./admin.html'); 
-                    } catch(err) { 
-                        window.location.assign('./admin.html'); 
-                    }
-                } else {
-                    alert("Невірний пароль!");
-                    document.getElementById('admin-pass-input').value = '';
-                }
-            });
-        });
-    </script>
+</script>
 </body>
 </html>
