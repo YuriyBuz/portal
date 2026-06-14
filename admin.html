@@ -97,8 +97,8 @@
                 <span class="flex items-center gap-1">🎂 - ДН</span>
             </div>
 
-            <!-- Контейнер тільки з горизонтальним скролом -->
-            <div class="w-full overflow-x-auto bg-white dark:bg-slate-800 pb-10">
+            <!-- Контейнер БЕЗ власного скролу, щоб sticky працювало відносно вікна -->
+            <div class="w-full bg-white dark:bg-slate-800 pb-10">
                 <table class="w-full min-w-[1000px] text-left border-collapse">
                     <thead id="sched-head"></thead>
                     <tbody id="sched-body" class="bg-white dark:bg-slate-800"></tbody>
@@ -287,8 +287,8 @@ window.populateMonthSelect = function() {
     const now = new Date();
     
     let optionsHtml = '';
-    // Додаємо минулий місяць, поточний та наступні 4 місяці
-    for(let i = -1; i <= 4; i++) {
+    // Додаємо минулий місяць, поточний та наступні 2 місяці
+    for(let i = -1; i <= 2; i++) {
         let d = new Date(now.getFullYear(), now.getMonth() + i, 1);
         let text = `${ukrMonths[d.getMonth()]} ${d.getFullYear()}`;
         optionsHtml += `<option value="${text}">${text}</option>`;
@@ -395,7 +395,8 @@ window.switchTab = function(tabId) {
     const mainEl = document.getElementById('main-container');
     
     if (tabId === 'schedule') {
-        mainEl.className = "max-w-7xl mx-auto pb-20"; // Без відступів для графіка, щоб таблиця прилипала
+        // Забираємо max-w-7xl для графіка, щоб він розтягувався на весь екран
+        mainEl.className = "w-full pb-20"; 
         loadSchedule();
     } else {
         mainEl.className = "max-w-7xl mx-auto p-4 md:p-6 pb-20"; // Відступи для інших сторінок
