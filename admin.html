@@ -326,21 +326,24 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    document.getElementById('force-refresh-btn').addEventListener('click', function() {
-        const svg = this.querySelector('svg');
-        svg.classList.add('rotate-180');
-        setTimeout(() => svg.classList.remove('rotate-180'), 500);
-        
-        window.dataCache = { schedules: {}, requests: null, employees: null, lastUpdate: Date.now() };
-        
-        const activeTabBtn = document.querySelector('button[id^="tab-btn-"].bg-emerald-600');
-        if (activeTabBtn) {
-            const tabId = activeTabBtn.id.replace('tab-btn-', '');
-            if (tabId === 'schedule') loadSchedule(true);
-            if (tabId === 'requests') loadRequests(true);
-            if (tabId === 'employees') loadEmployees(true);
-        }
-    });
+    const forceRefreshBtn = document.getElementById('force-refresh-btn');
+    if (forceRefreshBtn) {
+        forceRefreshBtn.addEventListener('click', function() {
+            const svg = this.querySelector('svg');
+            svg.classList.add('rotate-180');
+            setTimeout(() => svg.classList.remove('rotate-180'), 500);
+            
+            window.dataCache = { schedules: {}, requests: null, employees: null, lastUpdate: Date.now() };
+            
+            const activeTabBtn = document.querySelector('button[id^="tab-btn-"].bg-emerald-600');
+            if (activeTabBtn) {
+                const tabId = activeTabBtn.id.replace('tab-btn-', '');
+                if (tabId === 'schedule') loadSchedule(true);
+                if (tabId === 'requests') loadRequests(true);
+                if (tabId === 'employees') loadEmployees(true);
+            }
+        });
+    }
 
     setInterval(() => {
         if (sessionStorage.getItem('admin_auth') === 'true' && (Date.now() - window.dataCache.lastUpdate > 10 * 60 * 1000)) {
@@ -410,7 +413,10 @@ window.dismissAutoRefresh = function() {
 
 window.acceptAutoRefresh = function() {
     document.getElementById('auto-refresh-modal').classList.add('hidden');
-    document.getElementById('force-refresh-btn').click();
+    const forceRefreshBtn = document.getElementById('force-refresh-btn');
+    if (forceRefreshBtn) {
+        forceRefreshBtn.click();
+    }
 };
 
 window.changeMonth = function() {
