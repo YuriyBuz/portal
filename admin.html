@@ -98,7 +98,6 @@
             </div>
 
             <!-- Контейнер БЕЗ власного скролу, щоб sticky працювало відносно вікна -->
-            <!-- ВИПРАВЛЕНО: border-separate та border-spacing-0 для вирішення багу зі sticky в Chrome -->
             <div class="w-full bg-white dark:bg-slate-800 pb-10">
                 <table class="w-full min-w-[1000px] text-left border-separate" style="border-spacing: 0;">
                     <thead id="sched-head"></thead>
@@ -725,8 +724,8 @@ function renderSchedule(data, mYear) {
         daysInMonth = new Date(yearStr, monthIndex + 1, 0).getDate();
     }
 
-    // ВИПРАВЛЕНО: Рамки (borders) перенесені безпосередньо на клітинки (th), оскільки таблиця тепер має border-separate
-    let headHtml = `<tr><th class="px-2 py-1 sticky left-0 z-[40] bg-slate-100 dark:bg-slate-700 min-w-[120px] max-w-[150px] text-left border-b border-r border-slate-300 dark:border-slate-600 text-[10px] shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">ПІБ Працівника</th>`;
+    // ВИПРАВЛЕНО: Фіксована ширина для колонки ПІБ (w-[150px] min-w-[150px] max-w-[150px])
+    let headHtml = `<tr><th class="px-2 py-1 sticky left-0 z-[40] bg-slate-100 dark:bg-slate-700 w-[150px] min-w-[150px] max-w-[150px] text-left border-b border-r border-slate-300 dark:border-slate-600 text-[10px] shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">ПІБ Працівника</th>`;
     
     for(let d=1; d<=daysInMonth; d++) {
         let dayName = '';
@@ -741,14 +740,19 @@ function renderSchedule(data, mYear) {
             <div class="text-[9px] ${colorClass}">${dayName}</div>
         </th>`;
     }
-    headHtml += `<th class="px-1 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-b border-slate-300 dark:border-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">Сума<br>змін</th></tr>`;
+    
+    // ВИПРАВЛЕНО: Фіксована ширина для колонки Сума (w-[40px] min-w-[40px] max-w-[40px])
+    headHtml += `<th class="px-1 py-1 sticky z-[30] bg-slate-100 dark:bg-slate-700 text-center border-b border-slate-300 dark:border-slate-600 w-[40px] min-w-[40px] max-w-[40px] text-[10px] font-bold text-slate-700 dark:text-slate-200 leading-tight shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);">Сума<br>змін</th>`;
+    
+    // ДОДАНО: Пуста колонка-заповнювач (filler column), щоб забирати зайвий простір на 1920p/4k екранах
+    headHtml += `<th class="w-full sticky z-[20] bg-slate-100 dark:bg-slate-700 border-b border-slate-300 dark:border-slate-600 shadow-[0_2px_0_0_rgba(0,0,0,0.05)]" style="top: var(--nav-height, 108px);"></th></tr>`;
+    
     document.getElementById('sched-head').innerHTML = headHtml;
 
     // ТІЛО ТАБЛИЦІ
     document.getElementById('sched-body').innerHTML = data.map((emp, index) => {
         const isLastInGroup = (index === data.length - 1) || (data[index + 1] && emp.position !== data[index + 1].position);
         
-        // ВИПРАВЛЕНО: Рамки для розділення груп застосовуються на рівні комірок <td>
         let borderClass = isLastInGroup ? "border-b-[4px] border-b-slate-400 dark:border-b-slate-600" : "border-b border-b-slate-200 dark:border-b-slate-700";
 
         const empInfo = window.globalEmployees.find(e => e.name === emp.name) || {};
@@ -807,6 +811,9 @@ function renderSchedule(data, mYear) {
         });
 
         rowHtml += `<td class="text-center font-black text-[11px] ${borderClass} bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${shiftCount > 0 ? shiftCount : ''}</td>`;
+        
+        // ДОДАНО: Пуста комірка-заповнювач (filler cell)
+        rowHtml += `<td class="w-full ${borderClass} bg-white dark:bg-slate-800"></td>`;
         
         return rowHtml + `</tr>`;
     }).join('');
