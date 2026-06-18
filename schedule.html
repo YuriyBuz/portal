@@ -204,365 +204,382 @@
         </div>
     </div>
 
-    <script>
-        // URL ВАШОГО СКРИПТА
-        const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxURcD5AzNeTGyf09SFQavm8PuHwYY_S-LNkSvNF8SI__N8MrDMJ4WALU0bthhd2cNe/exec';
-        const SHEET_ID = '1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg';
+<script>
+    // URL ВАШОГО СКРИПТА (збережено ваш)
+    const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6wUDOeTg1BBew2K32wqRseP7smztWDWxz93Nfxw70wW1FLuRIlFA1KX_JT9bnG6Qsag/exec';
+    const SHEET_ID = '1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg';
+    
+    let selectedDateStr = null;
+    let shiftsDatabase = {}; 
+    let stats = { reg: 0, extra: 0, sick: 0, vac: 0 };
+    const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentUser = sessionStorage.getItem('portal_user');
+        const token = sessionStorage.getItem('portal_token'); // Отримуємо токен
         
-        let selectedDateStr = null;
-        let shiftsDatabase = {}; 
-        let stats = { reg: 0, extra: 0, sick: 0, vac: 0 };
-        const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const currentUser = sessionStorage.getItem('portal_user');
-            
-            if (!currentUser) {
-                document.body.innerHTML = `
-                    <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
-                        <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
-                            <h2 class="text-xl font-bold mb-2 text-slate-800 dark:text-white">Помилка доступу</h2>
-                            <p class="text-slate-500 dark:text-slate-400 mb-6">Авторизуйтесь для доступу.</p>
-                            <a href="index.html" class="inline-block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-md">До входу</a>
-                        </div>
-                    </div>`;
-                return;
-            }
-            
-            document.getElementById('user-name').textContent = currentUser;
-
-            const themeBtn = document.getElementById('theme-toggle');
-            themeBtn.addEventListener('click', () => {
-                document.documentElement.classList.toggle('dark');
-                localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-            });
-
-            // Обробник для кнопки загального оновлення
-            const globalRefreshBtn = document.getElementById('global-refresh-btn');
-            if(globalRefreshBtn) {
-                globalRefreshBtn.addEventListener('click', async () => {
-                    const toast = document.getElementById('toast-notification');
-                    const spinner = document.getElementById('toast-spinner');
-                    const successIcon = document.getElementById('toast-success');
-                    const msg = document.getElementById('toast-message');
-                    const btnIcon = globalRefreshBtn.querySelector('svg');
-
-                    // Показуємо завантаження
-                    spinner.classList.remove('hidden');
-                    successIcon.classList.add('hidden');
-                    msg.textContent = 'Оновлення графіка та заявок...';
-                    toast.classList.remove('translate-y-20', 'opacity-0');
-                    btnIcon.classList.add('animate-spin');
-
-                    try {
-                        // Оновлюємо одночасно і графік і заявки
-                        await Promise.all([
-                            loadScheduleData(),
-                            window.loadMyRequestsOnline(false) // false, щоб не показувати інше модальне вікно
-                        ]);
-                        
-                        // Показуємо успіх
-                        spinner.classList.add('hidden');
-                        successIcon.classList.remove('hidden');
-                        msg.textContent = 'Дані успішно оновлено!';
-                    } catch (e) {
-                        spinner.classList.add('hidden');
-                        msg.textContent = 'Виникла помилка під час оновлення!';
-                    } finally {
-                        btnIcon.classList.remove('animate-spin');
-                        // Ховаємо toast через 3 секунди
-                        setTimeout(() => {
-                            toast.classList.add('translate-y-20', 'opacity-0');
-                        }, 3000);
-                    }
-                });
-            }
-
-            function logUserAction(action) {
-                const formData = new FormData();
-                formData.append('user', currentUser);
-                formData.append('action', action);
-                fetch(LOG_SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' }).catch(()=>{});
-            }
-            logUserAction("Переглядає свій графік");
-
-            const checkType = (v) => {
-                if (!v) return null;
-                const match = v.toString().trim().toUpperCase().match(/[A-ZА-ЯІЇЄҐ0-9]/i);
-                if (!match) return null;
-                const char = match[0];
-                if (char === 'В' || char === 'B') return 'VAC';
-                if (char === 'Л' || char === 'L') return 'SICK';
-                if (char === 'З' || char === '3') return 'EXTRA';
-                if (char === '1' || char === '2') return 'REG';
-                return null;
-            };
-
-            const getVal = (cell) => {
-                if (!cell) return '';
-                if (cell.f !== undefined && cell.f !== null) return cell.f.toString().trim();
-                if (cell.v !== undefined && cell.v !== null) return cell.v.toString().trim();
-                return '';
-            };
-
-            async function fetchMonthData(monthIdx, yearNum) {
-                const sheetName = `${ukrMonths[monthIdx]} ${yearNum}`;
-                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-                try {
-                    const r = await fetch(url);
-                    if (r.ok) {
-                        const txt = await r.text();
-                        const match = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\);/);
-                        if (match) {
-                            return JSON.parse(match[1]).table;
-                        }
-                    }
-                } catch(e) {}
-                return null;
-            }
-
-            function parseShifts(table, monthIdx, yearNum) {
-                if (!table || !table.rows || table.rows.length === 0) return;
-                
-                let userRow = null;
-                for (const row of table.rows) {
-                    if (row && row.c && row.c[0]) {
-                        const nameInSheet = getVal(row.c[0]).toLowerCase();
-                        if (nameInSheet.includes(currentUser.toLowerCase().split(' ')[0])) {
-                            userRow = row.c;
-                            break;
-                        }
-                    }
-                }
-                
-                if (!userRow) return;
-
-                const daysInMonth = new Date(yearNum, monthIdx + 1, 0).getDate();
-                const now = new Date();
-                
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const dayColIdx = 2 + (d - 1) * 2;
-                    const nightColIdx = 3 + (d - 1) * 2;
-
-                    const dVal = getVal(userRow[dayColIdx]);
-                    const nVal = getVal(userRow[nightColIdx]);
-                    
-                    const dateKey = `${yearNum}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                    const t1 = checkType(dVal), t2 = checkType(nVal);
-
-                    if (monthIdx === now.getMonth() && yearNum === now.getFullYear()) {
-                        if (t1 === 'REG') stats.reg++; if (t1 === 'EXTRA') stats.extra++; if (t1 === 'SICK') stats.sick++; if (t1 === 'VAC') stats.vac++;
-                        if (t2 === 'REG') stats.reg++; if (t2 === 'EXTRA') stats.extra++; if (t2 === 'SICK') stats.sick++; if (t2 === 'VAC') stats.vac++;
-                    }
-
-                    if (t1 === 'VAC' || t2 === 'VAC') shiftsDatabase[dateKey] = 'VAC';
-                    else if (t1 === 'SICK' || t2 === 'SICK') shiftsDatabase[dateKey] = 'SICK';
-                    else if (t1 === 'EXTRA' || t2 === 'EXTRA') shiftsDatabase[dateKey] = 'EXTRA';
-                    else if (t1 === 'REG' || t2 === 'REG') shiftsDatabase[dateKey] = 'REG';
-                }
-            }
-
-            function buildMonthHTML(monthIdx, yearNum) {
-                const monthName = ukrMonths[monthIdx];
-                const shiftFirstDay = new Date(yearNum, monthIdx, 1).getDay() === 0 ? 6 : new Date(yearNum, monthIdx, 1).getDay() - 1; 
-                const daysInMonth = new Date(yearNum, monthIdx + 1, 0).getDate();
-                const today = new Date();
-
-                let html = `<div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <h3 class="text-center font-bold text-lg mb-4 text-slate-800 dark:text-white">${monthName} ${yearNum}</h3>
-                    <div class="calendar-grid mb-2 text-slate-500 dark:text-slate-400">
-                        <div class="day-header">Пн</div><div class="day-header">Вт</div><div class="day-header">Ср</div>
-                        <div class="day-header">Чт</div><div class="day-header">Пт</div>
-                        <div class="day-header text-rose-500">Сб</div><div class="day-header text-rose-500">Нд</div>
+        if (!currentUser || !token) {
+            document.body.innerHTML = `
+                <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+                    <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
+                        <h2 class="text-xl font-bold mb-2 text-slate-800 dark:text-white">Помилка доступу</h2>
+                        <p class="text-slate-500 dark:text-slate-400 mb-6">Авторизуйтесь для доступу.</p>
+                        <a href="index.html" class="inline-block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-md">До входу</a>
                     </div>
-                    <div class="calendar-grid">`;
-                
-                for (let i = 0; i < shiftFirstDay; i++) {
-                    html += `<div class="calendar-day empty-day"></div>`;
-                }
-                
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const dateStr = `${yearNum}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                    const t = shiftsDatabase[dateStr];
-                    
-                    let cls = 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200';
-                    if (t === 'REG') cls = 'shift-reg';
-                    else if (t === 'EXTRA') cls = 'shift-extra';
-                    else if (t === 'SICK') cls = 'shift-sick';
-                    else if (t === 'VAC') cls = 'shift-vac';
-                    
-                    const isToday = (d === today.getDate() && monthIdx === today.getMonth() && yearNum === today.getFullYear()) ? 'is-today' : '';
+                </div>`;
+            return;
+        }
+        
+        document.getElementById('user-name').textContent = currentUser;
 
-                    html += `<div class="calendar-day ${cls} ${isToday}" data-date="${dateStr}" data-type="${t || 'EMPTY'}">${d}</div>`;
-                }
-                return html + `</div></div>`;
-            }
-
-            // Зробили функцію глобальною для доступу з кнопки оновлення
-            window.loadScheduleData = async function() {
-                const now = new Date();
-                const currentM = now.getMonth(), currentY = now.getFullYear();
-                const nextM = (currentM + 1) % 12, nextY = currentM === 11 ? currentY + 1 : currentY;
-                
-                document.getElementById('stat-month-label').textContent = `за ${ukrMonths[currentM]}`;
-                
-                const t1 = await fetchMonthData(currentM, currentY);
-                const t2 = await fetchMonthData(nextM, nextY);
-                
-                shiftsDatabase = {}; 
-                stats = { reg: 0, extra: 0, sick: 0, vac: 0 };
-                
-                if (t1) parseShifts(t1, currentM, currentY);
-                if (t2) parseShifts(t2, nextM, nextY);
-                
-                const loader = document.getElementById('calendar-loader');
-                if (loader) loader.classList.add('hidden');
-                document.getElementById('calendars-wrapper').classList.remove('hidden');
-                document.getElementById('legend-block').classList.remove('hidden');
-                
-                const wrapper = document.getElementById('calendars-wrapper');
-                wrapper.innerHTML = buildMonthHTML(currentM, currentY) + buildMonthHTML(nextM, nextY);
-                
-                document.getElementById('stat-reg').textContent = stats.reg;
-                document.getElementById('stat-extra').textContent = stats.extra;
-                document.getElementById('stat-sick').textContent = stats.sick;
-                document.getElementById('stat-vac').textContent = stats.vac;
-
-                document.querySelectorAll('.calendar-day:not(.empty-day)').forEach(dayDiv => {
-                    dayDiv.addEventListener('click', () => {
-                        const cellDateStr = dayDiv.getAttribute('data-date'); 
-                        const shiftType = dayDiv.getAttribute('data-type');
-                        
-                        const [y, m, d] = cellDateStr.split('-');
-                        const cellDateObj = new Date(y, m - 1, d);
-                        const todayObj = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                        
-                        if (cellDateObj <= todayObj) return;
-                        if (shiftType === 'REG') return;
-
-                        document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected-day'));
-                        dayDiv.classList.add('selected-day');
-                        
-                        selectedDateStr = cellDateStr;
-                        const displayDate = `${d}.${m}.${y}`;
-                        
-                        document.getElementById('modal-date-text').textContent = displayDate;
-                        document.getElementById('shift-form').reset();
-                        
-                        document.getElementById('request-modal').classList.remove('hidden');
-                    });
-                });
-            }
-
-            loadScheduleData();
-
-            const form = document.getElementById('shift-form');
-            const sBtn = document.getElementById('submit-btn');
-
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!selectedDateStr) return;
-                
-                const tVal = document.getElementById('shift-type').value;
-                const cVal = document.getElementById('shift-comment').value;
-                if(!tVal) return;
-
-                const [y, m, d] = selectedDateStr.split('-');
-                const formattedDate = `${d}.${m}.${y}`;
-
-                sBtn.disabled = true;
-                document.getElementById('submit-spinner').classList.remove('hidden');
-
-                try {
-                    logUserAction(`Відправка заявки на зміну: ${formattedDate}`);
-
-                    await fetch(LOG_SCRIPT_URL, { 
-                        method: 'POST', 
-                        headers: {
-                            'Content-Type': 'text/plain;charset=utf-8'
-                        },
-                        body: JSON.stringify({ 
-                            requestType: 'submit_request',
-                            user: currentUser, 
-                            date: formattedDate, 
-                            type: tVal, 
-                            comment: cVal || 'немає'
-                        })
-                    });
-
-                    await window.loadMyRequestsOnline(false);
-
-                    document.getElementById('request-modal').classList.add('hidden');
-                    document.getElementById('success-modal').classList.remove('hidden');
-                    
-                } catch(err) { 
-                    alert('Помилка при відправленні запиту.'); 
-                } finally { 
-                    sBtn.disabled = false; 
-                    document.getElementById('submit-spinner').classList.add('hidden'); 
-                }
-            });
-
-            window.loadMyRequestsOnline(false);
-            setInterval(() => window.loadMyRequestsOnline(false), 600000);
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
         });
 
-        window.loadMyRequestsOnline = async function(showLoadingModal = false) {
-            const currentUser = sessionStorage.getItem('portal_user');
-            if (!currentUser) return;
+        // Обробник для кнопки загального оновлення
+        const globalRefreshBtn = document.getElementById('global-refresh-btn');
+        if(globalRefreshBtn) {
+            globalRefreshBtn.addEventListener('click', async () => {
+                const toast = document.getElementById('toast-notification');
+                const spinner = document.getElementById('toast-spinner');
+                const successIcon = document.getElementById('toast-success');
+                const msg = document.getElementById('toast-message');
+                const btnIcon = globalRefreshBtn.querySelector('svg');
+
+                spinner.classList.remove('hidden');
+                successIcon.classList.add('hidden');
+                msg.textContent = 'Оновлення графіка та заявок...';
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                btnIcon.classList.add('animate-spin');
+
+                try {
+                    await Promise.all([
+                        loadScheduleData(),
+                        window.loadMyRequestsOnline(false) 
+                    ]);
+                    
+                    spinner.classList.add('hidden');
+                    successIcon.classList.remove('hidden');
+                    msg.textContent = 'Дані успішно оновлено!';
+                } catch (e) {
+                    spinner.classList.add('hidden');
+                    msg.textContent = 'Виникла помилка під час оновлення!';
+                } finally {
+                    btnIcon.classList.remove('animate-spin');
+                    setTimeout(() => {
+                        toast.classList.add('translate-y-20', 'opacity-0');
+                    }, 3000);
+                }
+            });
+        }
+
+        // ВИПРАВЛЕНО: Відправка логів у форматі JSON з токеном
+        function logUserAction(action) {
+            fetch(LOG_SCRIPT_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    requestType: 'log_action',
+                    user: currentUser,
+                    action: action,
+                    token: sessionStorage.getItem('portal_token')
+                })
+            }).catch(()=>{});
+        }
+        
+        logUserAction("Переглядає свій графік");
+
+        const checkType = (v) => {
+            if (!v) return null;
+            const match = v.toString().trim().toUpperCase().match(/[A-ZА-ЯІЇЄҐ0-9]/i);
+            if (!match) return null;
+            const char = match[0];
+            if (char === 'В' || char === 'B') return 'VAC';
+            if (char === 'Л' || char === 'L') return 'SICK';
+            if (char === 'З' || char === '3') return 'EXTRA';
+            if (char === '1' || char === '2') return 'REG';
+            return null;
+        };
+
+        const getVal = (cell) => {
+            if (!cell) return '';
+            if (cell.f !== undefined && cell.f !== null) return cell.f.toString().trim();
+            if (cell.v !== undefined && cell.v !== null) return cell.v.toString().trim();
+            return '';
+        };
+
+        async function fetchMonthData(monthIdx, yearNum) {
+            const sheetName = `${ukrMonths[monthIdx]} ${yearNum}`;
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+            try {
+                const r = await fetch(url);
+                if (r.ok) {
+                    const txt = await r.text();
+                    const match = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\);/);
+                    if (match) {
+                        return JSON.parse(match[1]).table;
+                    }
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        function parseShifts(table, monthIdx, yearNum) {
+            if (!table || !table.rows || table.rows.length === 0) return;
             
-            const list = document.getElementById('requests-list');
-            const loadingText = document.getElementById('requests-loading');
-            
-            if (showLoadingModal) {
-                loadingText.classList.remove('hidden');
-                list.classList.add('hidden');
+            let userRow = null;
+            for (const row of table.rows) {
+                if (row && row.c && row.c[0]) {
+                    const nameInSheet = getVal(row.c[0]).toLowerCase();
+                    if (nameInSheet.includes(currentUser.toLowerCase().split(' ')[0])) {
+                        userRow = row.c;
+                        break;
+                    }
+                }
             }
             
+            if (!userRow) return;
+
+            const daysInMonth = new Date(yearNum, monthIdx + 1, 0).getDate();
+            const now = new Date();
+            
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayColIdx = 2 + (d - 1) * 2;
+                const nightColIdx = 3 + (d - 1) * 2;
+
+                const dVal = getVal(userRow[dayColIdx]);
+                const nVal = getVal(userRow[nightColIdx]);
+                
+                const dateKey = `${yearNum}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const t1 = checkType(dVal), t2 = checkType(nVal);
+
+                if (monthIdx === now.getMonth() && yearNum === now.getFullYear()) {
+                    if (t1 === 'REG') stats.reg++; if (t1 === 'EXTRA') stats.extra++; if (t1 === 'SICK') stats.sick++; if (t1 === 'VAC') stats.vac++;
+                    if (t2 === 'REG') stats.reg++; if (t2 === 'EXTRA') stats.extra++; if (t2 === 'SICK') stats.sick++; if (t2 === 'VAC') stats.vac++;
+                }
+
+                if (t1 === 'VAC' || t2 === 'VAC') shiftsDatabase[dateKey] = 'VAC';
+                else if (t1 === 'SICK' || t2 === 'SICK') shiftsDatabase[dateKey] = 'SICK';
+                else if (t1 === 'EXTRA' || t2 === 'EXTRA') shiftsDatabase[dateKey] = 'EXTRA';
+                else if (t1 === 'REG' || t2 === 'REG') shiftsDatabase[dateKey] = 'REG';
+            }
+        }
+
+        function buildMonthHTML(monthIdx, yearNum) {
+            const monthName = ukrMonths[monthIdx];
+            const shiftFirstDay = new Date(yearNum, monthIdx, 1).getDay() === 0 ? 6 : new Date(yearNum, monthIdx, 1).getDay() - 1; 
+            const daysInMonth = new Date(yearNum, monthIdx + 1, 0).getDate();
+            const today = new Date();
+
+            let html = `<div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <h3 class="text-center font-bold text-lg mb-4 text-slate-800 dark:text-white">${monthName} ${yearNum}</h3>
+                <div class="calendar-grid mb-2 text-slate-500 dark:text-slate-400">
+                    <div class="day-header">Пн</div><div class="day-header">Вт</div><div class="day-header">Ср</div>
+                    <div class="day-header">Чт</div><div class="day-header">Пт</div>
+                    <div class="day-header text-rose-500">Сб</div><div class="day-header text-rose-500">Нд</div>
+                </div>
+                <div class="calendar-grid">`;
+            
+            for (let i = 0; i < shiftFirstDay; i++) {
+                html += `<div class="calendar-day empty-day"></div>`;
+            }
+            
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${yearNum}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const t = shiftsDatabase[dateStr];
+                
+                let cls = 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200';
+                if (t === 'REG') cls = 'shift-reg';
+                else if (t === 'EXTRA') cls = 'shift-extra';
+                else if (t === 'SICK') cls = 'shift-sick';
+                else if (t === 'VAC') cls = 'shift-vac';
+                
+                const isToday = (d === today.getDate() && monthIdx === today.getMonth() && yearNum === today.getFullYear()) ? 'is-today' : '';
+
+                html += `<div class="calendar-day ${cls} ${isToday}" data-date="${dateStr}" data-type="${t || 'EMPTY'}">${d}</div>`;
+            }
+            return html + `</div></div>`;
+        }
+
+        window.loadScheduleData = async function() {
+            const now = new Date();
+            const currentM = now.getMonth(), currentY = now.getFullYear();
+            const nextM = (currentM + 1) % 12, nextY = currentM === 11 ? currentY + 1 : currentY;
+            
+            document.getElementById('stat-month-label').textContent = `за ${ukrMonths[currentM]}`;
+            
+            const t1 = await fetchMonthData(currentM, currentY);
+            const t2 = await fetchMonthData(nextM, nextY);
+            
+            shiftsDatabase = {}; 
+            stats = { reg: 0, extra: 0, sick: 0, vac: 0 };
+            
+            if (t1) parseShifts(t1, currentM, currentY);
+            if (t2) parseShifts(t2, nextM, nextY);
+            
+            const loader = document.getElementById('calendar-loader');
+            if (loader) loader.classList.add('hidden');
+            document.getElementById('calendars-wrapper').classList.remove('hidden');
+            document.getElementById('legend-block').classList.remove('hidden');
+            
+            const wrapper = document.getElementById('calendars-wrapper');
+            wrapper.innerHTML = buildMonthHTML(currentM, currentY) + buildMonthHTML(nextM, nextY);
+            
+            document.getElementById('stat-reg').textContent = stats.reg;
+            document.getElementById('stat-extra').textContent = stats.extra;
+            document.getElementById('stat-sick').textContent = stats.sick;
+            document.getElementById('stat-vac').textContent = stats.vac;
+
+            document.querySelectorAll('.calendar-day:not(.empty-day)').forEach(dayDiv => {
+                dayDiv.addEventListener('click', () => {
+                    const cellDateStr = dayDiv.getAttribute('data-date'); 
+                    const shiftType = dayDiv.getAttribute('data-type');
+                    
+                    const [y, m, d] = cellDateStr.split('-');
+                    const cellDateObj = new Date(y, m - 1, d);
+                    const todayObj = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    
+                    if (cellDateObj <= todayObj) return;
+                    if (shiftType === 'REG') return;
+
+                    document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected-day'));
+                    dayDiv.classList.add('selected-day');
+                    
+                    selectedDateStr = cellDateStr;
+                    const displayDate = `${d}.${m}.${y}`;
+                    
+                    document.getElementById('modal-date-text').textContent = displayDate;
+                    document.getElementById('shift-form').reset();
+                    
+                    document.getElementById('request-modal').classList.remove('hidden');
+                });
+            });
+        }
+
+        loadScheduleData();
+
+        const form = document.getElementById('shift-form');
+        const sBtn = document.getElementById('submit-btn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!selectedDateStr) return;
+            
+            const tVal = document.getElementById('shift-type').value;
+            const cVal = document.getElementById('shift-comment').value;
+            if(!tVal) return;
+
+            const [y, m, d] = selectedDateStr.split('-');
+            const formattedDate = `${d}.${m}.${y}`;
+
+            sBtn.disabled = true;
+            document.getElementById('submit-spinner').classList.remove('hidden');
+
             try {
-                const res = await fetch(LOG_SCRIPT_URL, {
-                    method: 'POST',
+                logUserAction(`Відправка заявки на зміну: ${formattedDate}`);
+
+                // ВИПРАВЛЕНО: Додано відправку токена авторизації
+                await fetch(LOG_SCRIPT_URL, { 
+                    method: 'POST', 
                     headers: {
                         'Content-Type': 'text/plain;charset=utf-8'
                     },
-                    body: JSON.stringify({ requestType: 'get_my_requests', user: currentUser })
+                    body: JSON.stringify({ 
+                        requestType: 'submit_request',
+                        user: currentUser, 
+                        token: sessionStorage.getItem('portal_token'), 
+                        date: formattedDate, 
+                        type: tVal, 
+                        comment: cVal || 'немає'
+                    })
                 });
-                
-                const onlineReqs = await res.json();
-                
-                loadingText.classList.add('hidden');
-                list.classList.remove('hidden');
 
-                if (onlineReqs.length === 0) {
-                    list.innerHTML = `<p class="text-sm text-slate-500 dark:text-slate-400 text-center py-4">Ви ще не подавали заявок.</p>`;
-                } else {
-                    list.innerHTML = onlineReqs.map(r => {
-                        let statusColor = r.status === 'Погоджено' || r.status === 'Схвалено' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800' : 
-                                          (r.status === 'Відхилено' ? 'text-red-500 bg-red-50 border-red-200 dark:bg-red-900/30 dark:border-red-800' : 'text-amber-500 bg-amber-50 border-amber-200 dark:bg-amber-900/30 dark:border-amber-800');
-                        
-                        let displayDate = r.date;
-                        if (typeof displayDate === 'string' && displayDate.includes('T')) {
-                            const d = new Date(displayDate);
-                            displayDate = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
-                        }
+                await window.loadMyRequestsOnline(false);
 
-                        return `
-                        <div class="flex justify-between items-center p-3 mb-2 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-100 dark:border-slate-600">
-                            <div>
-                                <p class="font-bold text-sm text-slate-800 dark:text-white">${displayDate}</p>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">${r.type}</p>
-                            </div>
-                            <span class="text-[10px] font-bold px-2 py-1 rounded-md border ${statusColor}">${r.status}</span>
-                        </div>
-                    `}).join('');
-                }
-            } catch (e) {
-                console.error("Помилка завантаження заявок", e);
-                loadingText.classList.add('hidden');
-                list.classList.remove('hidden');
-                list.innerHTML = `<p class="text-sm text-red-500 text-center py-4">Помилка з'єднання.</p>`;
+                document.getElementById('request-modal').classList.add('hidden');
+                document.getElementById('success-modal').classList.remove('hidden');
+                
+            } catch(err) { 
+                alert('Помилка при відправленні запиту.'); 
+            } finally { 
+                sBtn.disabled = false; 
+                document.getElementById('submit-spinner').classList.add('hidden'); 
             }
+        });
+
+        window.loadMyRequestsOnline(false);
+        setInterval(() => window.loadMyRequestsOnline(false), 600000);
+    });
+
+    window.loadMyRequestsOnline = async function(showLoadingModal = false) {
+        const currentUser = sessionStorage.getItem('portal_user');
+        const currentToken = sessionStorage.getItem('portal_token');
+        if (!currentUser || !currentToken) return;
+        
+        const list = document.getElementById('requests-list');
+        const loadingText = document.getElementById('requests-loading');
+        
+        if (showLoadingModal) {
+            loadingText.classList.remove('hidden');
+            list.classList.add('hidden');
         }
-    </script>
+        
+        try {
+            // ВИПРАВЛЕНО: Додано відправку токена авторизації
+            const res = await fetch(LOG_SCRIPT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify({ 
+                    requestType: 'get_my_requests', 
+                    user: currentUser,
+                    token: currentToken
+                })
+            });
+            
+            const onlineReqs = await res.json();
+            
+            loadingText.classList.add('hidden');
+            list.classList.remove('hidden');
+
+            if (onlineReqs.error) {
+                list.innerHTML = `<p class="text-sm text-red-500 text-center py-4">Помилка сесії. Увійдіть знову.</p>`;
+                return;
+            }
+
+            if (onlineReqs.length === 0) {
+                list.innerHTML = `<p class="text-sm text-slate-500 dark:text-slate-400 text-center py-4">Ви ще не подавали заявок.</p>`;
+            } else {
+                list.innerHTML = onlineReqs.map(r => {
+                    let statusColor = r.status === 'Погоджено' || r.status === 'Схвалено' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800' : 
+                                      (r.status === 'Відхилено' ? 'text-red-500 bg-red-50 border-red-200 dark:bg-red-900/30 dark:border-red-800' : 'text-amber-500 bg-amber-50 border-amber-200 dark:bg-amber-900/30 dark:border-amber-800');
+                    
+                    let displayDate = r.date;
+                    if (typeof displayDate === 'string' && displayDate.includes('T')) {
+                        const d = new Date(displayDate);
+                        displayDate = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+                    }
+
+                    return `
+                    <div class="flex justify-between items-center p-3 mb-2 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-100 dark:border-slate-600">
+                        <div>
+                            <p class="font-bold text-sm text-slate-800 dark:text-white">${displayDate}</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">${r.type}</p>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-1 rounded-md border ${statusColor}">${r.status}</span>
+                    </div>
+                `}).join('');
+            }
+        } catch (e) {
+            console.error("Помилка завантаження заявок", e);
+            loadingText.classList.add('hidden');
+            list.classList.remove('hidden');
+            list.innerHTML = `<p class="text-sm text-red-500 text-center py-4">Помилка з'єднання.</p>`;
+        }
+    }
+</script>
 </body>
 </html>
