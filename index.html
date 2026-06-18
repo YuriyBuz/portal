@@ -97,7 +97,6 @@
         </div>
     </div>
 
-    <!-- Модальне вікно: Вхід керівника -->
     <div id="admin-pass-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
@@ -131,7 +130,6 @@
                     </button>
                     <span id="user-greeting" class="text-emerald-700 dark:text-emerald-400 font-medium text-sm sm:text-base bg-emerald-50 dark:bg-emerald-900/30 px-4 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800 truncate max-w-[200px] sm:max-w-xs"></span>
                     
-                    <!-- Кнопка налаштувань -->
                     <button id="settings-btn" class="p-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors" title="Налаштування профілю">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     </button>
@@ -180,7 +178,6 @@
         </main>
     </div>
     
-    <!-- Модальне вікно налаштувань профілю -->
     <div id="settings-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm transition-all duration-300">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
@@ -230,32 +227,39 @@
             const loginContainer = document.getElementById('login-container'), appContainer = document.getElementById('app-container');
             const loginForm = document.getElementById('login-form'), loginError = document.getElementById('login-error');
             const loginBtn = document.getElementById('login-btn'), loginSpinner = document.getElementById('login-spinner');
-            const SHEET_URL = `https://docs.google.com/spreadsheets/d/1t3vF0VtiPyPja24v8P7b8OxwdPd4NjftsVmSkAcbt7o/gviz/tq?tqx=out:json`;
+            
+            // НОВЕ ПОСИЛАННЯ НА БЕКЕНД
+            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQJXXrVFu0jY6cu_uVpgg6kDiEngi9i-h9wJTKBAj3JD7pIWuqXfVdk0MjoXqOdaSexg/exec';
 
             const savedUser = sessionStorage.getItem('portal_user');
-            if (savedUser) showApp(savedUser);
-            else { loginContainer.classList.remove('hidden'); appContainer.classList.add('hidden'); }
+            const savedToken = sessionStorage.getItem('portal_token');
+            
+            if (savedUser && savedToken) {
+                showApp(savedUser);
+            } else { 
+                loginContainer.classList.remove('hidden'); appContainer.classList.add('hidden'); 
+            }
 
             function showApp(userName) {
                 loginContainer.classList.add('hidden'); appContainer.classList.remove('hidden');
                 document.getElementById('user-greeting').textContent = `👤 ${userName}`;
             }
 
-            // Система Логування та скрипт бекенду
-            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxURcD5AzNeTGyf09SFQavm8PuHwYY_S-LNkSvNF8SI__N8MrDMJ4WALU0bthhd2cNe/exec';
-
+            // ВИПРАВЛЕНО: Відправка логування у форматі JSON з токеном
             function logUserAction(actionDetails) {
                 const userName = sessionStorage.getItem('portal_user');
-                if (!userName || LOG_SCRIPT_URL.includes('ВАШ_URL')) return;
-
-                const formData = new FormData();
-                formData.append('user', userName);
-                formData.append('action', actionDetails);
+                const token = sessionStorage.getItem('portal_token');
+                if (!userName || !token) return;
 
                 fetch(LOG_SCRIPT_URL, {
                     method: 'POST',
-                    body: formData,
-                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        requestType: 'log_action',
+                        user: userName,
+                        action: actionDetails,
+                        token: token
+                    }),
                     keepalive: true
                 }).catch(err => console.error('Помилка логування:', err));
             }
@@ -268,6 +272,7 @@
                 });
             });
 
+            // ВИПРАВЛЕНО: Логін тепер йде через захищений бекенд, а не тягне всю таблицю
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const u = document.getElementById('login-phone').value.trim(), p = document.getElementById('login-password').value.trim();
@@ -275,6 +280,7 @@
 
                 if (u === '8899' && p === '9988') {
                     sessionStorage.setItem('portal_user', 'Тестовий Користувач');
+                    sessionStorage.setItem('portal_token', 'test-token-1234');
                     showApp('Тестовий Користувач');
                     logUserAction('Вхід в систему');
                     loginBtn.disabled = false; loginSpinner.classList.add('hidden');
@@ -282,52 +288,39 @@
                 }
 
                 try {
-                    const r = await fetch(SHEET_URL), txt = await r.text();
-                    const data = JSON.parse(txt.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\);/)[1]);
-                    let auth = false, fName = '';
-                    const normU = u.replace(/\D/g, '').slice(-10);
-
-                    for (let row of data.table.rows) {
-                        if (!row || !row.c) continue;
-                        
-                        const sName = row.c[1]?.v || '';
-                        
-                        // Отримуємо старі дані (колонки C та G)
-                        const oldPhone = (row.c[2]?.v || '').toString();
-                        const oldPass = (row.c[6]?.v || '').toString();
-                        
-                        // Отримуємо НОВІ дані з J та K (індекси 9 та 10), якщо вони є
-                        const newPhone = (row.c[9] && row.c[9].v) ? row.c[9].v.toString() : '';
-                        const newPass = (row.c[10] && row.c[10].v) ? row.c[10].v.toString() : '';
-
-                        // Використовуємо нові, якщо є. Інакше - старі
-                        const sPhone = newPhone !== '' ? newPhone : oldPhone;
-                        const sPass = newPass !== '' ? newPass : oldPass;
-
-                        const sPhoneNorm = sPhone.replace(/\D/g, '').slice(-10);
-
-                        // Перевірка авторизації
-                        const isPhoneMatch = (normU.length >= 9 && normU === sPhoneNorm);
-                        const isNameMatch = (sName.toLowerCase() === u.toLowerCase());
-                        const isLoginMatch = (sPhone.toLowerCase() === u.toLowerCase()); // Додано для кастомних текстових логінів
-
-                        if ((isPhoneMatch || isNameMatch || isLoginMatch) && sPass === p) {
-                            auth = true; fName = sName; break;
-                        }
-                    }
-                    if (auth) { 
-                        sessionStorage.setItem('portal_user', fName); 
-                        showApp(fName); 
+                    const response = await fetch(LOG_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            requestType: 'login',
+                            login: u,
+                            password: p
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.status === "OK" && result.token) {
+                        sessionStorage.setItem('portal_user', result.user);
+                        sessionStorage.setItem('portal_token', result.token); // ЗБЕРІГАЄМО ТОКЕН ДЛЯ ІНШИХ СТОРІНОК
+                        showApp(result.user);
                         logUserAction('Вхід в систему');
+                    } else {
+                        loginError.textContent = result.error || "Невірний логін або пароль.";
+                        loginError.classList.remove('hidden');
                     }
-                    else { loginError.classList.remove('hidden'); }
-                } catch(err) { loginError.textContent="Помилка з'єднання."; loginError.classList.remove('hidden'); } 
-                finally { loginBtn.disabled = false; loginSpinner.classList.add('hidden'); }
+                } catch(err) { 
+                    loginError.textContent = "Помилка з'єднання з сервером."; 
+                    loginError.classList.remove('hidden'); 
+                } finally { 
+                    loginBtn.disabled = false; loginSpinner.classList.add('hidden'); 
+                }
             });
 
             document.getElementById('logout-btn').addEventListener('click', () => {
                 logUserAction('Вихід з системи');
                 sessionStorage.removeItem('portal_user'); 
+                sessionStorage.removeItem('portal_token'); 
                 
                 document.getElementById('app-container').classList.add('hidden');
                 document.getElementById('login-container').classList.remove('hidden');
@@ -355,31 +348,40 @@
                 settingsModal.classList.add('hidden');
             });
 
+            // ВИПРАВЛЕНО: Налаштування профілю тепер відправляють коректний JSON запит з токеном
             settingsForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const newLogin = document.getElementById('new-login').value.trim();
                 const newPassword = document.getElementById('new-password').value.trim();
                 const currentUser = sessionStorage.getItem('portal_user');
+                const currentToken = sessionStorage.getItem('portal_token');
 
                 saveSettingsBtn.disabled = true;
                 settingsSpinner.classList.remove('hidden');
                 settingsSuccess.classList.add('hidden');
 
                 try {
-                    await fetch(LOG_SCRIPT_URL, {
+                    const res = await fetch(LOG_SCRIPT_URL, {
                         method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify({
                             requestType: 'update_credentials',
                             user: currentUser,
+                            token: currentToken,
                             newPhone: newLogin,
                             newPassword: newPassword
-                        }),
-                        mode: 'no-cors'
+                        })
                     });
                     
-                    logUserAction('Змінив логін та пароль');
-                    settingsSuccess.classList.remove('hidden');
-                    setTimeout(() => settingsModal.classList.add('hidden'), 2000);
+                    const result = await res.json();
+                    
+                    if(result.error) {
+                        alert(result.error);
+                    } else {
+                        logUserAction('Змінив логін та пароль');
+                        settingsSuccess.classList.remove('hidden');
+                        setTimeout(() => settingsModal.classList.add('hidden'), 2000);
+                    }
                 } catch (err) {
                     alert('Помилка при збереженні. Спробуйте пізніше.');
                 } finally {
