@@ -233,7 +233,7 @@
             const loginForm = document.getElementById('login-form'), loginError = document.getElementById('login-error');
             const loginBtn = document.getElementById('login-btn'), loginSpinner = document.getElementById('login-spinner');
             
-            // ОНОВЛЕНЕ ПОСИЛАННЯ НА БЕКЕНД
+            // ТВОЄ ПОСИЛАННЯ ТЕПЕР ТУТ:
             const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA5Q-Ioj4GXLM9R_ThGWe7lstsBAbWKAajFSiTG8qM9pH4k3ktmM4i7NrevyT_81wsjQ/exec';
 
             const savedUser = sessionStorage.getItem('portal_user');
@@ -250,7 +250,6 @@
                 document.getElementById('user-greeting').textContent = `👤 ${userName}`;
             }
 
-            // Відправка логування у форматі JSON з токеном
             function logUserAction(actionDetails) {
                 const userName = sessionStorage.getItem('portal_user');
                 const token = sessionStorage.getItem('portal_token');
@@ -269,7 +268,6 @@
                 }).catch(err => console.error('Помилка логування:', err));
             }
 
-            // Відстеження кліків по кнопках меню
             document.querySelectorAll('.link-card').forEach(card => {
                 card.addEventListener('click', function() {
                     const buttonName = this.querySelector('h2').innerText;
@@ -282,15 +280,6 @@
                 e.preventDefault();
                 const u = document.getElementById('login-phone').value.trim(), p = document.getElementById('login-password').value.trim();
                 loginError.classList.add('hidden'); loginBtn.disabled = true; loginSpinner.classList.remove('hidden');
-
-                if (u === '8899' && p === '9988') {
-                    sessionStorage.setItem('portal_user', 'Тестовий Користувач');
-                    sessionStorage.setItem('portal_token', 'test-token-1234');
-                    showApp('Тестовий Користувач');
-                    logUserAction('Вхід в систему');
-                    loginBtn.disabled = false; loginSpinner.classList.add('hidden');
-                    return;
-                }
 
                 try {
                     const response = await fetch(LOG_SCRIPT_URL, {
@@ -333,7 +322,6 @@
                 document.getElementById('login-password').value = '';
             });
 
-            // Налаштування профілю (Зміна логіну та паролю)
             const settingsModal = document.getElementById('settings-modal');
             const closeSettingsBtn = document.getElementById('close-settings-btn');
             const settingsBtn = document.getElementById('settings-btn');
@@ -432,7 +420,6 @@
                             sessionStorage.setItem('portal_token', result.token);
                             sessionStorage.setItem('admin_auth', 'true');
                             
-                            // Логуємо вхід адміністратора
                             await fetch(LOG_SCRIPT_URL, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
