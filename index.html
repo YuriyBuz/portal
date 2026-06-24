@@ -407,3 +407,57 @@
             document.getElementById('admin-logo-app')?.addEventListener('click', handleAdminClick);
 
             document.getElementById('admin-pass-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const u = document.getElementById('admin-login-input').value.trim();
+                const p = document.getElementById('admin-pass-input').value.trim();
+                const btn = document.getElementById('admin-login-btn');
+                const err = document.getElementById('admin-login-error');
+                
+                btn.disabled = true;
+                err.classList.add('hidden');
+                btn.querySelector('span').textContent = 'Перевірка...';
+
+                try {
+                    const response = await fetch(LOG_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ requestType: 'login', login: u, password: p })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.status === "OK" && result.token) {
+                        if (result.role === 'admin') {
+                            sessionStorage.setItem('portal_user', result.user);
+                            sessionStorage.setItem('portal_token', result.token);
+                            sessionStorage.setItem('admin_auth', 'true');
+                            
+                            // Логуємо вхід адміністратора
+                            await fetch(LOG_SCRIPT_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                body: JSON.stringify({ requestType: 'log_action', user: result.user, action: 'Вхід в систему (Адмін-панель)', token: result.token })
+                            });
+
+                            try { window.location.replace('./admin.html'); } 
+                            catch(err) { window.location.assign('./admin.html'); }
+                        } else {
+                            err.textContent = "У вас немає прав доступу до панелі.";
+                            err.classList.remove('hidden');
+                        }
+                    } else {
+                        err.textContent = result.error || "Невірний логін або пароль.";
+                        err.classList.remove('hidden');
+                    }
+                } catch(error) { 
+                    err.textContent = "Помилка з'єднання з сервером."; 
+                    err.classList.remove('hidden'); 
+                } finally { 
+                    btn.disabled = false; 
+                    btn.querySelector('span').textContent = 'Увійти в адмін-панель';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
