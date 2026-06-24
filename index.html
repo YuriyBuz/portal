@@ -96,6 +96,7 @@
             </form>
         </div>
     </div>
+
     <div id="admin-pass-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
@@ -114,7 +115,7 @@
                         <label class="block text-sm font-medium mb-1 text-slate-600 dark:text-slate-300">Пароль доступу</label>
                         <input type="password" id="admin-pass-input" required class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white text-center text-lg tracking-widest">
                     </div>
-                    <div id="admin-login-error" class="hidden text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg border border-red-100">Невірний логін або пароль</div>
+                    <div id="admin-login-error" class="hidden text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg border border-red-100 dark:bg-red-900/30 dark:border-red-800">Невірний логін або пароль</div>
                     <button type="submit" id="admin-login-btn" class="w-full bg-slate-800 dark:bg-emerald-600 hover:bg-slate-900 dark:hover:bg-emerald-700 text-white font-bold py-3.5 mt-2 rounded-xl transition-colors shadow-sm flex justify-center gap-2 items-center">
                         <span>Увійти в адмін-панель</span>
                     </button>
@@ -122,6 +123,7 @@
             </div>
         </div>
     </div>
+
     <div id="app-container" class="hidden container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
         
         <header class="relative mb-10">
@@ -231,7 +233,7 @@
             const loginForm = document.getElementById('login-form'), loginError = document.getElementById('login-error');
             const loginBtn = document.getElementById('login-btn'), loginSpinner = document.getElementById('login-spinner');
             
-            // НОВЕ ПОСИЛАННЯ НА БЕКЕНД
+            // ОНОВЛЕНЕ ПОСИЛАННЯ НА БЕКЕНД
             const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA5Q-Ioj4GXLM9R_ThGWe7lstsBAbWKAajFSiTG8qM9pH4k3ktmM4i7NrevyT_81wsjQ/exec';
 
             const savedUser = sessionStorage.getItem('portal_user');
@@ -248,7 +250,7 @@
                 document.getElementById('user-greeting').textContent = `👤 ${userName}`;
             }
 
-            // ВИПРАВЛЕНО: Відправка логування у форматі JSON з токеном
+            // Відправка логування у форматі JSON з токеном
             function logUserAction(actionDetails) {
                 const userName = sessionStorage.getItem('portal_user');
                 const token = sessionStorage.getItem('portal_token');
@@ -275,7 +277,7 @@
                 });
             });
 
-            // ВИПРАВЛЕНО: Логін тепер йде через захищений бекенд, а не тягне всю таблицю
+            // Логін користувача (працівника)
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const u = document.getElementById('login-phone').value.trim(), p = document.getElementById('login-password').value.trim();
@@ -305,7 +307,7 @@
                     
                     if (result.status === "OK" && result.token) {
                         sessionStorage.setItem('portal_user', result.user);
-                        sessionStorage.setItem('portal_token', result.token); // ЗБЕРІГАЄМО ТОКЕН ДЛЯ ІНШИХ СТОРІНОК
+                        sessionStorage.setItem('portal_token', result.token); 
                         showApp(result.user);
                         logUserAction('Вхід в систему');
                     } else {
@@ -351,7 +353,6 @@
                 settingsModal.classList.add('hidden');
             });
 
-            // ВИПРАВЛЕНО: Налаштування профілю тепер відправляють коректний JSON запит з токеном
             settingsForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const newLogin = document.getElementById('new-login').value.trim();
@@ -393,32 +394,16 @@
                 }
             });
 
-            // Нове модальне вікно для входу керівника
+            // ВІДПРАЦЮВАННЯ ЛОГІКИ ВХОДУ ДЛЯ АДМІНІСТРАТОРА
             const handleAdminClick = (e) => {
                 e.preventDefault();
+                document.getElementById('admin-login-input').value = '';
                 document.getElementById('admin-pass-input').value = '';
+                document.getElementById('admin-login-error').classList.add('hidden');
                 document.getElementById('admin-pass-modal').classList.remove('hidden');
             };
 
             document.getElementById('admin-logo-login')?.addEventListener('click', handleAdminClick);
             document.getElementById('admin-logo-app')?.addEventListener('click', handleAdminClick);
 
-            document.getElementById('admin-pass-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const pass = document.getElementById('admin-pass-input').value;
-                if (pass === '8899') {
-                    sessionStorage.setItem('admin_auth', 'true');
-                    try { 
-                        window.location.replace('./admin.html'); 
-                    } catch(err) { 
-                        window.location.assign('./admin.html'); 
-                    }
-                } else {
-                    alert("Невірний пароль!");
-                    document.getElementById('admin-pass-input').value = '';
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+            document.getElementById('admin-pass-form').addEventListener('submit', async (e) => {
