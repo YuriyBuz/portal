@@ -96,7 +96,6 @@
             </form>
         </div>
     </div>
-
     <div id="admin-pass-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
@@ -108,17 +107,21 @@
             <div class="p-6">
                 <form id="admin-pass-form" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium mb-2 text-slate-600 dark:text-slate-300">Введіть пароль доступу</label>
+                        <label class="block text-sm font-medium mb-1 text-slate-600 dark:text-slate-300">Логін (Email)</label>
+                        <input type="text" id="admin-login-input" required class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white text-sm" placeholder="email@gmail.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-600 dark:text-slate-300">Пароль доступу</label>
                         <input type="password" id="admin-pass-input" required class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white text-center text-lg tracking-widest">
                     </div>
-                    <button type="submit" class="w-full bg-slate-800 dark:bg-emerald-600 hover:bg-slate-900 dark:hover:bg-emerald-700 text-white font-bold py-3.5 mt-4 rounded-xl transition-colors shadow-sm">
-                        Увійти в адмін-панель
+                    <div id="admin-login-error" class="hidden text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg border border-red-100">Невірний логін або пароль</div>
+                    <button type="submit" id="admin-login-btn" class="w-full bg-slate-800 dark:bg-emerald-600 hover:bg-slate-900 dark:hover:bg-emerald-700 text-white font-bold py-3.5 mt-2 rounded-xl transition-colors shadow-sm flex justify-center gap-2 items-center">
+                        <span>Увійти в адмін-панель</span>
                     </button>
                 </form>
             </div>
         </div>
     </div>
-
     <div id="app-container" class="hidden container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
         
         <header class="relative mb-10">
@@ -229,7 +232,7 @@
             const loginBtn = document.getElementById('login-btn'), loginSpinner = document.getElementById('login-spinner');
             
             // НОВЕ ПОСИЛАННЯ НА БЕКЕНД
-            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxQg4d1XygpWDTXpbOCpN6VzMKRtDkOlNyy1IGgU2dbdZQk3ptdqL51vlHQuEq6LM2kdA/exec';
+            const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA5Q-Ioj4GXLM9R_ThGWe7lstsBAbWKAajFSiTG8qM9pH4k3ktmM4i7NrevyT_81wsjQ/exec';
 
             const savedUser = sessionStorage.getItem('portal_user');
             const savedToken = sessionStorage.getItem('portal_token');
