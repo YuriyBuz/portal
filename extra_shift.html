@@ -120,10 +120,28 @@
     </div>
 
 <script>
-// ВАШ URL СЮДИ!
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA5Q-Ioj4GXLM9R_ThGWe7lstsBAbWKAajFSiTG8qM9pH4k3ktmM4i7NrevyT_81wsjQ/exec';
+// ОНОВЛЕНИЙ URL
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvntMZXe4R0bW7lpRnE3LTzW0Qi1nWdCCxZ0Z_vxQg6sP4BeObYfc5-holPmshpZcupA/exec';
 
-let currentRequestType = 'extra'; // extra, vacation, sick
+let currentRequestType = 'extra'; 
+
+function logUserAction(actionDetails) {
+    const userName = sessionStorage.getItem('portal_user');
+    const token = sessionStorage.getItem('portal_token');
+    if (!userName || !token) return;
+
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+            requestType: 'log_action',
+            user: userName,
+            action: actionDetails,
+            token: token
+        }),
+        keepalive: true
+    }).catch(()=>{});
+}
 
 document.getElementById('theme-toggle').addEventListener('click', () => {
     document.documentElement.classList.toggle('dark');
@@ -152,14 +170,12 @@ function switchTab(type) {
     }
 }
 
-// Форматування дати DD.MM.YYYY
 function formatD(dStr) {
     if(!dStr) return '';
     const p = dStr.split('-');
     return `${p[2]}.${p[1]}.${p[0]}`;
 }
 
-// Стиснення фото перед відправкою (щоб не зависало)
 function compressAndConvertImage(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -175,7 +191,6 @@ function compressAndConvertImage(file) {
                 canvas.height = img.height * scaleSize;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                // Отримуємо base64 (відкидаємо 'data:image/jpeg;base64,')
                 const base64Str = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
                 resolve(base64Str);
             };
@@ -188,8 +203,15 @@ document.getElementById('shift-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('submit-btn');
     const spinner = document.getElementById('submit-spinner');
+    
     const user = sessionStorage.getItem('portal_user');
-    if (!user) return alert("Авторизуйтесь!");
+    const token = sessionStorage.getItem('portal_token'); // ДОДАНО ТОКЕН
+    
+    if (!user || !token) {
+        alert("Помилка доступу. Будь ласка, авторизуйтесь знову.");
+        window.location.replace('index.html');
+        return;
+    }
 
     let reqDate = '', reqTypeStr = '', fileData = null, fileName = '', mimeType = '';
 
@@ -232,6 +254,7 @@ document.getElementById('shift-form').addEventListener('submit', async (e) => {
             body: JSON.stringify({
                 requestType: 'submit_request',
                 user: user,
+                token: token, // ПЕРЕДАЄМО ТОКЕН В БЕКЕНД
                 date: reqDate,
                 type: reqTypeStr,
                 comment: comment,
@@ -254,15 +277,27 @@ document.getElementById('shift-form').addEventListener('submit', async (e) => {
 
 async function loadMyRequestsOnline() {
     const user = sessionStorage.getItem('portal_user');
-    if(!user) return;
+    const token = sessionStorage.getItem('portal_token');
+    if(!user || !token) return;
+    
     const list = document.getElementById('requests-list');
     try {
         const res = await fetch(SCRIPT_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ requestType: 'get_my_requests', user: user })
+            body: JSON.stringify({ 
+                requestType: 'get_my_requests', 
+                user: user,
+                token: token // ПЕРЕДАЄМО ТОКЕН В БЕКЕНД
+            })
         });
         const reqs = await res.json();
+        
+        if(reqs.error) {
+            list.innerHTML = `<p class="text-center text-red-500 py-4">Сесія закінчилась. Оновіть сторінку.</p>`;
+            return;
+        }
+
         if(!reqs.length) return list.innerHTML = `<p class="text-center text-slate-500 py-4">Немає заявок</p>`;
         
         list.innerHTML = reqs.map(r => {
@@ -283,7 +318,10 @@ async function loadMyRequestsOnline() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', loadMyRequestsOnline);
+document.addEventListener('DOMContentLoaded', () => {
+    logUserAction('Відкрив сторінку: Оформлення заявки');
+    loadMyRequestsOnline();
+});
 </script>
 </body>
 </html>
