@@ -25,7 +25,7 @@
 
     <div id="welcome-toast" class="fixed top-20 right-4 z-[200] transform transition-all duration-500 translate-x-full opacity-0 bg-emerald-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3">
         <span class="text-xl">👋</span>
-        <span class="font-bold">Анастасіє, радий вас знову бачити!</span>
+        <span class="font-bold">Раді вас знову бачити!</span>
     </div>
 
     <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50 shadow-sm">
@@ -228,13 +228,16 @@
 
 <script>
 // ================= СТАН І НАЛАШТУВАННЯ =================
-const API_URL = 'https://script.google.com/macros/s/AKfycbxQg4d1XygpWDTXpbOCpN6VzMKRtDkOlNyy1IGgU2dbdZQk3ptdqL51vlHQuEq6LM2kdA/exec';
-const SECURE_TOKEN = 'Foodline_Secure_Token_2026'; // Має співпадати з бекендом
+const API_URL = 'https://script.google.com/macros/s/AKfycbzA5Q-Ioj4GXLM9R_ThGWe7lstsBAbWKAajFSiTG8qM9pH4k3ktmM4i7NrevyT_81wsjQ/exec';
+
+// Тепер беремо реальний токен та ім'я користувача (адміністратора) з сесії
+const SECURE_TOKEN = sessionStorage.getItem('portal_token'); 
+const ADMIN_USER = sessionStorage.getItem('portal_user');
 
 const AppState = {
     requests: [],
     employees: [],
-    employeeMap: {}, // O(1) доступ до працівників
+    employeeMap: {}, 
     cachedSchedules: {},
     currentMonth: "",
     editEmpName: "",
@@ -255,6 +258,21 @@ function escapeHTML(str) {
         .replace(/'/g, '&#39;');
 }
 
+function logAdminAction(action) {
+    if(!SECURE_TOKEN || !ADMIN_USER) return;
+    fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+            requestType: 'log_action',
+            user: ADMIN_USER,
+            action: action,
+            token: SECURE_TOKEN
+        }),
+        keepalive: true
+    }).catch(e => console.error("Помилка логування", e));
+}
+
 async function apiCall(payload) {
     payload.token = SECURE_TOKEN; // Захист запитів
     try {
@@ -267,7 +285,7 @@ async function apiCall(payload) {
         return data;
     } catch(err) {
         console.error("API Error:", err);
-        return null; // Обробляється нижче в функціях
+        return null; 
     }
 }
 
@@ -294,7 +312,7 @@ function calculateAgeAndDays(dobStr) {
     }
     
     const diffDays = Math.ceil((bdayThisYear - now) / (1000 * 60 * 60 * 24));
-    return { age, days: diffDays === 365 ? 0 : diffDays }; // 365 виникає, якщо ДН сьогодні, але час now > часу bdayThisYear
+    return { age, days: diffDays === 365 ? 0 : diffDays };
 }
 
 function getPositionColor(pos) {
@@ -316,7 +334,7 @@ function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
 // ================= ІНІЦІАЛІЗАЦІЯ =================
 document.addEventListener('DOMContentLoaded', () => {
     // Basic Auth Check
-    if (sessionStorage.getItem('admin_auth') !== 'true') { 
+    if (sessionStorage.getItem('admin_auth') !== 'true' || !SECURE_TOKEN) { 
         document.body.innerHTML = `<div class="min-h-screen flex items-center justify-center bg-slate-50"><div class="bg-white p-8 rounded-2xl shadow-xl text-center"><h2 class="text-xl font-bold mb-2 text-red-500">Помилка доступу</h2><a href="index.html" class="text-emerald-600 font-bold underline">На головну</a></div></div>`;
         return;
     }
@@ -324,7 +342,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!sessionStorage.getItem('welcome_shown')) {
         setTimeout(() => {
             const t = document.getElementById('welcome-toast');
-            if(t) { t.classList.remove('translate-x-full', 'opacity-0'); setTimeout(() => t.classList.add('translate-x-full', 'opacity-0'), 4000); }
+            if(t) { 
+                // Якщо є ім'я адміна, показуємо його в привітанні
+                if(ADMIN_USER) t.querySelector('.font-bold').textContent = `${ADMIN_USER.split(' ')[0]}, раді вас знову бачити!`;
+                t.classList.remove('translate-x-full', 'opacity-0'); 
+                setTimeout(() => t.classList.add('translate-x-full', 'opacity-0'), 4000); 
+            }
             sessionStorage.setItem('welcome_shown', 'true');
         }, 500);
     }
@@ -342,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Global Listeners
     setupEventListeners();
     
-    // Auto-refresh prompt (Не показувати, якщо модалка вже відкрита)
+    // Auto-refresh prompt
     setInterval(() => {
         const m = document.getElementById('refresh-prompt-modal');
         if (m.classList.contains('hidden')) showModal('refresh-prompt-modal');
@@ -364,11 +387,12 @@ function setupEventListeners() {
         localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     });
     document.getElementById('logout-btn').addEventListener('click', () => {
+        logAdminAction('Вихід з системи (Адмін-панель)');
         sessionStorage.clear();
         window.location.replace('index.html');
     });
 
-    // Модалки (Закриття)
+    // Модалки
     document.querySelectorAll('.close-modal-btn').forEach(btn => {
         btn.addEventListener('click', (e) => hideModal(e.target.closest('.modal-backdrop').id));
     });
@@ -379,19 +403,16 @@ function setupEventListeners() {
         if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach(m => hideModal(m.id));
     });
 
-    // Делегування подій для таблиць/списків
+    // Делегування подій
     document.addEventListener('click', (e) => {
         const target = e.target;
         
-        // Клік по ПІБ в графіку
         const empCell = target.closest('.emp-name-cell');
         if (empCell) openEmpModal(empCell.dataset.name, empCell.dataset.pos);
         
-        // Клік по зміні в графіку
         const schedCell = target.closest('.sched-edit-cell');
         if (schedCell) openEditCellModal(schedCell.dataset.name, schedCell.dataset.day, schedCell.dataset.pos);
 
-        // Кліки по кнопках статусу заявок
         const reqBtn = target.closest('.req-status-btn');
         if (reqBtn) updateReqStatus(reqBtn.dataset.id, reqBtn.dataset.status, reqBtn.dataset.user, reqBtn.dataset.type, reqBtn);
     });
@@ -422,7 +443,7 @@ function switchTab(tabId) {
 async function refreshAll() {
     AppState.isCached = { requests: false, employees: false };
     AppState.cachedSchedules = {};
-    switchTab(AppState.activeTab); // Перезавантажить активну вкладку
+    switchTab(AppState.activeTab); 
 }
 
 // ================= ПРАЦІВНИКИ =================
@@ -431,7 +452,7 @@ async function fetchEmployeesIfEmpty() {
         const data = await apiCall({ requestType: 'get_employees_list' });
         if (Array.isArray(data)) {
             AppState.employees = data;
-            AppState.employeeMap = Object.fromEntries(data.map(e => [e.name, e])); // Швидкий доступ
+            AppState.employeeMap = Object.fromEntries(data.map(e => [e.name, e])); 
             AppState.isCached.employees = true;
         }
     }
@@ -489,13 +510,17 @@ async function handleAddEmployee(e) {
     const btn = document.getElementById('add-emp-btn');
     btn.disabled = true; btn.textContent = 'Збереження...';
     
+    const newName = document.getElementById('new-emp-name').value;
+    
     await apiCall({
         requestType: 'add_employee',
-        name: document.getElementById('new-emp-name').value,
+        name: newName,
         phone: document.getElementById('new-emp-phone').value,
         dob: document.getElementById('new-emp-dob').value.split('-').reverse().join('.')
     });
     
+    logAdminAction(`Додано нового працівника: ${newName}`);
+
     document.getElementById('add-emp-form').reset();
     hideModal('add-emp-modal');
     btn.disabled = false; btn.textContent = 'Створити профіль';
@@ -554,7 +579,6 @@ function renderRequests(list) {
         let badge = s.includes('Погоджено') || s.includes('Схвалено') ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
                     s.includes('Відхилено') ? 'bg-red-100 text-red-700 border-red-200' : 'bg-amber-100 text-amber-700 border-amber-200';
 
-        // Безпечна обробка коментарів з посиланнями
         let safeComment = escapeHTML(r.comment || '-');
         safeComment = safeComment.replace(/(https:\/\/drive\.google\.com[^\s&]+)/g, '<a href="$1" target="_blank" class="text-blue-500 underline font-bold inline-flex items-center gap-1 mt-1">📄 Довідка</a>').replace(/\n/g, '<br>');
 
@@ -591,6 +615,9 @@ async function updateReqStatus(id, newStatus, user, type, btnElem) {
     if (res && res.status === 'OK') {
         const req = AppState.requests.find(r => r.id === id);
         if (req) req.status = newStatus;
+        
+        logAdminAction(`Змінено статус заявки: ${user}, ${type} -> ${newStatus}`);
+        
         renderRequests(AppState.requests);
     } else {
         alert("Помилка оновлення");
@@ -612,7 +639,7 @@ async function loadSchedule(force = false) {
     document.getElementById('sched-loading').classList.remove('hidden');
     document.getElementById('sched-body').innerHTML = '';
     
-    await fetchEmployeesIfEmpty(); // Треба для розрахунку ДН
+    await fetchEmployeesIfEmpty(); 
     const data = await apiCall({ requestType: 'get_full_schedule', monthYear: mYear });
     
     if (Array.isArray(data)) {
@@ -643,7 +670,6 @@ function renderSchedule(data, mYear) {
         const empInfo = AppState.employeeMap[emp.name] || {};
         const bdayDay = (empInfo.dob && parseInt(empInfo.dob.split('.')[1]) === (monthIndex + 1)) ? parseInt(empInfo.dob.split('.')[0]) : -1;
         
-        // O(1) доступ до розкладу
         const schedMap = {};
         if (emp.schedule) emp.schedule.forEach(s => schedMap[s.day] = s);
 
@@ -657,7 +683,6 @@ function renderSchedule(data, mYear) {
             let val = dayData.dVal || '';
             if (dayData.nVal) val = val ? val + " / " + dayData.nVal + " (н)" : dayData.nVal + " (н)";
             
-            // Надійний підрахунок змін без regex-конфліктів
             const valStr = String(val).toLowerCase();
             shiftCount += (valStr.match(/(?:^|\s|\/)(1|2|3|з)(?:\s|\/|$|\()/g) || []).length;
             
@@ -708,6 +733,8 @@ async function executeCellEdit(newValue, shiftTime) {
         day: AppState.editDay, 
         shiftTime, newValue 
     });
+    
+    logAdminAction(`Зміна графіка: ${AppState.editEmpName}, ${AppState.editDay} число, зміна ${shiftTime} -> ${newValue === 'CLEAR' ? 'Очищено' : newValue}`);
     
     delete AppState.cachedSchedules[AppState.currentMonth];
     loadSchedule(true);
