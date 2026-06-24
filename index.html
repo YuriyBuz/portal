@@ -70,7 +70,7 @@
     <div id="login-container" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100 dark:border-slate-700">
             <div class="text-center mb-8">
-                <a href="#" id="admin-logo-login" title="Вхід для керівника" class="cursor-pointer inline-block transition-transform hover:scale-105 active:scale-95">
+                <a href="#" id="admin-logo-login" title="Вхід" class="cursor-pointer inline-block transition-transform hover:scale-105 active:scale-95">
                     <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="Foodline Logo" class="w-32 h-auto mx-auto mb-4 rounded-lg bg-white p-2 shadow-sm" onerror="this.src='https://placehold.co/120x60?text=FoodLine'">
                 </a>
                 <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Вхід на портал</h2>
@@ -100,7 +100,7 @@
     <div id="admin-pass-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                <h3 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">🛡️ Вхід керівника</h3>
+                <h3 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">🛡️ Вхід</h3>
                 <button type="button" onclick="document.getElementById('admin-pass-modal').classList.add('hidden')" class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
@@ -228,21 +228,28 @@
                 localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
             });
 
-            // Авторизація
             const loginContainer = document.getElementById('login-container'), appContainer = document.getElementById('app-container');
             const loginForm = document.getElementById('login-form'), loginError = document.getElementById('login-error');
             const loginBtn = document.getElementById('login-btn'), loginSpinner = document.getElementById('login-spinner');
             
-            // ТВОЄ ПОСИЛАННЯ ТЕПЕР ТУТ:
             const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA5Q-Ioj4GXLM9R_ThGWe7lstsBAbWKAajFSiTG8qM9pH4k3ktmM4i7NrevyT_81wsjQ/exec';
 
             const savedUser = sessionStorage.getItem('portal_user');
             const savedToken = sessionStorage.getItem('portal_token');
+            const isAdmin = sessionStorage.getItem('admin_auth') === 'true'; // ВИПРАВЛЕННЯ: перевіряємо чи це адмін
             
+            // РОЗУМНИЙ РОУТИНГ ПРИ ЗАВАНТАЖЕННІ: 
+            // Якщо є токен і це адмін -> відразу кидаємо його в адмінку.
             if (savedUser && savedToken) {
-                showApp(savedUser);
+                if (isAdmin) {
+                    try { window.location.replace('./admin.html'); } 
+                    catch(err) { window.location.assign('./admin.html'); }
+                } else {
+                    showApp(savedUser);
+                }
             } else { 
-                loginContainer.classList.remove('hidden'); appContainer.classList.add('hidden'); 
+                loginContainer.classList.remove('hidden'); 
+                appContainer.classList.add('hidden'); 
             }
 
             function showApp(userName) {
@@ -275,7 +282,7 @@
                 });
             });
 
-            // Логін користувача (працівника)
+            // РОЗУМНИЙ РОУТИНГ ПРИ ВХОДІ ЧЕРЕЗ ФОРМУ ПРАЦІВНИКА:
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const u = document.getElementById('login-phone').value.trim(), p = document.getElementById('login-password').value.trim();
@@ -297,8 +304,18 @@
                     if (result.status === "OK" && result.token) {
                         sessionStorage.setItem('portal_user', result.user);
                         sessionStorage.setItem('portal_token', result.token); 
-                        showApp(result.user);
-                        logUserAction('Вхід в систему');
+                        
+                        // Якщо керівник випадково ввів дані у форму працівника, система сама направить його в адмінку!
+                        if (result.role === 'admin') {
+                            sessionStorage.setItem('admin_auth', 'true');
+                            logUserAction('Вхід в систему (Адмін-панель)');
+                            try { window.location.replace('./admin.html'); } 
+                            catch(err) { window.location.assign('./admin.html'); }
+                        } else {
+                            sessionStorage.removeItem('admin_auth'); // Очистка на всякий випадок
+                            showApp(result.user);
+                            logUserAction('Вхід в систему');
+                        }
                     } else {
                         loginError.textContent = result.error || "Невірний логін або пароль.";
                         loginError.classList.remove('hidden');
@@ -315,6 +332,7 @@
                 logUserAction('Вихід з системи');
                 sessionStorage.removeItem('portal_user'); 
                 sessionStorage.removeItem('portal_token'); 
+                sessionStorage.removeItem('admin_auth'); // ВИПРАВЛЕННЯ: обов'язково видаляємо роль при виході
                 
                 document.getElementById('app-container').classList.add('hidden');
                 document.getElementById('login-container').classList.remove('hidden');
@@ -382,7 +400,6 @@
                 }
             });
 
-            // ВІДПРАЦЮВАННЯ ЛОГІКИ ВХОДУ ДЛЯ АДМІНІСТРАТОРА
             const handleAdminClick = (e) => {
                 e.preventDefault();
                 document.getElementById('admin-login-input').value = '';
