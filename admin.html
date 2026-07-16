@@ -88,19 +88,19 @@
 
         <div id="section-requests" class="tab-section hidden space-y-4 w-full max-w-7xl mx-auto">
             <div class="grid grid-cols-4 gap-2">
-                <div class="bg-slate-800 text-white rounded-xl py-2 px-1 shadow-sm flex flex-col items-center justify-center border border-slate-700">
+                <div data-filter="all" class="req-filter-card bg-slate-800 text-white rounded-xl py-2 px-1 shadow-sm flex flex-col items-center justify-center border border-slate-700 cursor-pointer hover:scale-[1.02] transition-all duration-200 ring-2 ring-offset-1 dark:ring-offset-slate-900 ring-slate-800 dark:ring-slate-400">
                     <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Всього</span>
                     <span id="total-count" class="text-xl font-black leading-none mt-1">0</span>
                 </div>
-                <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl py-2 px-1 shadow-sm flex flex-col items-center justify-center border border-amber-200 dark:border-amber-800">
+                <div data-filter="pending" class="req-filter-card opacity-60 hover:opacity-100 bg-amber-50 dark:bg-amber-900/20 rounded-xl py-2 px-1 shadow-sm flex flex-col items-center justify-center border border-amber-200 dark:border-amber-800 cursor-pointer hover:scale-[1.02] transition-all duration-200">
                     <span class="text-[9px] uppercase font-bold text-amber-700 dark:text-amber-500 tracking-wider">Очікують</span>
                     <span id="pending-count" class="text-xl font-black text-amber-600 dark:text-amber-400 leading-none mt-1">0</span>
                 </div>
-                <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl py-2 px-1 shadow-sm flex flex-col items-center justify-center border border-emerald-200 dark:border-emerald-800">
+                <div data-filter="approved" class="req-filter-card opacity-60 hover:opacity-100 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl py-2 px-1 shadow-sm flex flex-col items-center justify-center border border-emerald-200 dark:border-emerald-800 cursor-pointer hover:scale-[1.02] transition-all duration-200">
                     <span class="text-[9px] uppercase font-bold text-emerald-700 dark:text-emerald-500 tracking-wider">Погоджено</span>
                     <span id="approved-count" class="text-xl font-black text-emerald-600 dark:text-emerald-400 leading-none mt-1">0</span>
                 </div>
-                <div class="bg-red-50 dark:bg-red-900/20 rounded-xl py-2 px-1 shadow-sm flex flex-col items-center justify-center border border-red-200 dark:border-red-800">
+                <div data-filter="rejected" class="req-filter-card opacity-60 hover:opacity-100 bg-red-50 dark:bg-red-900/20 rounded-xl py-2 px-1 shadow-sm flex flex-col items-center justify-center border border-red-200 dark:border-red-800 cursor-pointer hover:scale-[1.02] transition-all duration-200">
                     <span class="text-[9px] uppercase font-bold text-red-700 dark:text-red-500 tracking-wider">Відхилено</span>
                     <span id="rejected-count" class="text-xl font-black text-red-600 dark:text-red-400 leading-none mt-1">0</span>
                 </div>
@@ -230,7 +230,6 @@
 // ================= СТАН І НАЛАШТУВАННЯ =================
 const API_URL = 'https://script.google.com/macros/s/AKfycbzYLX7Rc3jfg1zH_DW_Qbx3uiAK38T9aojJiCwVKSX2-3zej4ScsuC9aFeKcYMNcVfzVA/exec';
 
-// Тепер беремо реальний токен та ім'я користувача (адміністратора) з сесії
 const SECURE_TOKEN = sessionStorage.getItem('portal_token'); 
 const ADMIN_USER = sessionStorage.getItem('portal_user');
 
@@ -244,6 +243,7 @@ const AppState = {
     editDay: "",
     editPos: "",
     activeTab: 'schedule',
+    requestFilter: 'all', // Зберігає поточний стан фільтру заявок ('all', 'pending', 'approved', 'rejected')
     isCached: { requests: false, employees: false }
 };
 
@@ -274,7 +274,7 @@ function logAdminAction(action) {
 }
 
 async function apiCall(payload) {
-    payload.token = SECURE_TOKEN; // Захист запитів
+    payload.token = SECURE_TOKEN; 
     try {
         const res = await fetch(API_URL, {
             method: 'POST',
@@ -333,7 +333,6 @@ function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
 
 // ================= ІНІЦІАЛІЗАЦІЯ =================
 document.addEventListener('DOMContentLoaded', () => {
-    // Basic Auth Check
     if (sessionStorage.getItem('admin_auth') !== 'true' || !SECURE_TOKEN) { 
         document.body.innerHTML = `<div class="min-h-screen flex items-center justify-center bg-slate-50"><div class="bg-white p-8 rounded-2xl shadow-xl text-center"><h2 class="text-xl font-bold mb-2 text-red-500">Помилка доступу</h2><a href="index.html" class="text-emerald-600 font-bold underline">На головну</a></div></div>`;
         return;
@@ -343,7 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             const t = document.getElementById('welcome-toast');
             if(t) { 
-                // Якщо є ім'я адміна, показуємо його в привітанні
                 if(ADMIN_USER) t.querySelector('.font-bold').textContent = `${ADMIN_USER.split(' ')[0]}, раді вас знову бачити!`;
                 t.classList.remove('translate-x-full', 'opacity-0'); 
                 setTimeout(() => t.classList.add('translate-x-full', 'opacity-0'), 4000); 
@@ -352,7 +350,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     }
 
-    // Populate Months
     const select = document.getElementById('sched-month-input');
     const ukrMonths = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
     const now = new Date();
@@ -362,10 +359,8 @@ document.addEventListener('DOMContentLoaded', () => {
         select.add(new Option(val, val, false, i===0));
     }
 
-    // Global Listeners
     setupEventListeners();
     
-    // Auto-refresh prompt
     setInterval(() => {
         const m = document.getElementById('refresh-prompt-modal');
         if (m.classList.contains('hidden')) showModal('refresh-prompt-modal');
@@ -375,7 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
-    // Навігація
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => switchTab(e.currentTarget.dataset.tab));
     });
@@ -392,7 +386,14 @@ function setupEventListeners() {
         window.location.replace('index.html');
     });
 
-    // Модалки
+    // Фільтрація заявок при натисканні на картки
+    document.querySelectorAll('.req-filter-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+            AppState.requestFilter = e.currentTarget.dataset.filter;
+            renderRequests(AppState.requests);
+        });
+    });
+
     document.querySelectorAll('.close-modal-btn').forEach(btn => {
         btn.addEventListener('click', (e) => hideModal(e.target.closest('.modal-backdrop').id));
     });
@@ -403,7 +404,6 @@ function setupEventListeners() {
         if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach(m => hideModal(m.id));
     });
 
-    // Делегування подій
     document.addEventListener('click', (e) => {
         const target = e.target;
         
@@ -417,7 +417,6 @@ function setupEventListeners() {
         if (reqBtn) updateReqStatus(reqBtn.dataset.id, reqBtn.dataset.status, reqBtn.dataset.user, reqBtn.dataset.type, reqBtn);
     });
 
-    // Форми
     document.getElementById('open-add-emp-btn').addEventListener('click', () => showModal('add-emp-modal'));
     document.getElementById('add-emp-form').addEventListener('submit', handleAddEmployee);
     document.getElementById('edit-cell-form').addEventListener('submit', handleSaveCell);
@@ -563,18 +562,45 @@ async function loadRequests(force = false) {
 }
 
 function renderRequests(list) {
+    // Оновлюємо числа на всіх лічильниках (незалежно від фільтру)
     document.getElementById('total-count').textContent = list.length;
     document.getElementById('pending-count').textContent = list.filter(r => String(r.status).includes('Очікує')).length;
     document.getElementById('approved-count').textContent = list.filter(r => ['Погоджено', 'Схвалено'].includes(String(r.status))).length;
     document.getElementById('rejected-count').textContent = list.filter(r => String(r.status) === 'Відхилено').length;
 
+    // Змінюємо стилі карток відповідно до активного фільтру
+    document.querySelectorAll('.req-filter-card').forEach(card => {
+        if (card.dataset.filter === AppState.requestFilter) {
+            card.classList.add('ring-2', 'ring-offset-1', 'dark:ring-offset-slate-900');
+            card.classList.remove('opacity-60');
+            
+            if (card.dataset.filter === 'all') card.classList.add('ring-slate-800', 'dark:ring-slate-400');
+            if (card.dataset.filter === 'pending') card.classList.add('ring-amber-500');
+            if (card.dataset.filter === 'approved') card.classList.add('ring-emerald-500');
+            if (card.dataset.filter === 'rejected') card.classList.add('ring-red-500');
+        } else {
+            card.classList.remove('ring-2', 'ring-offset-1', 'dark:ring-offset-slate-900', 'ring-slate-800', 'dark:ring-slate-400', 'ring-amber-500', 'ring-emerald-500', 'ring-red-500');
+            card.classList.add('opacity-60');
+        }
+    });
+
+    // Фільтруємо список
+    let filteredList = list;
+    if (AppState.requestFilter === 'pending') {
+        filteredList = list.filter(r => String(r.status).includes('Очікує'));
+    } else if (AppState.requestFilter === 'approved') {
+        filteredList = list.filter(r => ['Погоджено', 'Схвалено'].includes(String(r.status)));
+    } else if (AppState.requestFilter === 'rejected') {
+        filteredList = list.filter(r => String(r.status) === 'Відхилено');
+    }
+
     const container = document.getElementById('requests-list-container');
-    if (!list.length) {
-        container.innerHTML = `<div class="text-center py-10 font-bold text-slate-400 bg-white dark:bg-slate-800 rounded-xl">Заявок не знайдено</div>`;
+    if (!filteredList.length) {
+        container.innerHTML = `<div class="text-center py-10 font-bold text-slate-400 bg-white dark:bg-slate-800 rounded-xl">Заявок за вибраним фільтром не знайдено</div>`;
         return;
     }
 
-    container.innerHTML = list.map(r => {
+    container.innerHTML = filteredList.map(r => {
         const s = escapeHTML(r.status);
         let badge = s.includes('Погоджено') || s.includes('Схвалено') ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
                     s.includes('Відхилено') ? 'bg-red-100 text-red-700 border-red-200' : 'bg-amber-100 text-amber-700 border-amber-200';
