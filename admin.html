@@ -53,6 +53,7 @@
                 <button data-tab="schedule" class="tab-btn shrink-0 px-5 py-2 rounded-xl bg-emerald-600 text-white font-bold shadow-md flex items-center gap-2 transition-all text-sm">📅 Повний графік</button>
                 <button data-tab="requests" class="tab-btn shrink-0 px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold transition-all border border-slate-200 dark:border-slate-600 flex items-center gap-2 text-sm">📋 Заявки</button>
                 <button data-tab="employees" class="tab-btn shrink-0 px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold transition-all border border-slate-200 dark:border-slate-600 flex items-center gap-2 text-sm">👥 Працівники</button>
+                <button data-tab="finance" class="tab-btn shrink-0 px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-bold transition-all border border-slate-200 dark:border-slate-600 flex items-center gap-2 text-sm">💰 Штрафи / Премії</button>
             </div>
         </div>
     </nav>
@@ -122,6 +123,42 @@
             </div>
             <div id="employees-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
         </div>
+
+        <div id="section-finance" class="tab-section hidden space-y-4 w-full max-w-7xl mx-auto">
+            <div class="grid grid-cols-3 gap-2">
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl py-3 px-1 shadow-sm flex flex-col items-center justify-center border border-emerald-200 dark:border-emerald-800">
+                    <span class="text-[9px] uppercase font-bold text-emerald-700 dark:text-emerald-500 tracking-wider">Премії</span>
+                    <span id="fin-total-bonus" class="text-xl font-black text-emerald-600 dark:text-emerald-400 leading-none mt-1">0</span>
+                </div>
+                <div class="bg-red-50 dark:bg-red-900/20 rounded-xl py-3 px-1 shadow-sm flex flex-col items-center justify-center border border-red-200 dark:border-red-800">
+                    <span class="text-[9px] uppercase font-bold text-red-700 dark:text-red-500 tracking-wider">Штрафи</span>
+                    <span id="fin-total-fine" class="text-xl font-black text-red-600 dark:text-red-400 leading-none mt-1">0</span>
+                </div>
+                <div class="bg-slate-800 text-white rounded-xl py-3 px-1 shadow-sm flex flex-col items-center justify-center border border-slate-700">
+                    <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Баланс</span>
+                    <span id="fin-total-balance" class="text-xl font-black leading-none mt-1">0</span>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <select id="fin-period-filter" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-bold text-sm focus:ring-2 focus:ring-emerald-500 cursor-pointer text-slate-800 dark:text-white">
+                    <option value="all">Усі періоди</option>
+                </select>
+                <select id="fin-type-filter" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-bold text-sm focus:ring-2 focus:ring-emerald-500 cursor-pointer text-slate-800 dark:text-white">
+                    <option value="all">Усі типи</option>
+                    <option value="Премія">Тільки премії</option>
+                    <option value="Штраф">Тільки штрафи</option>
+                </select>
+                <input id="fin-search" type="text" placeholder="Пошук за ПІБ або підставою..." class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-medium text-sm focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-white">
+            </div>
+
+            <div id="fin-loading" class="flex justify-center py-12 hidden">
+                <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            </div>
+
+            <div id="fin-by-employee" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"></div>
+            <div id="fin-list" class="flex flex-col gap-2"></div>
+        </div>
     </main>
 
     <div id="refresh-prompt-modal" class="modal-backdrop hidden fixed inset-0 z-[250] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
@@ -153,6 +190,77 @@
                 <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2"><span class="text-slate-500 dark:text-slate-400 font-medium">Вік:</span> <span id="emp-modal-age" class="font-bold text-slate-800 dark:text-white text-right"></span></div>
                 <div class="flex justify-between items-center"><span class="text-slate-500 dark:text-slate-400 font-medium">До ДН залишилось:</span> <span id="emp-modal-days" class="font-bold text-emerald-600 dark:text-emerald-400 text-right"></span></div>
             </div>
+
+            <div class="px-5 pb-4">
+                <div class="grid grid-cols-3 gap-2 mb-3">
+                    <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg py-2 text-center border border-emerald-200 dark:border-emerald-800">
+                        <p class="text-[9px] uppercase font-bold text-emerald-700 dark:text-emerald-500">Премії</p>
+                        <p id="emp-modal-bonus-sum" class="font-black text-emerald-600 dark:text-emerald-400 text-sm leading-none mt-1">0</p>
+                    </div>
+                    <div class="bg-red-50 dark:bg-red-900/20 rounded-lg py-2 text-center border border-red-200 dark:border-red-800">
+                        <p class="text-[9px] uppercase font-bold text-red-700 dark:text-red-500">Штрафи</p>
+                        <p id="emp-modal-fine-sum" class="font-black text-red-600 dark:text-red-400 text-sm leading-none mt-1">0</p>
+                    </div>
+                    <div class="bg-slate-100 dark:bg-slate-700 rounded-lg py-2 text-center border border-slate-200 dark:border-slate-600">
+                        <p class="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400">Баланс</p>
+                        <p id="emp-modal-balance" class="font-black text-slate-800 dark:text-white text-sm leading-none mt-1">0</p>
+                    </div>
+                </div>
+
+                <div id="emp-modal-history" class="max-h-40 overflow-y-auto space-y-1.5 mb-3 scrollbar-hide"></div>
+
+                <div class="flex gap-2">
+                    <button type="button" id="emp-btn-bonus" class="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-lg transition-colors shadow-sm text-sm flex items-center justify-center gap-1.5">💰 Премія</button>
+                    <button type="button" id="emp-btn-fine" class="w-1/2 bg-red-600 hover:bg-red-700 text-white font-black py-3 rounded-lg transition-colors shadow-sm text-sm flex items-center justify-center gap-1.5">⚠️ Штраф</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="penalty-modal" class="modal-backdrop hidden fixed inset-0 z-[220] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700 max-h-[92vh] flex flex-col">
+            <div id="penalty-modal-header" class="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20">
+                <div>
+                    <h3 id="penalty-modal-title" class="text-lg font-black text-slate-800 dark:text-white leading-tight">Нарахування</h3>
+                    <p id="penalty-modal-emp" class="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5"></p>
+                </div>
+                <button type="button" class="close-modal-btn text-slate-500 dark:text-slate-400 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md">
+                    <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <form id="penalty-form" class="p-5 space-y-3 overflow-y-auto">
+                <div>
+                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Дата *</label>
+                    <input type="date" id="penalty-date" required class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 dark:text-white">
+                </div>
+
+                <div id="penalty-reason-wrap">
+                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Підстава *</label>
+                    <select id="penalty-reason-select" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-sm text-slate-800 dark:text-white">
+                        <option value="">— оберіть зі списку —</option>
+                    </select>
+                    <input type="text" id="penalty-reason-custom" placeholder="Впишіть підставу вручну" class="hidden w-full mt-2 px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-800 dark:text-white">
+                    <p id="penalty-note-hint" class="hidden mt-2 text-[11px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2"></p>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Сума, грн *</label>
+                    <input type="number" id="penalty-amount" required min="1" step="1" inputmode="numeric" placeholder="0" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 font-black text-xl text-slate-800 dark:text-white">
+                    <p id="penalty-amount-note" class="hidden mt-1.5 text-[10px] text-slate-400 leading-snug">За неодноразові порушення або порушення, що призвели до серйозних наслідків, розмір штрафу може бути збільшений.</p>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Опис / обставини</label>
+                    <textarea id="penalty-comment" rows="3" placeholder="За що саме, деталі, свідки, номер акту..." class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-sm resize-none text-slate-800 dark:text-white"></textarea>
+                </div>
+
+                <p id="penalty-error" class="hidden text-xs font-bold text-red-500 text-center"></p>
+
+                <div class="flex gap-3 pt-1">
+                    <button type="button" class="close-modal-btn w-1/3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold py-3 rounded-lg text-sm">Скасувати</button>
+                    <button type="submit" id="penalty-submit-btn" class="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-lg transition-colors shadow-sm text-sm">Зберегти</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -244,7 +352,11 @@ const AppState = {
     editPos: "",
     activeTab: 'schedule',
     requestFilter: 'all', // Зберігає поточний стан фільтру заявок ('all', 'pending', 'approved', 'rejected')
-    isCached: { requests: false, employees: false }
+    penalties: [],
+    violations: [],
+    penaltyEmp: "",
+    penaltyType: "",
+    isCached: { requests: false, employees: false, penalties: false, violations: false }
 };
 
 // ================= ДОПОМІЖНІ ФУНКЦІЇ =================
@@ -415,7 +527,26 @@ function setupEventListeners() {
 
         const reqBtn = target.closest('.req-status-btn');
         if (reqBtn) updateReqStatus(reqBtn.dataset.id, reqBtn.dataset.status, reqBtn.dataset.user, reqBtn.dataset.type, reqBtn);
+
+        const cancelBtn = target.closest('.penalty-cancel-btn');
+        if (cancelBtn) cancelPenalty(cancelBtn.dataset.id, cancelBtn);
+
+        const finEmpCard = target.closest('.fin-emp-card');
+        if (finEmpCard) {
+            document.getElementById('fin-search').value = finEmpCard.dataset.name;
+            renderPenalties();
+        }
     });
+
+    // ---- Модуль «Штрафи / Премії» ----
+    document.getElementById('emp-btn-bonus').addEventListener('click', () => openPenaltyModal('Премія'));
+    document.getElementById('emp-btn-fine').addEventListener('click', () => openPenaltyModal('Штраф'));
+    document.getElementById('penalty-form').addEventListener('submit', handleSavePenalty);
+    document.getElementById('penalty-reason-select').addEventListener('change', onReasonChange);
+    ['fin-period-filter', 'fin-type-filter'].forEach(id => {
+        document.getElementById(id).addEventListener('change', renderPenalties);
+    });
+    document.getElementById('fin-search').addEventListener('input', renderPenalties);
 
     document.getElementById('open-add-emp-btn').addEventListener('click', () => showModal('add-emp-modal'));
     document.getElementById('add-emp-form').addEventListener('submit', handleAddEmployee);
@@ -437,10 +568,11 @@ function switchTab(tabId) {
     if (tabId === 'schedule') loadSchedule();
     if (tabId === 'requests') loadRequests();
     if (tabId === 'employees') loadEmployees();
+    if (tabId === 'finance') loadPenalties();
 }
 
 async function refreshAll() {
-    AppState.isCached = { requests: false, employees: false };
+    AppState.isCached = { requests: false, employees: false, penalties: false, violations: AppState.isCached.violations };
     AppState.cachedSchedules = {};
     switchTab(AppState.activeTab); 
 }
@@ -476,7 +608,7 @@ async function loadEmployees(force = false) {
         const bdayBadge = days !== '-' && days <= 14 ? `<span class="bg-amber-100 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider animate-pulse">🎁 ДН через ${days} дн!</span>` : '';
         
         return `
-        <div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden group">
+        <div class="emp-name-cell cursor-pointer hover:border-emerald-400 bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden group transition-colors" data-name="${escapeHTML(e.name)}" data-pos="">
             <div class="flex justify-between items-start mb-3">
                 <div>
                     <h3 class="font-bold text-base text-slate-800 dark:text-white leading-tight">${escapeHTML(e.name)}</h3>
@@ -526,9 +658,20 @@ async function handleAddEmployee(e) {
     loadEmployees(true); 
 }
 
+function findPositionFor(name) {
+    for (const key in AppState.cachedSchedules) {
+        const arr = AppState.cachedSchedules[key];
+        if (!Array.isArray(arr)) continue;
+        const hit = arr.find(r => sameEmployee(r.name, name) && r.position);
+        if (hit) return hit.position;
+    }
+    return '';
+}
+
 function openEmpModal(name, position) {
     const emp = AppState.employeeMap[name] || {};
     const {age, days} = calculateAgeAndDays(emp.dob);
+    if (!position) position = findPositionFor(name);
     
     document.getElementById('emp-modal-name').textContent = name;
     document.getElementById('emp-modal-pos').textContent = position || 'Не вказано';
@@ -539,8 +682,348 @@ function openEmpModal(name, position) {
     document.getElementById('emp-modal-dob').textContent = emp.dob || '-';
     document.getElementById('emp-modal-age').textContent = age !== '-' ? age + ' років' : '-';
     document.getElementById('emp-modal-days').textContent = days !== '-' ? days + ' днів' : '-';
-    
+
+    AppState.penaltyEmp = name;
+    renderEmpFinance(name);
+    fetchPenaltiesIfEmpty().then(() => {
+        if (AppState.penaltyEmp === name) renderEmpFinance(name);
+    });
+    fetchViolationsIfEmpty();
+
     showModal('emp-info-modal');
+}
+
+// ================= ШТРАФИ ТА ПРЕМІЇ =================
+
+function fmtMoney(n) {
+    return new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 2 }).format(Number(n) || 0);
+}
+
+async function apiCallStrict(payload) {
+    payload.token = SECURE_TOKEN;
+    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (data && data.error) throw new Error(data.error);
+    return data;
+}
+
+async function fetchPenaltiesIfEmpty() {
+    if (AppState.isCached.penalties) return;
+    const data = await apiCall({ requestType: 'get_penalties' });
+    if (Array.isArray(data)) {
+        AppState.penalties = data;
+        AppState.isCached.penalties = true;
+    }
+}
+
+async function fetchViolationsIfEmpty() {
+    if (AppState.isCached.violations) return;
+    const data = await apiCall({ requestType: 'get_violations' });
+    if (Array.isArray(data)) {
+        AppState.violations = data;
+        AppState.isCached.violations = true;
+    }
+}
+
+// ПІБ у графіку може бути коротшим, ніж у вкладці "Активні" ("Кораблін Дмитро"
+// проти "Кораблін Дмитро Іванович"), тому звіряємо за словами, а не посимвольно.
+function sameEmployee(a, b) {
+    const norm = s => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    const na = norm(a), nb = norm(b);
+    if (!na || !nb) return false;
+    if (na === nb) return true;
+    const wa = na.split(' ').filter(w => w.length > 1);
+    const wb = nb.split(' ').filter(w => w.length > 1);
+    const short = wa.length <= wb.length ? wa : wb;
+    const long = wa.length <= wb.length ? wb : wa;
+    return short.length > 0 && short.every(w => long.includes(w));
+}
+
+function activePenaltiesFor(name) {
+    return AppState.penalties.filter(p => sameEmployee(p.user, name) && p.status !== 'Скасовано');
+}
+
+function renderEmpFinance(name) {
+    const recs = activePenaltiesFor(name);
+    const bonus = recs.filter(r => r.type === 'Премія').reduce((s, r) => s + r.amount, 0);
+    const fine  = recs.filter(r => r.type === 'Штраф').reduce((s, r) => s + r.amount, 0);
+    const balance = bonus - fine;
+
+    document.getElementById('emp-modal-bonus-sum').textContent = fmtMoney(bonus);
+    document.getElementById('emp-modal-fine-sum').textContent = fmtMoney(fine);
+    const balEl = document.getElementById('emp-modal-balance');
+    balEl.textContent = (balance > 0 ? '+' : '') + fmtMoney(balance);
+    balEl.className = `font-black text-sm leading-none mt-1 ${balance > 0 ? 'text-emerald-600 dark:text-emerald-400' : balance < 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-white'}`;
+
+    const box = document.getElementById('emp-modal-history');
+    if (!recs.length) {
+        box.innerHTML = `<p class="text-[11px] text-center text-slate-400 py-2 font-medium">Нарахувань немає</p>`;
+        return;
+    }
+    box.innerHTML = recs.slice(0, 12).map(r => {
+        const isBonus = r.type === 'Премія';
+        return `<div class="flex items-start justify-between gap-2 text-[11px] p-2 rounded-lg border ${isBonus ? 'bg-emerald-50/60 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : 'bg-red-50/60 dark:bg-red-900/10 border-red-200 dark:border-red-800'}">
+            <div class="min-w-0">
+                <p class="font-bold text-slate-700 dark:text-slate-200 leading-tight">${escapeHTML(r.reason || r.comment || '—')}</p>
+                <p class="text-slate-400 mt-0.5">${escapeHTML(r.date)}</p>
+            </div>
+            <span class="font-black whitespace-nowrap ${isBonus ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}">${isBonus ? '+' : '−'}${fmtMoney(r.amount)}</span>
+        </div>`;
+    }).join('');
+}
+
+function openPenaltyModal(type) {
+    AppState.penaltyType = type;
+    const isBonus = type === 'Премія';
+
+    document.getElementById('penalty-modal-title').textContent = isBonus ? '💰 Нарахування премії' : '⚠️ Нарахування штрафу';
+    document.getElementById('penalty-modal-emp').textContent = AppState.penaltyEmp;
+    document.getElementById('penalty-modal-header').className =
+        `flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-700 ${isBonus ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-red-50 dark:bg-red-900/20'}`;
+
+    const submitBtn = document.getElementById('penalty-submit-btn');
+    submitBtn.className = `w-2/3 ${isBonus ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'} text-white font-black py-3 rounded-lg transition-colors shadow-sm text-sm`;
+    submitBtn.textContent = isBonus ? 'Нарахувати премію' : 'Нарахувати штраф';
+    submitBtn.disabled = false;
+
+    document.getElementById('penalty-form').reset();
+    document.getElementById('penalty-error').classList.add('hidden');
+    document.getElementById('penalty-reason-custom').classList.add('hidden');
+    document.getElementById('penalty-note-hint').classList.add('hidden');
+    document.getElementById('penalty-amount-note').classList.toggle('hidden', isBonus);
+
+    const today = new Date();
+    document.getElementById('penalty-date').value =
+        `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    const sel = document.getElementById('penalty-reason-select');
+    const list = AppState.violations.filter(v => v.type === type);
+
+    const groups = [];
+    list.forEach(v => { const g = v.group || ''; if (!groups.includes(g)) groups.push(g); });
+
+    const buildOpt = v => {
+        const label = (v.code ? v.code + ' ' : '') + v.name;
+        const suffix = v.amount ? ` — ${fmtMoney(v.amount)} грн` : '';
+        return `<option value="${escapeHTML(label)}" data-amount="${v.amount || 0}" data-note="${escapeHTML(v.note || '')}">${escapeHTML(label)}${suffix}</option>`;
+    };
+
+    sel.innerHTML = `<option value="">— оберіть зі списку —</option>` +
+        groups.map(g => {
+            const opts = list.filter(v => (v.group || '') === g).map(buildOpt).join('');
+            return g ? `<optgroup label="${escapeHTML(g)}">${opts}</optgroup>` : opts;
+        }).join('') +
+        `<option value="__custom__">✍️ Інше (вписати вручну)</option>`;
+
+    if (!list.length) {
+        sel.value = '__custom__';
+        onReasonChange();
+    }
+
+    showModal('penalty-modal');
+}
+
+function onReasonChange() {
+    const sel = document.getElementById('penalty-reason-select');
+    const custom = document.getElementById('penalty-reason-custom');
+    const amountInput = document.getElementById('penalty-amount');
+    const hint = document.getElementById('penalty-note-hint');
+
+    if (sel.value === '__custom__') {
+        custom.classList.remove('hidden');
+        hint.classList.add('hidden');
+        custom.focus();
+        return;
+    }
+    custom.classList.add('hidden');
+    custom.value = '';
+
+    const opt = sel.selectedOptions[0];
+    const note = opt ? (opt.dataset.note || '') : '';
+    if (note) {
+        hint.textContent = '⚠️ ' + note;
+        hint.classList.remove('hidden');
+    } else {
+        hint.classList.add('hidden');
+    }
+
+    const preset = opt ? Number(opt.dataset.amount || 0) : 0;
+    // 0 у довіднику = суму визначає керівник (напр. оклад за зміну)
+    amountInput.value = preset > 0 ? preset : '';
+    if (preset === 0 && sel.value) amountInput.focus();
+}
+
+async function handleSavePenalty(e) {
+    e.preventDefault();
+    const errEl = document.getElementById('penalty-error');
+    const btn = document.getElementById('penalty-submit-btn');
+    errEl.classList.add('hidden');
+
+    const sel = document.getElementById('penalty-reason-select');
+    const reason = sel.value === '__custom__'
+        ? document.getElementById('penalty-reason-custom').value.trim()
+        : sel.value.trim();
+    const amount = Number(document.getElementById('penalty-amount').value);
+    const comment = document.getElementById('penalty-comment').value.trim();
+    const dateVal = document.getElementById('penalty-date').value;
+
+    if (!reason) {
+        errEl.textContent = 'Оберіть підставу зі списку або впишіть вручну';
+        errEl.classList.remove('hidden');
+        return;
+    }
+    if (!amount || amount <= 0) {
+        errEl.textContent = 'Вкажіть суму більшу за 0';
+        errEl.classList.remove('hidden');
+        return;
+    }
+
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Збереження...';
+
+    try {
+        await apiCallStrict({
+            requestType: 'add_penalty',
+            empName: AppState.penaltyEmp,
+            type: AppState.penaltyType,
+            amount: amount,
+            reason: reason,
+            comment: comment,
+            date: dateVal
+        });
+
+        AppState.isCached.penalties = false;
+        AppState.penalties = [];
+        hideModal('penalty-modal');
+        await fetchPenaltiesIfEmpty();
+        renderEmpFinance(AppState.penaltyEmp);
+        if (AppState.activeTab === 'finance') renderPenalties();
+
+    } catch (err) {
+        errEl.textContent = err.message || 'Помилка збереження';
+        errEl.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
+async function loadPenalties(force = false) {
+    if (!force && AppState.isCached.penalties) { renderPenalties(); return; }
+    document.getElementById('fin-loading').classList.remove('hidden');
+    document.getElementById('fin-list').innerHTML = '';
+    document.getElementById('fin-by-employee').innerHTML = '';
+
+    const data = await apiCall({ requestType: 'get_penalties' });
+    await fetchViolationsIfEmpty();
+    document.getElementById('fin-loading').classList.add('hidden');
+
+    if (!Array.isArray(data)) {
+        document.getElementById('fin-list').innerHTML = `<div class="text-center py-10 font-bold text-red-500">Помилка мережі. Дані не завантажено.</div>`;
+        return;
+    }
+
+    AppState.penalties = data;
+    AppState.isCached.penalties = true;
+
+    const sel = document.getElementById('fin-period-filter');
+    const current = sel.value;
+    const periods = [...new Set(data.map(p => p.period).filter(Boolean))];
+    sel.innerHTML = `<option value="all">Усі періоди</option>` +
+        periods.map(p => `<option value="${escapeHTML(p)}">${escapeHTML(p)}</option>`).join('');
+    if (periods.includes(current)) sel.value = current;
+
+    renderPenalties();
+}
+
+function renderPenalties() {
+    const period = document.getElementById('fin-period-filter').value;
+    const type = document.getElementById('fin-type-filter').value;
+    const search = document.getElementById('fin-search').value.trim().toLowerCase();
+
+    let rows = AppState.penalties.filter(p => {
+        if (period !== 'all' && p.period !== period) return false;
+        if (type !== 'all' && p.type !== type) return false;
+        if (search && !(String(p.user).toLowerCase().includes(search) ||
+                        String(p.reason).toLowerCase().includes(search) ||
+                        String(p.comment).toLowerCase().includes(search))) return false;
+        return true;
+    });
+
+    const active = rows.filter(p => p.status !== 'Скасовано');
+    const bonus = active.filter(p => p.type === 'Премія').reduce((s, p) => s + p.amount, 0);
+    const fine = active.filter(p => p.type === 'Штраф').reduce((s, p) => s + p.amount, 0);
+
+    document.getElementById('fin-total-bonus').textContent = fmtMoney(bonus);
+    document.getElementById('fin-total-fine').textContent = fmtMoney(fine);
+    const balEl = document.getElementById('fin-total-balance');
+    balEl.textContent = (bonus - fine > 0 ? '+' : '') + fmtMoney(bonus - fine);
+
+    // Зведення по працівниках
+    const byEmp = {};
+    active.forEach(p => {
+        if (!byEmp[p.user]) byEmp[p.user] = { bonus: 0, fine: 0 };
+        if (p.type === 'Премія') byEmp[p.user].bonus += p.amount; else byEmp[p.user].fine += p.amount;
+    });
+    const empCards = Object.entries(byEmp).sort((a, b) => (b[1].fine + b[1].bonus) - (a[1].fine + a[1].bonus));
+    document.getElementById('fin-by-employee').innerHTML = empCards.map(([name, v]) => {
+        const bal = v.bonus - v.fine;
+        return `<div class="fin-emp-card cursor-pointer bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm hover:border-emerald-400 transition-colors" data-name="${escapeHTML(name)}">
+            <p class="font-bold text-sm text-slate-800 dark:text-white truncate">${escapeHTML(name)}</p>
+            <div class="flex justify-between items-center mt-1.5 text-[11px] font-bold">
+                <span class="text-emerald-600 dark:text-emerald-400">+${fmtMoney(v.bonus)}</span>
+                <span class="text-red-600 dark:text-red-400">−${fmtMoney(v.fine)}</span>
+                <span class="${bal >= 0 ? 'text-slate-700 dark:text-slate-200' : 'text-red-700 dark:text-red-300'} font-black">= ${fmtMoney(bal)}</span>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Детальний перелік
+    const list = document.getElementById('fin-list');
+    if (!rows.length) {
+        list.innerHTML = `<div class="text-center py-10 font-bold text-slate-400">Записів не знайдено</div>`;
+        return;
+    }
+
+    list.innerHTML = rows.map(p => {
+        const isBonus = p.type === 'Премія';
+        const cancelled = p.status === 'Скасовано';
+        return `<div class="bg-white dark:bg-slate-800 rounded-xl p-3 border-l-4 ${cancelled ? 'border-slate-300 opacity-50' : isBonus ? 'border-emerald-500' : 'border-red-500'} border-y border-r border-slate-200 dark:border-slate-700 shadow-sm flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded ${isBonus ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${escapeHTML(p.type)}</span>
+                    <span class="font-bold text-sm text-slate-800 dark:text-white">${escapeHTML(p.user)}</span>
+                    <span class="text-[10px] text-slate-400 font-medium">${escapeHTML(p.date)} · ${escapeHTML(p.period)}</span>
+                    ${cancelled ? '<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-slate-200 text-slate-600">Скасовано</span>' : ''}
+                </div>
+                <p class="text-xs font-medium text-slate-600 dark:text-slate-300 mt-1 ${cancelled ? 'line-through' : ''}">${escapeHTML(p.reason || '—')}</p>
+                ${p.comment ? `<p class="text-[11px] text-slate-400 mt-0.5 whitespace-pre-line">${escapeHTML(p.comment)}</p>` : ''}
+                <p class="text-[10px] text-slate-400 mt-1">Нарахував: ${escapeHTML(p.author || '—')}</p>
+            </div>
+            <div class="flex flex-col items-end gap-2 shrink-0">
+                <span class="font-black text-base ${cancelled ? 'text-slate-400 line-through' : isBonus ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}">${isBonus ? '+' : '−'}${fmtMoney(p.amount)}</span>
+                ${cancelled ? '' : `<button type="button" class="penalty-cancel-btn text-[10px] font-bold text-slate-400 hover:text-red-500 underline" data-id="${escapeHTML(p.id)}">Скасувати</button>`}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function cancelPenalty(id, btn) {
+    if (!confirm('Скасувати це нарахування? Запис залишиться в таблиці зі статусом «Скасовано».')) return;
+    btn.disabled = true;
+    btn.textContent = '...';
+    try {
+        await apiCallStrict({ requestType: 'cancel_penalty', id: id });
+        const rec = AppState.penalties.find(p => String(p.id) === String(id));
+        if (rec) rec.status = 'Скасовано';
+        renderPenalties();
+        if (AppState.penaltyEmp) renderEmpFinance(AppState.penaltyEmp);
+    } catch (err) {
+        alert('Помилка: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Скасувати';
+    }
 }
 
 // ================= ЗАЯВКИ =================
