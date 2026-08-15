@@ -12,6 +12,14 @@
         }
     </script>
     <style>
+        @keyframes loader-slide {
+            0%   { transform: translateX(-110%); }
+            100% { transform: translateX(310%); }
+        }
+        .loader-indeterminate {
+            width: 32%;
+            animation: loader-slide 1.1s ease-in-out infinite;
+        }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         body { -webkit-tap-highlight-color: transparent; }
@@ -727,8 +735,18 @@ function fmtMoney(n) {
 
 async function apiCallStrict(payload) {
     payload.token = SECURE_TOKEN;
-    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-    const data = await res.json();
+    let res;
+    try {
+        res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+    } catch (err) {
+        throw new Error('Немає зв\'язку з сервером. Перевірте інтернет і спробуйте ще раз.');
+    }
+    let data;
+    try {
+        data = await res.json();
+    } catch (err) {
+        throw new Error('Сервер повернув некоректну відповідь (код ' + res.status + '). Можливо, завеликий обсяг фото.');
+    }
     if (data && data.error) throw new Error(data.error);
     return data;
 }
@@ -801,22 +819,58 @@ function renderEmpFinance(name) {
 
 // ---- Центрований індикатор завантаження ----
 
+let loaderTimer = null;
+
 function showLoader(text, sub) {
     document.getElementById('global-loader-text').textContent = text;
     const subEl = document.getElementById('global-loader-sub');
     if (sub) { subEl.textContent = sub; subEl.classList.remove('hidden'); }
-    else subEl.classList.add('hidden');
+    else if (!loaderTimer) subEl.classList.add('hidden');
     document.getElementById('global-loader').classList.remove('hidden');
 }
 
 function setLoaderProgress(percent) {
     const wrap = document.getElementById('global-loader-bar-wrap');
+    const bar = document.getElementById('global-loader-bar');
     if (percent === null) { wrap.classList.add('hidden'); return; }
     wrap.classList.remove('hidden');
-    document.getElementById('global-loader-bar').style.width = Math.max(0, Math.min(100, percent)) + '%';
+    bar.classList.remove('loader-indeterminate');
+    bar.style.width = Math.max(0, Math.min(100, percent)) + '%';
+}
+
+/**
+ * Смуга без відсотків.
+ * Реальний відсоток завантаження на Apps Script недосяжний: щоб його отримати,
+ * потрібен обробник на xhr.upload, а він за специфікацією CORS робить запит
+ * "непростим" і вмикає preflight OPTIONS, який /exec не обслуговує.
+ * Показувати вигаданий відсоток гірше, ніж чесний лічильник часу.
+ */
+function setLoaderIndeterminate() {
+    const wrap = document.getElementById('global-loader-bar-wrap');
+    const bar = document.getElementById('global-loader-bar');
+    wrap.classList.remove('hidden');
+    bar.style.width = '';
+    bar.classList.add('loader-indeterminate');
+}
+
+function startLoaderTimer(prefix) {
+    stopLoaderTimer();
+    const t0 = Date.now();
+    const subEl = document.getElementById('global-loader-sub');
+    subEl.classList.remove('hidden');
+    const tick = () => {
+        subEl.textContent = prefix + ' · ' + Math.floor((Date.now() - t0) / 1000) + ' с';
+    };
+    tick();
+    loaderTimer = setInterval(tick, 1000);
+}
+
+function stopLoaderTimer() {
+    if (loaderTimer) { clearInterval(loaderTimer); loaderTimer = null; }
 }
 
 function hideLoader() {
+    stopLoaderTimer();
     document.getElementById('global-loader').classList.add('hidden');
     setLoaderProgress(null);
     document.getElementById('global-loader-sub').classList.add('hidden');
@@ -827,30 +881,9 @@ function letUiBreathe() {
     return new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 }
 
-/**
- * Відправка з реальним прогресом завантаження.
- * fetch() не вміє показувати upload progress, тому для запитів із фото — XHR.
- */
-function apiCallUpload(payload, onProgress) {
-    payload.token = SECURE_TOKEN;
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', API_URL, true);
-        xhr.upload.onprogress = e => {
-            if (e.lengthComputable && onProgress) onProgress(Math.round(e.loaded / e.total * 100));
-        };
-        xhr.onload = () => {
-            let data;
-            try { data = JSON.parse(xhr.responseText); }
-            catch (err) { reject(new Error('Некоректна відповідь сервера')); return; }
-            if (data && data.error) reject(new Error(data.error));
-            else resolve(data);
-        };
-        xhr.onerror = () => reject(new Error('Помилка мережі. Перевірте зв\'язок.'));
-        xhr.ontimeout = () => reject(new Error('Час очікування вичерпано'));
-        xhr.timeout = 180000;
-        xhr.send(JSON.stringify(payload));
-    });
+function photosWeight(photos) {
+    const bytes = photos.reduce((s, p) => s + (p.data ? p.data.length * 0.75 : 0), 0);
+    return bytes > 1048576 ? (bytes / 1048576).toFixed(1) + ' МБ' : Math.round(bytes / 1024) + ' КБ';
 }
 
 // ---- Фотофіксація ----
@@ -1094,20 +1127,17 @@ async function handleSavePenalty(e) {
     };
 
     try {
-        let result;
-
         if (photoCount) {
-            showLoader('Завантаження фото...', `${photoCount} шт. · не закривайте вікно`);
-            setLoaderProgress(0);
-            result = await apiCallUpload(payload, pct => {
-                setLoaderProgress(pct);
-                if (pct >= 100) showLoader('Збереження на Диск...', 'Google обробляє файли');
-            });
+            showLoader(`Завантаження ${photoCount} фото...`);
+            setLoaderIndeterminate();
+            startLoaderTimer(photosWeight(AppState.penaltyPhotos) + ' · не закривайте вікно');
         } else {
             showLoader('Збереження запису...');
-            result = await apiCallStrict(payload);
+            setLoaderIndeterminate();
         }
 
+        const result = await apiCallStrict(payload);
+        stopLoaderTimer();
         // Розрізняємо два різні збої, які інакше виглядають однаково
         if (photoCount) {
             if (result.module !== 'penalties-v2') {
