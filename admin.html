@@ -217,6 +217,20 @@
         </div>
     </div>
 
+    <div id="global-loader" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-6">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl px-8 py-7 shadow-2xl flex flex-col items-center gap-4 w-full max-w-xs border border-slate-200 dark:border-slate-700">
+            <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            <p id="global-loader-text" class="font-bold text-sm text-slate-700 dark:text-slate-200 text-center leading-snug">Обробка...</p>
+            <div id="global-loader-bar-wrap" class="hidden w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div id="global-loader-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-200" style="width:0%"></div>
+            </div>
+            <p id="global-loader-sub" class="hidden text-[11px] text-slate-400 text-center leading-snug"></p>
+        </div>
+    </div>
+
     <div id="penalty-modal" class="modal-backdrop hidden fixed inset-0 z-[220] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700 max-h-[92vh] flex flex-col">
             <div id="penalty-modal-header" class="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/20">
@@ -785,6 +799,60 @@ function renderEmpFinance(name) {
     }).join('');
 }
 
+// ---- Центрований індикатор завантаження ----
+
+function showLoader(text, sub) {
+    document.getElementById('global-loader-text').textContent = text;
+    const subEl = document.getElementById('global-loader-sub');
+    if (sub) { subEl.textContent = sub; subEl.classList.remove('hidden'); }
+    else subEl.classList.add('hidden');
+    document.getElementById('global-loader').classList.remove('hidden');
+}
+
+function setLoaderProgress(percent) {
+    const wrap = document.getElementById('global-loader-bar-wrap');
+    if (percent === null) { wrap.classList.add('hidden'); return; }
+    wrap.classList.remove('hidden');
+    document.getElementById('global-loader-bar').style.width = Math.max(0, Math.min(100, percent)) + '%';
+}
+
+function hideLoader() {
+    document.getElementById('global-loader').classList.add('hidden');
+    setLoaderProgress(null);
+    document.getElementById('global-loader-sub').classList.add('hidden');
+}
+
+// Дає браузеру перемалювати екран перед важкою синхронною операцією (canvas)
+function letUiBreathe() {
+    return new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+}
+
+/**
+ * Відправка з реальним прогресом завантаження.
+ * fetch() не вміє показувати upload progress, тому для запитів із фото — XHR.
+ */
+function apiCallUpload(payload, onProgress) {
+    payload.token = SECURE_TOKEN;
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', API_URL, true);
+        xhr.upload.onprogress = e => {
+            if (e.lengthComputable && onProgress) onProgress(Math.round(e.loaded / e.total * 100));
+        };
+        xhr.onload = () => {
+            let data;
+            try { data = JSON.parse(xhr.responseText); }
+            catch (err) { reject(new Error('Некоректна відповідь сервера')); return; }
+            if (data && data.error) reject(new Error(data.error));
+            else resolve(data);
+        };
+        xhr.onerror = () => reject(new Error('Помилка мережі. Перевірте зв\'язок.'));
+        xhr.ontimeout = () => reject(new Error('Час очікування вичерпано'));
+        xhr.timeout = 180000;
+        xhr.send(JSON.stringify(payload));
+    });
+}
+
 // ---- Фотофіксація ----
 
 const MAX_PENALTY_PHOTOS = 3;
@@ -851,16 +919,26 @@ async function handlePhotoPick(files) {
     const free = MAX_PENALTY_PHOTOS - AppState.penaltyPhotos.length;
     if (free <= 0) return;
 
-    const box = document.getElementById('penalty-photo-preview');
-    box.insertAdjacentHTML('beforeend', '<span id="photo-spinner" class="text-[11px] font-bold text-slate-400 self-center">обробка...</span>');
+    const queue = Array.from(files).filter(f => f.type.startsWith('image/')).slice(0, free);
+    if (!queue.length) return;
 
-    for (const file of Array.from(files).slice(0, free)) {
-        if (!file.type.startsWith('image/')) continue;
-        const photo = await compressPhoto(file);
-        if (photo && photo.data) AppState.penaltyPhotos.push(photo);
+    showLoader('Обробка фото...', 'Стиснення перед завантаженням');
+    setLoaderProgress(0);
+
+    try {
+        for (let i = 0; i < queue.length; i++) {
+            showLoader(`Обробка фото ${i + 1} з ${queue.length}`, 'Стиснення перед завантаженням');
+            setLoaderProgress(Math.round(i / queue.length * 100));
+            await letUiBreathe();
+
+            const photo = await compressPhoto(queue[i]);
+            if (photo && photo.data) AppState.penaltyPhotos.push(photo);
+        }
+        setLoaderProgress(100);
+    } finally {
+        hideLoader();
+        renderPhotoPreview();
     }
-
-    renderPhotoPreview();
 }
 
 function renderPhotoPreview() {
@@ -1002,23 +1080,50 @@ async function handleSavePenalty(e) {
 
     const originalText = btn.textContent;
     btn.disabled = true;
-    btn.textContent = AppState.penaltyPhotos.length ? 'Завантаження фото...' : 'Збереження...';
+
+    const photoCount = AppState.penaltyPhotos.length;
+    const payload = {
+        requestType: 'add_penalty',
+        empName: AppState.penaltyEmp,
+        type: AppState.penaltyType,
+        amount: amount,
+        reason: reason,
+        comment: comment,
+        date: dateVal,
+        photos: AppState.penaltyPhotos.map(p => ({ data: p.data, mime: p.mime }))
+    };
 
     try {
-        await apiCallStrict({
-            requestType: 'add_penalty',
-            empName: AppState.penaltyEmp,
-            type: AppState.penaltyType,
-            amount: amount,
-            reason: reason,
-            comment: comment,
-            date: dateVal,
-            photos: AppState.penaltyPhotos.map(p => ({ data: p.data, mime: p.mime }))
-        });
+        let result;
+
+        if (photoCount) {
+            showLoader('Завантаження фото...', `${photoCount} шт. · не закривайте вікно`);
+            setLoaderProgress(0);
+            result = await apiCallUpload(payload, pct => {
+                setLoaderProgress(pct);
+                if (pct >= 100) showLoader('Збереження на Диск...', 'Google обробляє файли');
+            });
+        } else {
+            showLoader('Збереження запису...');
+            result = await apiCallStrict(payload);
+        }
+
+        // Розрізняємо два різні збої, які інакше виглядають однаково
+        if (photoCount) {
+            if (result.module !== 'penalties-v2') {
+                throw new Error('Запис збережено, але БЕЗ ФОТО: розгортання виконує стару версію коду. Розгортання → Керувати розгортаннями → олівець → Версія: Нова версія.');
+            }
+            if (result.photos < photoCount) {
+                throw new Error(`Завантажено ${result.photos} з ${photoCount} фото. ${result.photoError || 'Перевірте журнал виконання Apps Script.'}`);
+            }
+        }
 
         AppState.isCached.penalties = false;
         AppState.penalties = [];
+        AppState.penaltyPhotos = [];
         hideModal('penalty-modal');
+
+        showLoader('Оновлення даних...');
         await fetchPenaltiesIfEmpty();
         renderEmpFinance(AppState.penaltyEmp);
         if (AppState.activeTab === 'finance') renderPenalties();
@@ -1026,7 +1131,9 @@ async function handleSavePenalty(e) {
     } catch (err) {
         errEl.textContent = err.message || 'Помилка збереження';
         errEl.classList.remove('hidden');
+        AppState.isCached.penalties = false;
     } finally {
+        hideLoader();
         btn.disabled = false;
         btn.textContent = originalText;
     }
