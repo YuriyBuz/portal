@@ -254,6 +254,17 @@
                     <textarea id="penalty-comment" rows="3" placeholder="За що саме, деталі, свідки, номер акту..." class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-sm resize-none text-slate-800 dark:text-white"></textarea>
                 </div>
 
+                <div>
+                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Фотофіксація <span class="normal-case font-medium text-slate-400">(до 3 фото)</span></label>
+                    <div class="flex gap-2 mt-1.5">
+                        <button type="button" id="penalty-btn-camera" class="flex-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-600">📷 Зробити фото</button>
+                        <button type="button" id="penalty-btn-gallery" class="flex-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-600">🖼 З галереї</button>
+                    </div>
+                    <input type="file" id="penalty-file-camera" accept="image/*" capture="environment" class="hidden">
+                    <input type="file" id="penalty-file-gallery" accept="image/*" multiple class="hidden">
+                    <div id="penalty-photo-preview" class="flex gap-2 flex-wrap mt-2"></div>
+                </div>
+
                 <p id="penalty-error" class="hidden text-xs font-bold text-red-500 text-center"></p>
 
                 <div class="flex gap-3 pt-1">
@@ -356,6 +367,7 @@ const AppState = {
     violations: [],
     penaltyEmp: "",
     penaltyType: "",
+    penaltyPhotos: [],
     isCached: { requests: false, employees: false, penalties: false, violations: false }
 };
 
@@ -766,10 +778,118 @@ function renderEmpFinance(name) {
             <div class="min-w-0">
                 <p class="font-bold text-slate-700 dark:text-slate-200 leading-tight">${escapeHTML(r.reason || r.comment || '—')}</p>
                 <p class="text-slate-400 mt-0.5">${escapeHTML(r.date)}</p>
+                ${renderPhotoLinks(r.photos)}
             </div>
             <span class="font-black whitespace-nowrap ${isBonus ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}">${isBonus ? '+' : '−'}${fmtMoney(r.amount)}</span>
         </div>`;
     }).join('');
+}
+
+// ---- Фотофіксація ----
+
+const MAX_PENALTY_PHOTOS = 3;
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('penalty-btn-camera').addEventListener('click', () => {
+        document.getElementById('penalty-file-camera').click();
+    });
+    document.getElementById('penalty-btn-gallery').addEventListener('click', () => {
+        document.getElementById('penalty-file-gallery').click();
+    });
+    ['penalty-file-camera', 'penalty-file-gallery'].forEach(id => {
+        document.getElementById(id).addEventListener('change', e => {
+            handlePhotoPick(e.target.files);
+            e.target.value = '';
+        });
+    });
+    document.getElementById('penalty-photo-preview').addEventListener('click', e => {
+        const btn = e.target.closest('.photo-remove-btn');
+        if (!btn) return;
+        AppState.penaltyPhotos.splice(Number(btn.dataset.idx), 1);
+        renderPhotoPreview();
+    });
+});
+
+/**
+ * Стискає фото до 1600px по довшій стороні перед відправкою.
+ * Знімок з телефона — 4-8 МБ; у base64 це +33%, що Apps Script уже не тягне.
+ * Після стиснення виходить 200-500 КБ, якості для фіксації порушення вистачає.
+ */
+function compressPhoto(file) {
+    return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const MAX = 1600;
+                    let w = img.width, h = img.height;
+                    const scale = Math.min(1, MAX / Math.max(w, h));
+                    w = Math.round(w * scale);
+                    h = Math.round(h * scale);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    resolve({ data: dataUrl.split(',')[1], mime: 'image/jpeg', preview: dataUrl });
+                } catch (err) {
+                    // Canvas не впорався (напр. HEIC) — відправляємо оригінал
+                    resolve({ data: String(reader.result).split(',')[1], mime: file.type || 'image/jpeg', preview: reader.result });
+                }
+            };
+            img.onerror = () => resolve({ data: String(reader.result).split(',')[1], mime: file.type || 'image/jpeg', preview: reader.result });
+            img.src = reader.result;
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+    });
+}
+
+async function handlePhotoPick(files) {
+    if (!files || !files.length) return;
+    const free = MAX_PENALTY_PHOTOS - AppState.penaltyPhotos.length;
+    if (free <= 0) return;
+
+    const box = document.getElementById('penalty-photo-preview');
+    box.insertAdjacentHTML('beforeend', '<span id="photo-spinner" class="text-[11px] font-bold text-slate-400 self-center">обробка...</span>');
+
+    for (const file of Array.from(files).slice(0, free)) {
+        if (!file.type.startsWith('image/')) continue;
+        const photo = await compressPhoto(file);
+        if (photo && photo.data) AppState.penaltyPhotos.push(photo);
+    }
+
+    renderPhotoPreview();
+}
+
+function renderPhotoPreview() {
+    const box = document.getElementById('penalty-photo-preview');
+    box.innerHTML = AppState.penaltyPhotos.map((p, i) => `
+        <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-600 shrink-0">
+            <img src="${p.preview}" class="w-full h-full object-cover" alt="">
+            <button type="button" class="photo-remove-btn absolute top-0 right-0 bg-red-600 text-white w-5 h-5 flex items-center justify-center text-xs font-black rounded-bl-lg" data-idx="${i}">×</button>
+        </div>`).join('');
+
+    if (AppState.penaltyPhotos.length >= MAX_PENALTY_PHOTOS) {
+        box.insertAdjacentHTML('beforeend', '<span class="text-[10px] text-slate-400 self-center">максимум 3</span>');
+    }
+}
+
+function photoThumb(url) {
+    const m = String(url).match(/[-\w]{25,}/);
+    return m ? `https://drive.google.com/thumbnail?id=${m[0]}&sz=w160` : '';
+}
+
+function renderPhotoLinks(photos, size = 'sm') {
+    if (!photos || !photos.length) return '';
+    const px = size === 'sm' ? 'w-10 h-10' : 'w-14 h-14';
+    return `<div class="flex gap-1.5 mt-1.5 flex-wrap">` + photos.map(u => `
+        <a href="${escapeHTML(u)}" target="_blank" rel="noopener" title="Відкрити фото"
+           class="relative flex items-center justify-center ${px} rounded-md overflow-hidden border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 shrink-0">
+            <span class="absolute text-base">📷</span>
+            <img src="${escapeHTML(photoThumb(u))}" alt="" class="relative w-full h-full object-cover" onerror="this.remove()">
+        </a>`).join('') + `</div>`;
 }
 
 function openPenaltyModal(type) {
@@ -787,6 +907,8 @@ function openPenaltyModal(type) {
     submitBtn.disabled = false;
 
     document.getElementById('penalty-form').reset();
+    AppState.penaltyPhotos = [];
+    renderPhotoPreview();
     document.getElementById('penalty-error').classList.add('hidden');
     document.getElementById('penalty-reason-custom').classList.add('hidden');
     document.getElementById('penalty-note-hint').classList.add('hidden');
@@ -880,7 +1002,7 @@ async function handleSavePenalty(e) {
 
     const originalText = btn.textContent;
     btn.disabled = true;
-    btn.textContent = 'Збереження...';
+    btn.textContent = AppState.penaltyPhotos.length ? 'Завантаження фото...' : 'Збереження...';
 
     try {
         await apiCallStrict({
@@ -890,7 +1012,8 @@ async function handleSavePenalty(e) {
             amount: amount,
             reason: reason,
             comment: comment,
-            date: dateVal
+            date: dateVal,
+            photos: AppState.penaltyPhotos.map(p => ({ data: p.data, mime: p.mime }))
         });
 
         AppState.isCached.penalties = false;
@@ -999,6 +1122,7 @@ function renderPenalties() {
                 </div>
                 <p class="text-xs font-medium text-slate-600 dark:text-slate-300 mt-1 ${cancelled ? 'line-through' : ''}">${escapeHTML(p.reason || '—')}</p>
                 ${p.comment ? `<p class="text-[11px] text-slate-400 mt-0.5 whitespace-pre-line">${escapeHTML(p.comment)}</p>` : ''}
+                ${renderPhotoLinks(p.photos, 'md')}
                 <p class="text-[10px] text-slate-400 mt-1">Нарахував: ${escapeHTML(p.author || '—')}</p>
             </div>
             <div class="flex flex-col items-end gap-2 shrink-0">
