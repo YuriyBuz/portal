@@ -23,43 +23,53 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         body { -webkit-tap-highlight-color: transparent; }
-        /* --- Повний графік: закріплені шапка (дати) і колонка ПІБ --- */
-        /* у вкладці "Повний графік" таблиця займає весь вільний екран,
-           тому зайвий нижній відступ прибираємо */
-        main.schedule-fit { padding-bottom: 0.75rem; }
-        /* на низьких екранах (телефон у горизонтальному положенні) віддаємо
-           легенду під місце для самого графіка */
-        @media (max-height: 500px) { .sched-legend { display: none; } }
-        /* на телефоні картка з графіком розтягується на всю ширину екрана
-           (компенсуємо горизонтальні padding-и <main class="p-4">),
-           на планшеті/комп'ютері лишається по центру з рамкою і заокругленням */
-        @media (max-width: 767px) {
-            .sched-card {
-                width: calc(100% + 2rem);
-                margin-left: -1rem;
-                margin-right: -1rem;
-                border-radius: 0;
-                border-left-width: 0;
-                border-right-width: 0;
-            }
-        }
-        #sched-scroll {
+        /* --- Повний графік: шапка з датами і колонка ПІБ прилипають до хедера --- */
+        /* Sticky всередині горизонтального скрол-контейнера прилипає до цього
+           контейнера, а не до сторінки. Тому вкладка "Повний графік" сама є
+           областю прокрутки (по обох осях) заввишки з екран під хедером:
+           картка з місяцем їде вгору, шапка таблиці зупиняється під хедером. */
+        html.sched-tab body { min-height: 0; }
+        html.sched-tab main { padding: 0; }
+
+        #section-schedule {
             overflow: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
+            /* без верхнього padding — інакше рядки просвічували б у зазорі
+               між хедером і закріпленою шапкою таблиці */
+            padding: 0 0 1rem;
+            height: calc(100vh - var(--nav-h, 124px));
+            height: calc(100dvh - var(--nav-h, 124px));
         }
+        @media (min-width: 768px) { #section-schedule { padding: 0 1.5rem 1.5rem; } }
+
+        /* картка з місяцем гортається вгору разом з графіком,
+           але не з'їжджає вбік при горизонтальній прокрутці */
+        .sched-sticky-x { position: sticky; left: 0; width: 100%; padding: 1rem 1rem 0; margin-bottom: 1rem; }
+        @media (min-width: 768px) { .sched-sticky-x { padding: 1.5rem 0 0; } }
+        .sched-toolbar { max-width: 80rem; margin: 0 auto; }
+
+        /* на телефоні таблиця на всю ширину екрана, на комп'ютері — по центру */
+        .sched-card { width: max-content; min-width: min(100%, 80rem); margin-inline: auto; }
+        @media (max-width: 767px) {
+            .sched-card { border-radius: 0; border-left-width: 0; border-right-width: 0; }
+        }
+
+        #section-schedule thead th { position: sticky; top: 0; z-index: 35; }
+        #section-schedule thead th.sched-corner-cell { left: 0; z-index: 45; }
+
         /* при border-collapse звичайні border у sticky-комірках не малюються під час скролу,
            тому лінії шапки/колонки ПІБ робимо через inset box-shadow */
-        #sched-scroll thead th {
+        #section-schedule thead th {
             box-shadow: inset 0 -2px 0 0 #cbd5e1;
         }
-        #sched-scroll thead th.sched-corner-cell {
+        #section-schedule thead th.sched-corner-cell {
             box-shadow: inset -2px 0 0 0 #cbd5e1, inset 0 -2px 0 0 #cbd5e1, 2px 0 5px -2px rgba(0,0,0,0.1);
         }
-        .dark #sched-scroll thead th {
+        .dark #section-schedule thead th {
             box-shadow: inset 0 -2px 0 0 #475569;
         }
-        .dark #sched-scroll thead th.sched-corner-cell {
+        .dark #section-schedule thead th.sched-corner-cell {
             box-shadow: inset -2px 0 0 0 #475569, inset 0 -2px 0 0 #475569, 2px 0 5px -2px rgba(0,0,0,0.4);
         }
 
@@ -107,8 +117,9 @@
     </nav>
 
     <main class="w-full p-4 md:p-6 pb-20 overflow-visible flex flex-col items-center">
-        <div id="section-schedule" class="tab-section hidden space-y-4 w-full max-w-7xl mx-auto flex flex-col items-center">
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 w-full">
+        <div id="section-schedule" class="tab-section hidden w-full">
+          <div class="sched-sticky-x">
+            <div class="sched-toolbar flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 w-full">
                 <div class="flex items-center gap-3 w-full sm:w-auto">
                     <h2 class="text-lg font-black text-slate-800 dark:text-white whitespace-nowrap hidden sm:block">Графік</h2>
                     <select id="sched-month-input" class="w-full sm:w-48 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none font-bold text-sm text-center sm:text-left focus:ring-2 focus:ring-emerald-500 cursor-pointer text-slate-800 dark:text-white"></select>
@@ -125,14 +136,13 @@
             <div id="sched-loading" class="flex justify-center py-12 hidden w-full">
                 <svg class="animate-spin h-10 w-10 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
             </div>
-            <div class="sched-card bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 w-full max-w-7xl mx-auto overflow-hidden">
-                <div id="sched-scroll" class="relative">
-                    <table class="w-full text-left border-collapse mx-auto">
-                        <thead id="sched-head" class="bg-slate-100 dark:bg-slate-700/90 text-slate-600 dark:text-slate-300 border-b border-slate-300 dark:border-slate-600"></thead>
-                        <tbody id="sched-body" class="bg-white dark:bg-slate-800"></tbody>
-                    </table>
-                </div>
-            </div>
+          </div>
+          <div class="sched-card bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+            <table class="w-full text-left border-collapse mx-auto">
+                <thead id="sched-head" class="bg-slate-100 dark:bg-slate-700/90 text-slate-600 dark:text-slate-300 border-b border-slate-300 dark:border-slate-600"></thead>
+                <tbody id="sched-body" class="bg-white dark:bg-slate-800"></tbody>
+            </table>
+          </div>
         </div>
 
         <div id="section-requests" class="tab-section hidden space-y-4 w-full max-w-7xl mx-auto">
@@ -560,13 +570,13 @@ function setupEventListeners() {
         btn.addEventListener('click', (e) => switchTab(e.currentTarget.dataset.tab));
     });
 
-    let fitTimer = null;
-    const refitSchedule = () => {
-        clearTimeout(fitTimer);
-        fitTimer = setTimeout(fitScheduleViewport, 120);
+    let navTimer = null;
+    const resyncNav = () => {
+        clearTimeout(navTimer);
+        navTimer = setTimeout(syncNavHeight, 120);
     };
-    window.addEventListener('resize', refitSchedule);
-    window.addEventListener('orientationchange', refitSchedule);
+    window.addEventListener('resize', resyncNav);
+    window.addEventListener('orientationchange', resyncNav);
 
     document.getElementById('sched-month-input').addEventListener('change', () => loadSchedule(true));
     document.getElementById('force-refresh-btn').addEventListener('click', () => refreshAll(true));
@@ -648,10 +658,10 @@ function switchTab(tabId) {
     const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
     if(activeBtn) activeBtn.className = "tab-btn shrink-0 px-5 py-2 rounded-xl bg-emerald-600 text-white font-bold shadow-md flex items-center gap-2 transition-all text-sm";
 
-    const mainEl = document.querySelector('main');
-    if (mainEl) mainEl.classList.toggle('schedule-fit', tabId === 'schedule');
+    document.documentElement.classList.toggle('sched-tab', tabId === 'schedule');
+    syncNavHeight();
 
-    if (tabId === 'schedule') { loadSchedule(); fitScheduleViewport(); }
+    if (tabId === 'schedule') loadSchedule();
     if (tabId === 'requests') loadRequests();
     if (tabId === 'employees') loadEmployees();
     if (tabId === 'finance') loadPenalties();
@@ -1478,13 +1488,13 @@ function renderSchedule(data, mYear) {
     const yearStr = parseInt(mYear.split(' ')[1]) || new Date().getFullYear();
     const daysInMonth = new Date(yearStr, monthIndex + 1, 0).getDate();
 
-    let headHtml = `<tr><th class="border-none w-2 sm:w-4 sticky top-0 z-[45] bg-white dark:bg-slate-800 min-w-[8px]"></th><th class="sched-corner-cell px-2 py-1 sticky top-0 left-0 z-[60] bg-slate-100 dark:bg-slate-700 min-w-[120px] max-w-[150px] text-[10px]">ПІБ Працівника</th>`;
+    let headHtml = `<tr><th class="border-none w-2 sm:w-4 bg-white dark:bg-slate-800 min-w-[8px]"></th><th class="sched-corner-cell px-2 py-1 bg-slate-100 dark:bg-slate-700 min-w-[120px] max-w-[150px] text-[10px]">ПІБ Працівника</th>`;
     for (let d = 1; d <= daysInMonth; d++) {
         const dayOfWeek = new Date(yearStr, monthIndex, d).getDay();
         const colorClass = (dayOfWeek === 0 || dayOfWeek === 6) ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-slate-400';
-        headHtml += `<th class="px-0 py-1 text-center border-l border-slate-300 dark:border-slate-600 min-w-[28px] w-[32px] sticky top-0 z-[45] bg-slate-100 dark:bg-slate-700"><div class="text-[11px] font-black">${d}</div><div class="text-[9px] ${colorClass}">${['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek]}</div></th>`;
+        headHtml += `<th class="px-0 py-1 text-center border-l border-slate-300 dark:border-slate-600 min-w-[28px] w-[32px] bg-slate-100 dark:bg-slate-700"><div class="text-[11px] font-black">${d}</div><div class="text-[9px] ${colorClass}">${['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek]}</div></th>`;
     }
-    headHtml += `<th class="px-1 py-1 text-center border-l border-slate-300 dark:border-slate-600 sticky top-0 z-[45] bg-slate-100 dark:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300">Сума</th></tr>`;
+    headHtml += `<th class="px-1 py-1 text-center border-l border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300">Сума</th></tr>`;
     document.getElementById('sched-head').innerHTML = headHtml;
 
     document.getElementById('sched-body').innerHTML = data.map((emp, index) => {
@@ -1525,28 +1535,15 @@ function renderSchedule(data, mYear) {
     }).join('');
     
     document.getElementById('sched-loading').classList.add('hidden');
-    fitScheduleViewport();
 }
 
 /**
- * Підганяє висоту контейнера графіка під вільне місце на екрані,
- * щоб гортався лише сам графік, а шапка з датами та колонка ПІБ залишались на місці.
+ * Записує реальну висоту хедера в --nav-h, щоб область прокрутки графіка
+ * рівно займала екран під ним (висота хедера залежить від ширини екрана).
  */
-function fitScheduleViewport() {
-    const box = document.getElementById('sched-scroll');
-    if (!box || box.offsetParent === null) return;
-
-    const main = box.closest('main');
-    box.style.maxHeight = '0px';
-
-    const boxRect = box.getBoundingClientRect();
-    const docTop = boxRect.top + window.scrollY;
-    const below = main ? Math.max(0, main.getBoundingClientRect().bottom - boxRect.bottom) : 0;
-    const avail = window.innerHeight - docTop - below - 4;
-
-    // мінімум тримаємо низьким, щоб сторінка не отримала власного скролу
-    // (інакше шапка таблиці поїхала б угору під шапку сайту)
-    box.style.maxHeight = Math.max(100, avail) + 'px';
+function syncNavHeight() {
+    const nav = document.querySelector('nav');
+    if (nav) document.documentElement.style.setProperty('--nav-h', nav.offsetHeight + 'px');
 }
 
 function openEditCellModal(name, day, pos) {
