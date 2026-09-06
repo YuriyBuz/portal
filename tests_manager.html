@@ -3,76 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Керування тестами | Портал працівника</title>
+    <title>Тести | Портал працівника</title>
+    <meta name="theme-color" content="#059669">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <style>
+        body { background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        .dark body { background-color: #0f172a; }
+        .test-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+        .test-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,.12); border-color: #8b5cf6; }
+    </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800">
+<body class="font-sans text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-col transition-colors duration-200">
 
-    <nav class="bg-white shadow-sm border-b border-slate-200 p-4">
-        <div class="max-w-4xl mx-auto flex items-center justify-between">
-            <a href="./index.html" class="text-emerald-600 font-bold flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
-                Назад на портал
-            </a>
-            <h1 class="text-lg font-bold">Керування тестами</h1>
+    <nav class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1 font-medium bg-slate-50 dark:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                        <span class="hidden sm:inline">Назад</span>
+                    </a>
+                    <h1 class="text-lg font-bold text-slate-800 dark:text-white truncate">Тести</h1>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" title="Тема">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    </button>
+                    <div class="text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800 flex items-center gap-2 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="user-name" class="truncate max-w-[120px] sm:max-w-[200px]">...</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto p-4 sm:p-8">
-        <!-- Форма додавання -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
-            <h2 class="text-xl font-bold mb-4 text-emerald-800">Додати новий тест</h2>
-            <form id="add-test-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="text" id="test-name" placeholder="Назва тесту" required class="p-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
-                <input type="url" id="test-url" placeholder="Посилання (https://...)" required class="p-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
-                <button type="submit" class="md:col-span-2 bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition">Додати тест</button>
-            </form>
+    <main class="flex-grow max-w-5xl mx-auto w-full px-4 py-8">
+        <p class="text-slate-500 dark:text-slate-400 mb-6 text-sm">Перевірка знань та атестація. Натисніть на тест, щоб пройти його.</p>
+
+        <div id="tests-loading" class="flex justify-center py-12">
+            <svg class="animate-spin h-8 w-8 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
         </div>
 
-        <!-- Список тестів -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-6 border-b border-slate-100">
-                <h2 class="text-xl font-bold text-slate-800">Список доступних тестів</h2>
+        <div id="tests-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+        <p id="tests-empty" class="hidden text-center py-16 text-slate-500 dark:text-slate-400 font-medium bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+            Тестів поки немає
+        </p>
+
+        <!-- Панель адміністратора. Працівник її не бачить, а бекенд усе одно
+             перевіряє роль — приховати кнопку недостатньо. -->
+        <section id="admin-panel" class="hidden mt-10">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex items-center gap-2">
+                    <span class="text-base">🛡️</span>
+                    <h2 class="font-bold text-slate-800 dark:text-white">Додати тест</h2>
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800">лише адміністратор</span>
+                </div>
+                <form id="add-test-form" class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Назва <span class="text-red-500">*</span></label>
+                        <input type="text" id="new-test-name" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Посилання <span class="text-red-500">*</span></label>
+                        <input type="url" id="new-test-url" required placeholder="https://..." class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Категорія</label>
+                        <input type="text" id="new-test-cat" placeholder="Безпека, Якість, Атестація…" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white text-sm">
+                    </div>
+                    <p id="add-test-error" class="hidden md:col-span-2 text-xs font-bold text-red-500"></p>
+                    <button type="submit" id="add-test-btn" class="md:col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition-colors shadow-sm text-sm">Додати тест</button>
+                </form>
             </div>
-            <ul id="test-list" class="divide-y divide-slate-100">
-                <!-- Сюди будуть додаватися тести -->
-                <li class="p-4 hover:bg-slate-50 flex justify-between items-center">
-                    <div>
-                        <p class="font-medium text-slate-900">TEST_1</p>
-                        <a href="https://yuriybuz.github.io/TEST_1/" target="_blank" class="text-sm text-emerald-600 hover:underline">Відкрити посилання</a>
-                    </div>
-                </li>
-                <li class="p-4 hover:bg-slate-50 flex justify-between items-center">
-                    <div>
-                        <p class="font-medium text-slate-900">test_2</p>
-                        <a href="https://yuriybuz.github.io/test_2/" target="_blank" class="text-sm text-emerald-600 hover:underline">Відкрити посилання</a>
-                    </div>
-                </li>
-            </ul>
-        </div>
+        </section>
+
+        <p id="backend-notice" class="hidden mt-6 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-4 py-3"></p>
     </main>
 
-    <script>
-        const form = document.getElementById('add-test-form');
-        const list = document.getElementById('test-list');
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYLX7Rc3jfg1zH_DW_Qbx3uiAK38T9aojJiCwVKSX2-3zej4ScsuC9aFeKcYMNcVfzVA/exec';
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('test-name').value;
-            const url = document.getElementById('test-url').value;
+// Запасний перелік — сторінка лишається робочою, навіть якщо бекенд ще не
+// оновлено (запит get_tests тоді повертає «Невідомий запит»).
+const FALLBACK_TESTS = [
+    { id: '1', title: 'Паспорт якості (FSSC 22000 v6)', url: 'https://yuriybuz.github.io/TEST_1/', category: 'Якість' },
+    { id: '2', title: 'Техніка безпеки',                url: 'https://yuriybuz.github.io/test_2/', category: 'Безпека' },
+    { id: '3', title: 'Техніка безпеки — розширений',   url: 'https://yuriybuz.github.io/TEST_3/', category: 'Безпека' },
+    { id: '4', title: 'Атестація: майстер зміни',       url: 'https://yuriybuz.github.io/TEST_4/', category: 'Атестація' },
+    { id: '5', title: 'Атестація: контролер якості',    url: 'https://yuriybuz.github.io/TEST_5/', category: 'Атестація' },
+    { id: '6', title: 'Атестація: механік зміни',       url: 'https://yuriybuz.github.io/TEST_6/', category: 'Атестація' }
+];
 
-            const li = document.createElement('li');
-            li.className = 'p-4 hover:bg-slate-50 flex justify-between items-center';
-            li.innerHTML = `
-                <div>
-                    <p class="font-medium text-slate-900">${name}</p>
-                    <a href="${url}" target="_blank" class="text-sm text-emerald-600 hover:underline">${url}</a>
+const IS_ADMIN = sessionStorage.getItem('admin_auth') === 'true';
+let usingFallback = false;
+
+function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function api(payload) {
+    payload.token = sessionStorage.getItem('portal_token');
+    return fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+    }).then(r => r.json());
+}
+
+function logUserAction(action) {
+    if (!sessionStorage.getItem('portal_token')) return;
+    api({ requestType: 'log_action', action: action }).catch(() => {});
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const currentUser = sessionStorage.getItem('portal_user');
+    const token = sessionStorage.getItem('portal_token');
+
+    if (!currentUser || !token) {
+        document.body.innerHTML = `
+            <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+                <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
+                    <h2 class="text-xl font-bold mb-2 text-slate-800 dark:text-white">Помилка доступу</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mb-6">Авторизуйтесь для доступу.</p>
+                    <a href="index.html" class="inline-block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-md">До входу</a>
                 </div>
-                <button onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600">Видалити</button>
-            `;
-            list.appendChild(li);
-            form.reset();
-        });
-    </script>
+            </div>`;
+        return;
+    }
+
+    document.getElementById('user-name').textContent = currentUser;
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    if (IS_ADMIN) document.getElementById('admin-panel').classList.remove('hidden');
+
+    logUserAction('Відкрив сторінку: Тести');
+    loadTests();
+
+    document.getElementById('add-test-form').addEventListener('submit', handleAddTest);
+    document.getElementById('tests-grid').addEventListener('click', (e) => {
+        const btn = e.target.closest('.test-remove-btn');
+        if (btn) { e.preventDefault(); handleRemoveTest(btn.dataset.id, btn.dataset.title); }
+    });
+});
+
+async function loadTests() {
+    let list;
+    try {
+        const data = await api({ requestType: 'get_tests' });
+        if (Array.isArray(data)) {
+            list = data;
+        } else {
+            usingFallback = true;   // бекенд ще не знає про get_tests
+            list = FALLBACK_TESTS;
+        }
+    } catch (e) {
+        usingFallback = true;
+        list = FALLBACK_TESTS;
+    }
+
+    document.getElementById('tests-loading').classList.add('hidden');
+    renderTests(list);
+
+    if (usingFallback && IS_ADMIN) {
+        const n = document.getElementById('backend-notice');
+        n.textContent = 'Список показано з вбудованого переліку: бекенд ще не знає запиту get_tests. ' +
+                        'Оновіть розгортання Apps Script — тоді запрацює додавання й прибирання тестів.';
+        n.classList.remove('hidden');
+    }
+}
+
+function renderTests(list) {
+    const grid = document.getElementById('tests-grid');
+    if (!list.length) {
+        document.getElementById('tests-empty').classList.remove('hidden');
+        grid.innerHTML = '';
+        return;
+    }
+    document.getElementById('tests-empty').classList.add('hidden');
+
+    grid.innerHTML = list.map(t => `
+        <div class="test-card relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <a href="${escapeHTML(t.url)}" target="_blank" rel="noopener" class="block p-5">
+                <div class="flex items-start gap-3">
+                    <span class="shrink-0 w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </span>
+                    <div class="min-w-0">
+                        <h2 class="font-bold text-slate-800 dark:text-white leading-tight">${escapeHTML(t.title)}</h2>
+                        ${t.category ? `<span class="inline-block mt-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">${escapeHTML(t.category)}</span>` : ''}
+                    </div>
+                </div>
+            </a>
+            ${IS_ADMIN && !usingFallback ? `
+            <button type="button" class="test-remove-btn absolute top-3 right-3 text-slate-300 hover:text-red-500 transition-colors p-1" title="Прибрати тест" data-id="${escapeHTML(t.id)}" data-title="${escapeHTML(t.title)}">
+                <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>` : ''}
+        </div>`).join('');
+}
+
+async function handleAddTest(e) {
+    e.preventDefault();
+    const err = document.getElementById('add-test-error');
+    const btn = document.getElementById('add-test-btn');
+    err.classList.add('hidden');
+
+    const title = document.getElementById('new-test-name').value.trim();
+    const url   = document.getElementById('new-test-url').value.trim();
+    const cat   = document.getElementById('new-test-cat').value.trim();
+
+    btn.disabled = true;
+    btn.textContent = 'Збереження...';
+    try {
+        const res = await api({ requestType: 'add_test', title: title, url: url, category: cat });
+        if (res && res.error) throw new Error(res.error);
+        document.getElementById('add-test-form').reset();
+        await loadTests();
+    } catch (ex) {
+        err.textContent = ex.message || 'Не вдалося додати тест';
+        err.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Додати тест';
+    }
+}
+
+async function handleRemoveTest(id, title) {
+    if (!confirm(`Прибрати тест «${title}» зі списку?`)) return;
+    try {
+        const res = await api({ requestType: 'delete_test', id: id });
+        if (res && res.error) throw new Error(res.error);
+        await loadTests();
+    } catch (ex) {
+        alert('Помилка: ' + (ex.message || 'не вдалося прибрати тест'));
+    }
+}
+</script>
 </body>
 </html>
