@@ -156,7 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('add-test-form').addEventListener('submit', handleAddTest);
     document.getElementById('tests-grid').addEventListener('click', (e) => {
         const btn = e.target.closest('.test-remove-btn');
-        if (btn) { e.preventDefault(); handleRemoveTest(btn.dataset.id, btn.dataset.title); }
+        if (btn) { e.preventDefault(); handleRemoveTest(btn.dataset.id, btn.dataset.title); return; }
+
+        const link = e.target.closest('.test-open');
+        if (link) { e.preventDefault(); openTest(link.dataset.url, link.dataset.title); }
     });
 });
 
@@ -197,7 +200,7 @@ function renderTests(list) {
 
     grid.innerHTML = list.map(t => `
         <div class="test-card relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-            <a href="${escapeHTML(t.url)}" target="_blank" rel="noopener" class="block p-5">
+            <a href="${escapeHTML(t.url)}" target="_blank" rel="noopener" class="test-open block p-5" data-url="${escapeHTML(t.url)}" data-title="${escapeHTML(t.title)}">
                 <div class="flex items-start gap-3">
                     <span class="shrink-0 w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -213,6 +216,33 @@ function renderTests(list) {
                 <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>` : ''}
         </div>`).join('');
+}
+
+/**
+ * Відкриває тест із одноразовою перепусткою, щоб тест знав, ХТО його проходить.
+ * Раніше працівник обирав своє ПІБ зі списку в самому тесті — тобто міг
+ * обрати будь-кого. Тепер особу підтверджує портал.
+ *
+ * Вікно відкриваємо ДО запиту: якщо зробити це після await, браузер
+ * вважає його непроханим спливайком і блокує.
+ */
+async function openTest(url, title) {
+    const win = window.open('', '_blank');
+    try {
+        const res = await api({ requestType: 'issue_test_token', testTitle: title });
+        if (res && res.pt) {
+            const sep = url.indexOf('?') === -1 ? '?' : '&';
+            if (win) win.location = url + sep + 'pt=' + encodeURIComponent(res.pt);
+            else window.location = url + sep + 'pt=' + encodeURIComponent(res.pt);
+            logUserAction('Відкрив тест: ' + title);
+            return;
+        }
+    } catch (e) { /* нижче — запасний варіант */ }
+
+    // Бекенд ще не знає issue_test_token — відкриваємо як раніше,
+    // тест попросить обрати ПІБ зі списку.
+    if (win) win.location = url; else window.location = url;
+    logUserAction('Відкрив тест (без підтвердження особи): ' + title);
 }
 
 async function handleAddTest(e) {

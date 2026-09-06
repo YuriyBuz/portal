@@ -193,6 +193,11 @@
             </div>
             <div class="p-6">
                 <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Встановіть новий логін та пароль для входу на портал.</p>
+                <p id="forced-note" class="hidden text-sm font-medium text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/25 border border-amber-200 dark:border-amber-800 rounded-lg px-4 py-3 mb-4">
+                    Ви входите зі стартовим паролем, який однаковий у багатьох працівників.
+                    Придумайте власний — інакше результати ваших тестів неможливо буде
+                    зарахувати саме вам.
+                </p>
                 <form id="settings-form" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Новий Логін / Телефон</label>
@@ -315,6 +320,7 @@
                             sessionStorage.removeItem('admin_auth'); // Очистка на всякий випадок
                             showApp(result.user);
                             logUserAction('Вхід в систему');
+                            if (result.mustChangePassword) forcePasswordChange();
                         }
                     } else {
                         loginError.textContent = result.error || "Невірний логін або пароль.";
@@ -348,7 +354,28 @@
             const settingsSpinner = document.getElementById('settings-spinner');
             const settingsSuccess = document.getElementById('settings-success');
 
+            let forcedChange = false;
+
+            // Стартовий пароль спільний для багатьох, тож вихід із вікна закритий,
+            // доки людина не задасть власний.
+            function forcePasswordChange() {
+                forcedChange = true;
+                closeSettingsBtn.classList.add('hidden');
+                document.getElementById('forced-note').classList.remove('hidden');
+                settingsSuccess.classList.add('hidden');
+                document.getElementById('new-login').value = '';
+                document.getElementById('new-password').value = '';
+                settingsModal.classList.remove('hidden');
+            }
+
+            function releaseForcedChange() {
+                forcedChange = false;
+                closeSettingsBtn.classList.remove('hidden');
+                document.getElementById('forced-note').classList.add('hidden');
+            }
+
             settingsBtn.addEventListener('click', () => {
+                releaseForcedChange();
                 settingsModal.classList.remove('hidden');
                 settingsSuccess.classList.add('hidden');
                 document.getElementById('new-login').value = '';
@@ -390,6 +417,7 @@
                     } else {
                         logUserAction('Змінив логін та пароль');
                         settingsSuccess.classList.remove('hidden');
+                        releaseForcedChange();
                         setTimeout(() => settingsModal.classList.add('hidden'), 2000);
                     }
                 } catch (err) {
