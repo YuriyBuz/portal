@@ -17,9 +17,11 @@
         .dark body { background-color: #0f172a; }
         .video-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
         .video-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,.12); border-color: #ef4444; }
-        /* Адаптивний контейнер 16:9 для плеєра */
-        .ratio-16x9 { position: relative; width: 100%; padding-top: 56.25%; }
-        .ratio-16x9 > iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+        /* Контейнер плеєра. Звичайне відео — 16:9, Shorts — вертикальні 9:16,
+           інакше вертикальне відео тонуло б у чорних полях по боках. */
+        .player-box { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; }
+        .player-box.vertical { width: auto; height: min(78vh, 160vw); aspect-ratio: 9 / 16; margin: 0 auto; }
+        .player-box > iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
     </style>
 </head>
 <body class="font-sans text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-col transition-colors duration-200">
@@ -57,14 +59,14 @@
 
     <!-- Модальне вікно плеєра -->
     <div id="player-modal" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 dark:border-slate-700">
+        <div id="player-shell" class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 gap-3">
                 <h3 id="player-title" class="font-bold text-slate-800 dark:text-white truncate">...</h3>
                 <button type="button" id="player-close" class="shrink-0 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700" title="Закрити">
                     <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
-            <div class="ratio-16x9 bg-black">
+            <div id="player-box" class="player-box">
                 <iframe id="player-frame" src="" title="Відеоплеєр" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
             </div>
         </div>
@@ -73,12 +75,27 @@
 <script>
 // ================= СПИСОК ВІДЕО =================
 // Щоб додати нове відео — допишіть об'єкт у масив.
-// id — це код із посилання YouTube: https://youtu.be/{id}  або  ...watch?v={id}
+// id — це код із посилання YouTube:
+//     https://youtu.be/{id}            → звичайне відео
+//     https://youtube.com/watch?v={id} → звичайне відео
+//     https://youtube.com/shorts/{id}  → Shorts, додайте vertical: true
 const VIDEOS = [
     {
         id: 'VIaQx7TecQY',
-        title: 'Навчальне відео',
-        desc: ''
+        title: 'Ввідний інструктаж з техніки безпеки',
+        desc: 'Foodline Production'
+    },
+    {
+        id: 'hXJMn_f0Wbo',
+        title: 'SMART КОД на виробництві',
+        desc: '',
+        vertical: true          // YouTube Shorts — вертикальний формат
+    },
+    {
+        id: 'CubbIQIJSG0',
+        title: 'Органолептичний контроль соусів',
+        desc: '',
+        vertical: true          // YouTube Shorts — вертикальний формат
     }
 ];
 
@@ -156,10 +173,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const frame = document.getElementById('player-frame');
     const titleEl = document.getElementById('player-title');
 
+    const shell = document.getElementById('player-shell');
+    const box = document.getElementById('player-box');
+
     function openVideo(idx) {
         const v = VIDEOS[idx];
         if (!v) return;
         titleEl.textContent = v.title;
+
+        // Вертикальні Shorts показуємо у вужчому вікні 9:16
+        box.classList.toggle('vertical', !!v.vertical);
+        shell.classList.toggle('max-w-4xl', !v.vertical);
+        shell.classList.toggle('max-w-md', !!v.vertical);
         // youtube-nocookie: менше трекінгу; rel=0 — без чужих рекомендацій у кінці
         frame.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?rel=0&autoplay=1`;
         modal.classList.remove('hidden');
