@@ -3,7 +3,8 @@ const urlsToCache = [
   './',
   './index.html',
   './schedule.html',
-  './extra_shift.html'
+  './extra_shift.html',
+  './videos.html'
 ];
 
 // Встановлення Service Worker: кешуємо файли і примусово активуємо

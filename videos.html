@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Навчальні відео | Портал працівника</title>
+    <meta name="theme-color" content="#059669">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <style>
+        body { background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        .dark body { background-color: #0f172a; }
+        .video-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+        .video-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,.12); border-color: #ef4444; }
+        /* Адаптивний контейнер 16:9 для плеєра */
+        .ratio-16x9 { position: relative; width: 100%; padding-top: 56.25%; }
+        .ratio-16x9 > iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    </style>
+</head>
+<body class="font-sans text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-col transition-colors duration-200">
+
+    <nav class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1 font-medium bg-slate-50 dark:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                        <span class="hidden sm:inline">Назад</span>
+                    </a>
+                    <h1 class="text-lg font-bold text-slate-800 dark:text-white truncate">Навчальні відео</h1>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" title="Тема">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    </button>
+                    <div class="text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800 flex items-center gap-2 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="user-name" class="truncate max-w-[120px] sm:max-w-[200px]">...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-8">
+        <p class="text-slate-500 dark:text-slate-400 mb-6 text-sm">Інструкції та відеоматеріали. Натисніть на відео, щоб переглянути.</p>
+        <div id="videos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        <div id="videos-empty" class="hidden text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+            <p class="text-slate-500 dark:text-slate-400 font-medium">Відео поки не додано</p>
+        </div>
+    </main>
+
+    <!-- Модальне вікно плеєра -->
+    <div id="player-modal" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 gap-3">
+                <h3 id="player-title" class="font-bold text-slate-800 dark:text-white truncate">...</h3>
+                <button type="button" id="player-close" class="shrink-0 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700" title="Закрити">
+                    <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="ratio-16x9 bg-black">
+                <iframe id="player-frame" src="" title="Відеоплеєр" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            </div>
+        </div>
+    </div>
+
+<script>
+// ================= СПИСОК ВІДЕО =================
+// Щоб додати нове відео — допишіть об'єкт у масив.
+// id — це код із посилання YouTube: https://youtu.be/{id}  або  ...watch?v={id}
+const VIDEOS = [
+    {
+        id: 'VIaQx7TecQY',
+        title: 'Навчальне відео',
+        desc: ''
+    }
+];
+
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYLX7Rc3jfg1zH_DW_Qbx3uiAK38T9aojJiCwVKSX2-3zej4ScsuC9aFeKcYMNcVfzVA/exec';
+
+function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function logUserAction(action) {
+    const userName = sessionStorage.getItem('portal_user');
+    const token = sessionStorage.getItem('portal_token');
+    if (!userName || !token) return;
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ requestType: 'log_action', user: userName, action: action, token: token }),
+        keepalive: true
+    }).catch(() => {});
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const currentUser = sessionStorage.getItem('portal_user');
+    const token = sessionStorage.getItem('portal_token');
+
+    // Той самий захист доступу, що й на сторінці графіка
+    if (!currentUser || !token) {
+        document.body.innerHTML = `
+            <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+                <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
+                    <h2 class="text-xl font-bold mb-2 text-slate-800 dark:text-white">Помилка доступу</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mb-6">Авторизуйтесь для доступу.</p>
+                    <a href="index.html" class="inline-block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-md">До входу</a>
+                </div>
+            </div>`;
+        return;
+    }
+
+    document.getElementById('user-name').textContent = currentUser;
+
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    logUserAction('Відкрив сторінку: Навчальні відео');
+
+    // ---- Побудова списку ----
+    const grid = document.getElementById('videos-grid');
+    if (!VIDEOS.length) {
+        document.getElementById('videos-empty').classList.remove('hidden');
+    } else {
+        grid.innerHTML = VIDEOS.map((v, i) => `
+            <button type="button" class="video-card text-left bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" data-idx="${i}">
+                <div class="relative bg-slate-200 dark:bg-slate-700">
+                    <img src="https://img.youtube.com/vi/${encodeURIComponent(v.id)}/hqdefault.jpg" alt="" loading="lazy" class="w-full aspect-video object-cover">
+                    <span class="absolute inset-0 flex items-center justify-center">
+                        <span class="w-14 h-14 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg">
+                            <svg class="w-7 h-7 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </span>
+                    </span>
+                </div>
+                <div class="p-4">
+                    <h2 class="font-bold text-slate-800 dark:text-white leading-tight">${escapeHTML(v.title)}</h2>
+                    ${v.desc ? `<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">${escapeHTML(v.desc)}</p>` : ''}
+                </div>
+            </button>`).join('');
+    }
+
+    // ---- Плеєр ----
+    const modal = document.getElementById('player-modal');
+    const frame = document.getElementById('player-frame');
+    const titleEl = document.getElementById('player-title');
+
+    function openVideo(idx) {
+        const v = VIDEOS[idx];
+        if (!v) return;
+        titleEl.textContent = v.title;
+        // youtube-nocookie: менше трекінгу; rel=0 — без чужих рекомендацій у кінці
+        frame.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?rel=0&autoplay=1`;
+        modal.classList.remove('hidden');
+        logUserAction(`Переглядає відео: ${v.title}`);
+    }
+
+    function closeVideo() {
+        modal.classList.add('hidden');
+        frame.src = '';   // обов'язково — інакше звук грає далі після закриття
+    }
+
+    grid.addEventListener('click', (e) => {
+        const card = e.target.closest('[data-idx]');
+        if (card) openVideo(Number(card.dataset.idx));
+    });
+
+    document.getElementById('player-close').addEventListener('click', closeVideo);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeVideo(); });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeVideo();
+    });
+});
+</script>
+</body>
+</html>
