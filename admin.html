@@ -528,8 +528,25 @@ function showModal(id) { document.getElementById(id).classList.remove('hidden');
 function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
 
 // ================= ІНІЦІАЛІЗАЦІЯ =================
+
+/**
+ * Одна перевірка доступу на всю сторінку. Обробників DOMContentLoaded тут два,
+ * і обидва мають вирішувати однаково: перший при відмові затирає <body>,
+ * тож другий уже не знайде своїх елементів і впаде на null.
+ */
+function isAdminAuthed() {
+    return sessionStorage.getItem('admin_auth') === 'true' && !!SECURE_TOKEN;
+}
+
+/** Навісити слухач, якщо елемент існує. Мовчки пропускає відсутній. */
+function onEl(id, type, handler) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener(type, handler);
+    return el;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    if (sessionStorage.getItem('admin_auth') !== 'true' || !SECURE_TOKEN) { 
+    if (!isAdminAuthed()) { 
         document.body.innerHTML = `<div class="min-h-screen flex items-center justify-center bg-slate-50"><div class="bg-white p-8 rounded-2xl shadow-xl text-center"><h2 class="text-xl font-bold mb-2 text-red-500">Помилка доступу</h2><a href="index.html" class="text-emerald-600 font-bold underline">На головну</a></div></div>`;
         return;
     }
@@ -953,19 +970,24 @@ function photosWeight(photos) {
 const MAX_PENALTY_PHOTOS = 3;
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('penalty-btn-camera').addEventListener('click', () => {
-        document.getElementById('penalty-file-camera').click();
+    // Без доступу <body> уже замінено екраном «Помилка доступу» — вішати нічого й нема на що.
+    if (!isAdminAuthed()) return;
+
+    onEl('penalty-btn-camera', 'click', () => {
+        const f = document.getElementById('penalty-file-camera');
+        if (f) f.click();
     });
-    document.getElementById('penalty-btn-gallery').addEventListener('click', () => {
-        document.getElementById('penalty-file-gallery').click();
+    onEl('penalty-btn-gallery', 'click', () => {
+        const f = document.getElementById('penalty-file-gallery');
+        if (f) f.click();
     });
     ['penalty-file-camera', 'penalty-file-gallery'].forEach(id => {
-        document.getElementById(id).addEventListener('change', e => {
+        onEl(id, 'change', e => {
             handlePhotoPick(e.target.files);
             e.target.value = '';
         });
     });
-    document.getElementById('penalty-photo-preview').addEventListener('click', e => {
+    onEl('penalty-photo-preview', 'click', e => {
         const btn = e.target.closest('.photo-remove-btn');
         if (!btn) return;
         AppState.penaltyPhotos.splice(Number(btn.dataset.idx), 1);
