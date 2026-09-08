@@ -1,10 +1,11 @@
-const CACHE_NAME = 'portal-cache-v2'; // Оновлена версія для скидання старого кешу
+const CACHE_NAME = 'portal-cache-v3'; // Оновлена версія для скидання старого кешу
 const urlsToCache = [
   './',
   './index.html',
   './schedule.html',
   './extra_shift.html',
-  './videos.html'
+  './videos.html',
+  './analytics.js'
 ];
 
 // Встановлення Service Worker: кешуємо файли і примусово активуємо
