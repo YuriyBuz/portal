@@ -206,7 +206,9 @@
 <script>
     // URL ВАШОГО СКРИПТА (збережено ваш)
     const LOG_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYLX7Rc3jfg1zH_DW_Qbx3uiAK38T9aojJiCwVKSX2-3zej4ScsuC9aFeKcYMNcVfzVA/exec';
-    const SHEET_ID = '1uL5lkZGPk8klJku5dX-eh075aZhFSUTeyIdDHLAQuKg';
+    // ID таблиці графіка тут більше немає: сторінка читає графік через бекенд
+    // (requestType: get_my_schedule). Раніше ID лежав просто у вихідному коді
+    // сторінки, а сама таблиця мусила бути відкрита «всім, хто має посилання».
     
     let selectedDateStr = null;
     let shiftsDatabase = {}; 
@@ -303,7 +305,8 @@
         };
 
         const getVal = (cell) => {
-            if (!cell) return '';
+            if (cell === null || cell === undefined) return '';
+            if (typeof cell === 'string') return cell.trim();
             if (cell.f !== undefined && cell.f !== null) return cell.f.toString().trim();
             if (cell.v !== undefined && cell.v !== null) return cell.v.toString().trim();
             return '';
@@ -311,35 +314,32 @@
 
         async function fetchMonthData(monthIdx, yearNum) {
             const sheetName = `${ukrMonths[monthIdx]} ${yearNum}`;
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
             try {
-                const r = await fetch(url);
-                if (r.ok) {
-                    const txt = await r.text();
-                    const match = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\);/);
-                    if (match) {
-                        return JSON.parse(match[1]).table;
-                    }
-                }
-            } catch(e) {}
-            return null;
+                const r = await fetch(LOG_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        requestType: 'get_my_schedule',
+                        monthYear: sheetName,
+                        token: sessionStorage.getItem('portal_token')
+                    })
+                });
+                if (!r.ok) return null;
+                const d = await r.json();
+                // found: false — це не помилка: людини просто немає в графіку на цей місяць
+                return (d && d.found && Array.isArray(d.row)) ? { row: d.row } : null;
+            } catch (e) {
+                return null;
+            }
         }
 
-        function parseShifts(table, monthIdx, yearNum) {
-            if (!table || !table.rows || table.rows.length === 0) return;
-            
-            let userRow = null;
-            for (const row of table.rows) {
-                if (row && row.c && row.c[0]) {
-                    const nameInSheet = getVal(row.c[0]).toLowerCase();
-                    if (nameInSheet.includes(currentUser.toLowerCase().split(' ')[0])) {
-                        userRow = row.c;
-                        break;
-                    }
-                }
-            }
-            
-            if (!userRow) return;
+        function parseShifts(data, monthIdx, yearNum) {
+            // Рядок приходить уже знайденим: бекенд зіставляє ПІБ за прізвищем
+            // та ініціалами. Раніше пошук ішов тут, за самим прізвищем, і всі
+            // однофамільці (Соботович, Максімюк, Миняйло, Іванчук, Бондаренко)
+            // бачили графік того, хто стоїть у таблиці вище.
+            const userRow = data && data.row;
+            if (!userRow || !userRow.length) return;
 
             const daysInMonth = new Date(yearNum, monthIdx + 1, 0).getDate();
             const now = new Date();
