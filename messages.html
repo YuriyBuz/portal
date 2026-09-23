@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Повідомлення | Портал працівника</title>
+    <meta name="theme-color" content="#059669">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <style>
+        body { background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        .dark body { background-color: #0f172a; }
+        .tab-btn.active { background:#059669; color:#fff; }
+        .msg-text { white-space: pre-wrap; word-break: break-word; }
+    </style>
+</head>
+<body class="font-sans text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-col transition-colors duration-200">
+
+    <nav class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="text-slate-500 dark:text-slate-400 hover:text-emerald-600 transition-colors flex items-center gap-1 font-medium bg-slate-50 dark:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                        <span class="hidden sm:inline">Назад</span>
+                    </a>
+                    <h1 class="text-lg font-bold text-slate-800 dark:text-white truncate">Повідомлення</h1>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="theme-toggle" title="Тема" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    </button>
+                    <div class="text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800 flex items-center gap-2 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="user-name" class="truncate max-w-[120px] sm:max-w-[200px]">...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-4xl mx-auto w-full px-4 py-6">
+        <div class="flex gap-2 mb-6 flex-wrap">
+            <button data-tab="new"   class="tab-btn active px-4 py-2 rounded-lg font-medium text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Написати</button>
+            <button data-tab="mine"  class="tab-btn px-4 py-2 rounded-lg font-medium text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Мої звернення</button>
+            <button data-tab="inbox" class="tab-btn hidden px-4 py-2 rounded-lg font-medium text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Вхідні</button>
+        </div>
+
+        <!-- Написати -->
+        <section id="tab-new" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 sm:p-6 shadow-sm">
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-5">Запит, ідея, пропозиція чи проблема — напишіть, і це побачить відповідальний.</p>
+            <form id="msg-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold mb-2">Кому</label>
+                    <select id="msg-category" required class="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">-- оберіть --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2">Тема</label>
+                    <input type="text" id="msg-subject" required maxlength="150" placeholder="Коротко, про що йдеться" class="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2">Опис</label>
+                    <textarea id="msg-text" required rows="7" maxlength="4000" placeholder="Опишіть детально" class="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                    <p class="text-xs text-slate-400 mt-1"><span id="msg-count">0</span> / 4000</p>
+                </div>
+                <label class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-200 dark:border-slate-600 cursor-pointer">
+                    <input type="checkbox" id="msg-anon" class="mt-0.5 w-4 h-4 accent-emerald-600">
+                    <span class="text-sm">
+                        <b>Надіслати анонімно</b>
+                        <span class="block text-slate-500 dark:text-slate-400 mt-0.5">Ваше ПІБ не збережеться. Відповідь ви побачите тут, у розділі «Мої звернення».</span>
+                    </span>
+                </label>
+                <div id="msg-error" class="hidden text-sm text-red-600 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3"></div>
+                <button type="submit" id="msg-submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-md disabled:opacity-60">Надіслати</button>
+            </form>
+        </section>
+
+        <!-- Мої звернення -->
+        <section id="tab-mine" class="hidden space-y-3"></section>
+
+        <!-- Вхідні -->
+        <section id="tab-inbox" class="hidden space-y-3"></section>
+    </main>
+
+    <!-- Підтвердження -->
+    <div id="ok-modal" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-2xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
+            <div class="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Звернення надіслано</h3>
+            <p id="ok-text" class="text-slate-500 dark:text-slate-400 mb-6"></p>
+            <button type="button" id="ok-close" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors">Зрозуміло</button>
+        </div>
+    </div>
+
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYLX7Rc3jfg1zH_DW_Qbx3uiAK38T9aojJiCwVKSX2-3zej4ScsuC9aFeKcYMNcVfzVA/exec';
+
+    const STATUS_STYLE = {
+        'Нове':      'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300',
+        'В роботі':  'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+        'Відповіли': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+        'Закрито':   'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+    };
+
+    function esc(s) {
+        return String(s === null || s === undefined ? '' : s)
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    async function api(payload) {
+        const r = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(Object.assign({ token: sessionStorage.getItem('portal_token') }, payload))
+        });
+        return r.json();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const user  = sessionStorage.getItem('portal_user');
+        const token = sessionStorage.getItem('portal_token');
+        if (!user || !token) {
+            document.body.innerHTML = `
+                <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+                    <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-200 dark:border-slate-700">
+                        <h2 class="text-xl font-bold mb-2">Помилка доступу</h2>
+                        <p class="text-slate-500 dark:text-slate-400 mb-6">Авторизуйтесь для доступу.</p>
+                        <a href="index.html" class="inline-block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl">До входу</a>
+                    </div>
+                </div>`;
+            return;
+        }
+        document.getElementById('user-name').textContent = user;
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        const textEl = document.getElementById('msg-text');
+        textEl.addEventListener('input', () => {
+            document.getElementById('msg-count').textContent = textEl.value.length;
+        });
+
+        // ---- вкладки ----
+        const tabs = ['new', 'mine', 'inbox'];
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const t = btn.dataset.tab;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+                tabs.forEach(x => document.getElementById('tab-' + x).classList.toggle('hidden', x !== t));
+                if (t === 'mine')  loadMine();
+                if (t === 'inbox') loadInbox();
+            });
+        });
+
+        // ---- категорії + чи є вхідні ----
+        api({ requestType: 'get_message_categories' }).then(d => {
+            const sel = document.getElementById('msg-category');
+            (d.categories || []).forEach(c => {
+                const o = document.createElement('option');
+                o.value = c; o.textContent = c; sel.appendChild(o);
+            });
+            if ((d.inbox || []).length) {
+                document.querySelector('[data-tab="inbox"]').classList.remove('hidden');
+            }
+        }).catch(() => {});
+
+        // ---- надіслати ----
+        document.getElementById('msg-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('msg-submit');
+            const err = document.getElementById('msg-error');
+            err.classList.add('hidden');
+            btn.disabled = true; btn.textContent = 'Надсилання...';
+            try {
+                const res = await api({
+                    requestType: 'submit_message',
+                    category: document.getElementById('msg-category').value,
+                    subject:  document.getElementById('msg-subject').value,
+                    text:     textEl.value,
+                    anonymous: document.getElementById('msg-anon').checked
+                });
+                if (res && res.status === 'OK') {
+                    document.getElementById('ok-text').textContent = 'Номер звернення: ' + res.id + '. Відповідь з’явиться у вкладці «Мої звернення».';
+                    document.getElementById('ok-modal').classList.remove('hidden');
+                    e.target.reset();
+                    document.getElementById('msg-count').textContent = '0';
+                } else {
+                    err.textContent = (res && res.error) || 'Не вдалося надіслати. Спробуйте ще раз.';
+                    err.classList.remove('hidden');
+                }
+            } catch (ex) {
+                err.textContent = 'Немає зв’язку з сервером.';
+                err.classList.remove('hidden');
+            }
+            btn.disabled = false; btn.textContent = 'Надіслати';
+        });
+        document.getElementById('ok-close').addEventListener('click', () => {
+            document.getElementById('ok-modal').classList.add('hidden');
+        });
+
+        // ---- картка звернення ----
+        function card(m, withReply) {
+            const badge = STATUS_STYLE[m.status] || STATUS_STYLE['Нове'];
+            return `
+            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+                <div class="flex items-start justify-between gap-3 mb-2">
+                    <div>
+                        <p class="font-bold text-slate-800 dark:text-white">${esc(m.subject)}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">№ ${esc(m.id)} · ${esc(m.category)} · ${esc(m.date)}${withReply ? ' · ' + esc(m.author) : ''}</p>
+                    </div>
+                    <span class="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full ${badge}">${esc(m.status)}</span>
+                </div>
+                <p class="msg-text text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-600 rounded-lg p-3">${esc(m.text)}</p>
+                ${m.reply ? `
+                <div class="mt-3 border-l-4 border-emerald-500 pl-3">
+                    <p class="text-xs font-bold text-emerald-700 dark:text-emerald-400">Відповідь${m.answeredBy ? ' — ' + esc(m.answeredBy) : ''}${m.replyDate ? ' · ' + esc(m.replyDate) : ''}</p>
+                    <p class="msg-text text-sm text-slate-700 dark:text-slate-300 mt-1">${esc(m.reply)}</p>
+                </div>` : ''}
+                ${withReply ? `
+                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 space-y-2">
+                    <textarea data-reply="${esc(m.id)}" rows="3" placeholder="Текст відповіді" class="w-full p-3 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">${esc(m.reply || '')}</textarea>
+                    <div class="flex gap-2 flex-wrap">
+                        <select data-status="${esc(m.id)}" class="p-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white">
+                            ${['Нове','В роботі','Відповіли','Закрито'].map(s => `<option value="${s}"${s === m.status ? ' selected' : ''}>${s}</option>`).join('')}
+                        </select>
+                        <button data-send="${esc(m.id)}" class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors">Зберегти</button>
+                    </div>
+                </div>` : ''}
+            </div>`;
+        }
+
+        function render(box, list, withReply, empty) {
+            if (!list.length) {
+                box.innerHTML = `<div class="text-center py-14 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <p class="text-slate-500 dark:text-slate-400 font-medium">${esc(empty)}</p></div>`;
+                return;
+            }
+            box.innerHTML = list.map(m => card(m, withReply)).join('');
+        }
+
+        async function loadMine() {
+            const box = document.getElementById('tab-mine');
+            box.innerHTML = '<p class="text-center text-slate-400 py-10">Завантаження...</p>';
+            try {
+                const d = await api({ requestType: 'get_my_messages' });
+                render(box, (d && d.messages) || [], false, 'Ви ще не надсилали звернень');
+            } catch (e) {
+                box.innerHTML = '<p class="text-center text-red-500 py-10">Немає зв’язку з сервером</p>';
+            }
+        }
+
+        async function loadInbox() {
+            const box = document.getElementById('tab-inbox');
+            box.innerHTML = '<p class="text-center text-slate-400 py-10">Завантаження...</p>';
+            try {
+                const d = await api({ requestType: 'get_messages' });
+                render(box, (d && d.messages) || [], true, 'Вхідних звернень немає');
+            } catch (e) {
+                box.innerHTML = '<p class="text-center text-red-500 py-10">Немає зв’язку з сервером</p>';
+            }
+        }
+
+        // ---- відповісти (делегування, бо картки перемальовуються) ----
+        document.getElementById('tab-inbox').addEventListener('click', async (e) => {
+            const btn = e.target.closest('[data-send]');
+            if (!btn) return;
+            const id = btn.dataset.send;
+            const reply  = document.querySelector(`[data-reply="${id}"]`).value;
+            const status = document.querySelector(`[data-status="${id}"]`).value;
+            btn.disabled = true; btn.textContent = 'Збереження...';
+            try {
+                const res = await api({ requestType: 'reply_message', id: id, reply: reply, status: status });
+                if (!res || res.error) alert((res && res.error) || 'Не вдалося зберегти');
+                await loadInbox();
+            } catch (ex) {
+                alert('Немає зв’язку з сервером');
+                btn.disabled = false; btn.textContent = 'Зберегти';
+            }
+        });
+    });
+</script>
+    <script src="./analytics.js"></script>
+</body>
+</html>
