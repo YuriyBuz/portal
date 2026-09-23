@@ -48,7 +48,10 @@
         <div class="flex gap-2 mb-6 flex-wrap">
             <button data-tab="new"   class="tab-btn active px-4 py-2 rounded-lg font-medium text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Написати</button>
             <button data-tab="mine"  class="tab-btn px-4 py-2 rounded-lg font-medium text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Мої звернення</button>
-            <button data-tab="inbox" class="tab-btn hidden px-4 py-2 rounded-lg font-medium text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Вхідні</button>
+            <button data-tab="inbox" class="tab-btn hidden relative px-4 pr-7 py-2 rounded-lg font-medium text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                Вхідні
+                <span id="inbox-badge" class="hidden absolute top-0.5 right-0.5 min-w-[17px] h-[17px] px-1 flex items-center justify-center rounded-full bg-red-600 text-white text-[10px] font-bold shadow">0</span>
+            </button>
         </div>
 
         <!-- Написати -->
@@ -103,6 +106,21 @@
 
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYLX7Rc3jfg1zH_DW_Qbx3uiAK38T9aojJiCwVKSX2-3zej4ScsuC9aFeKcYMNcVfzVA/exec';
+
+    // Випадайка статусу фарбується в той самий колір, що й значок статусу,
+    // щоб стан звернення читався з одного погляду, не вчитуючись у текст.
+    const STATUS_SELECT = {
+        'Нове':      'border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-700 dark:bg-sky-900/40 dark:text-sky-200',
+        'В роботі':  'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-900/40 dark:text-amber-200',
+        'Відповіли': 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200',
+        'Закрито':   'border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200'
+    };
+    const STATUS_SELECT_ALL = Object.values(STATUS_SELECT).join(' ').split(' ').filter(Boolean);
+
+    function paintStatus(sel) {
+        sel.classList.remove(...STATUS_SELECT_ALL);
+        sel.classList.add(...(STATUS_SELECT[sel.value] || STATUS_SELECT['Нове']).split(' ').filter(Boolean));
+    }
 
     const STATUS_STYLE = {
         'Нове':      'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300',
@@ -173,6 +191,7 @@
             });
             if ((d.inbox || []).length) {
                 document.querySelector('[data-tab="inbox"]').classList.remove('hidden');
+                loadInbox();   // щоб кружечок був одразу, ще до відкриття вкладки
             }
         }).catch(() => {});
 
@@ -232,7 +251,7 @@
                 <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 space-y-2">
                     <textarea data-reply="${esc(m.id)}" rows="3" placeholder="Текст відповіді" class="w-full p-3 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">${esc(m.reply || '')}</textarea>
                     <div class="flex gap-2 flex-wrap">
-                        <select data-status="${esc(m.id)}" class="p-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white">
+                        <select data-status="${esc(m.id)}" class="p-2 text-sm rounded-lg border font-medium outline-none focus:ring-2 focus:ring-emerald-500">
                             ${['Нове','В роботі','Відповіли','Закрито'].map(s => `<option value="${s}"${s === m.status ? ' selected' : ''}>${s}</option>`).join('')}
                         </select>
                         <button data-send="${esc(m.id)}" class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors">Зберегти</button>
@@ -248,6 +267,16 @@
                 return;
             }
             box.innerHTML = list.map(m => card(m, withReply)).join('');
+            box.querySelectorAll('[data-status]').forEach(paintStatus);
+        }
+
+        /** Скільки звернень без відповіді. Закриті без тексту не рахуємо: їх опрацювали. */
+        function setInboxBadge(list) {
+            const b = document.getElementById('inbox-badge');
+            if (!b) return;
+            const n = list.filter(m => !m.reply && m.status !== 'Закрито').length;
+            b.textContent = n;
+            b.classList.toggle('hidden', n === 0);
         }
 
         async function loadMine() {
@@ -266,13 +295,19 @@
             box.innerHTML = '<p class="text-center text-slate-400 py-10">Завантаження...</p>';
             try {
                 const d = await api({ requestType: 'get_messages' });
-                render(box, (d && d.messages) || [], true, 'Вхідних звернень немає');
+                const list = (d && d.messages) || [];
+                setInboxBadge(list);
+                render(box, list, true, 'Вхідних звернень немає');
             } catch (e) {
                 box.innerHTML = '<p class="text-center text-red-500 py-10">Немає зв’язку з сервером</p>';
             }
         }
 
         // ---- відповісти (делегування, бо картки перемальовуються) ----
+        document.getElementById('tab-inbox').addEventListener('change', (e) => {
+            if (e.target.matches('[data-status]')) paintStatus(e.target);
+        });
+
         document.getElementById('tab-inbox').addEventListener('click', async (e) => {
             const btn = e.target.closest('[data-send]');
             if (!btn) return;
